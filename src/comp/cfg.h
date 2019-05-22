@@ -9,7 +9,6 @@
 #define COMP_CFG_H_
 
 #include "cfg_node.h"
-#include <vector>
 
 typedef unsigned Partition;
 
@@ -21,8 +20,10 @@ public:
 	~CFG();
 
 
-	std::vector<CFGNode> getPredesessors(CFGNode* node);
-	std::vector<CFGNode> getSuccessors(CFGNode* node);
+	std::vector<CFGNode*> getPredesessors(CFGNode* node);
+	std::vector<CFGNode*> getSuccessors(CFGNode* node);
+
+	std::vector<CFGNode*> getNodes();
 
 
 private:

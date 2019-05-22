@@ -10,12 +10,13 @@
 
 #include "peGraphPointer.h"
 #include "stmt.h"
+#include "../common/CommonLibs.hpp"
 
 class CFGNode{
 
 public:
 	CFGNode();
-	~CFGNode();
+	~CFGNode(){}
 
 
 	inline Stmt* getStmt(){

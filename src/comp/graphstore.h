@@ -8,7 +8,7 @@
 #ifndef COMP_GRAPHSTORE_H_
 #define COMP_GRAPHSTORE_H_
 
-#include "peGraph.h"
+#include "pegraph.h"
 #include "peGraphPointer.h"
 
 class GraphStore{
@@ -19,9 +19,9 @@ public:
 
 
 
-	PEGraph* retrieve(PEGraph_Pointer graph_pointer);
+	virtual PEGraph* retrieve(PEGraph_Pointer graph_pointer);
 
-	void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph);
+	virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph);
 
 
 

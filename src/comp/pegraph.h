@@ -15,6 +15,8 @@ public:
 	PEGraph();
 	~PEGraph();
 
+	bool equals(PEGraph* another);
+
 
 private:
 
