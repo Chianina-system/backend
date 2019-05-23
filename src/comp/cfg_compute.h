@@ -37,9 +37,29 @@ private:
 
 	PEGraph* combine(CFGNode* cfg_node);
 
-	PEGraph* transfer(PEGraph* in, Stmt* stmt);
+	PEGraph* transfer(PEGraph* in, Stmt* stmt){
+		switch(stmt->getType()){
+		case TYPE::Copy:
+			return transfer_copy(in, stmt);
+		case TYPE::Load:
+			return transfer_load(in, stmt);
+		case TYPE::Store:
+			return transfer_store(in, stmt);
+		case TYPE::Address:
+			return transfer_address(in, stmt);
+		default:
+			return NULL;
+		}
+	}
 
 
+	PEGraph* transfer_copy(PEGraph* in, Stmt* stmt);
+
+	PEGraph* transfer_load(PEGraph* in, Stmt* stmt);
+
+	PEGraph* transfer_store(PEGraph* in, Stmt* stmt);
+
+	PEGraph* transfer_address(PEGraph* in, Stmt* stmt);
 
 
 

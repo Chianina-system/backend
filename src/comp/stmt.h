@@ -21,6 +21,11 @@ class Stmt{
 public:
 
 
+	TYPE getType() const{
+		return t;
+	}
+
+
 
 private:
 	TYPE t;

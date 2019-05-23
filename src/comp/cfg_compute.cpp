@@ -73,7 +73,24 @@ PEGraph* CFGCompute::combine(CFGNode* node){
 }
 
 
-PEGraph* CFGCompute::transfer(PEGraph* in, Stmt* stmt){
+//PEGraph* CFGCompute::transfer(PEGraph* in, Stmt* stmt){
+//
+//}
+
+
+PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt){
+
+}
+
+PEGraph* CFGCompute::transfer_load(PEGraph* in, Stmt* stmt){
+
+}
+
+PEGraph* CFGCompute::transfer_store(PEGraph* in, Stmt* stmt){
+
+}
+
+PEGraph* CFGCompute::transfer_address(PEGraph* in, Stmt* stmt){
 
 }
 
