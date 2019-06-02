@@ -57,6 +57,9 @@
 
 #include <sys/stat.h>
 
+using std::cout;
+using std::endl;
+
 //#include <boost/asio/io_service.hpp>
 //#include <boost/bind.hpp>
 //#include <boost/thread/thread.hpp>
@@ -79,5 +82,8 @@ typedef int16_t int16;
 typedef int8_t int8;
 typedef uint8_t uint8;
 
+typedef int vertexid_t;
+typedef char label_t;
 
+#define GRAMMAR_STR_LEN 36
 #endif /* SRC_COMMON_RSTREAMCOMMON_HPP_ */
