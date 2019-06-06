@@ -45,10 +45,13 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<C
 	CFGNode* cfg_node;
 	while(worklist_1->pop_atomic(cfg_node)){
 		//merge
-		PEGraph* in = combine(cfg_node);
+		PEGraph* in = combine(cfg, graphstore, cfg_node);
 
 		//transfer
 		PEGraph* out = transfer(in, cfg_node->getStmt());
+
+		//clean in
+		delete in;
 
 		//update and propagate
 		PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
@@ -63,12 +66,38 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<C
 				worklist_2->push_atomic(*it);
 			}
 		}
+
+		//clean out
+		delete out;
 	}
 }
 
 
 
-PEGraph* CFGCompute::combine(CFGNode* node){
+PEGraph* CFGCompute::combine(const CFG* cfg, const GraphStore* graphstore, const CFGNode* node){
+	//get the predecessors of node
+	std::vector<CFGNode*> preds = cfg->getPredesessors(node);
+
+	if(preds.size() == 0){//entry node
+		//return an empty graph
+		return new PEGraph();
+	}
+	else if(preds.size() == 1){
+		CFGNode* pred = preds[0];
+		PEGraph_Pointer out_pointer = pred->getOutPointer();
+		PEGraph* out_graph = graphstore->retrieve(out_pointer);
+		return out_graph;
+	}
+	else{
+
+		for(auto it = preds.cbegin(); it != preds.cend(); it++){
+			CFGNode* pred = *it;
+			PEGraph_Pointer out_pointer = pred->getOutPointer();
+			PEGraph* out_graph = graphstore->retrieve(out_pointer);
+		}
+
+	}
+
 
 }
 

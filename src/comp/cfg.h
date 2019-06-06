@@ -20,8 +20,8 @@ public:
 	~CFG();
 
 
-	std::vector<CFGNode*> getPredesessors(CFGNode* node);
-	std::vector<CFGNode*> getSuccessors(CFGNode* node);
+	std::vector<CFGNode*> getPredesessors(const CFGNode* node) const;
+	std::vector<CFGNode*> getSuccessors(const CFGNode* node) const;
 
 	std::vector<CFGNode*> getNodes();
 

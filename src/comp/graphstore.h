@@ -19,7 +19,7 @@ public:
 
 
 
-	virtual PEGraph* retrieve(PEGraph_Pointer graph_pointer);
+	virtual PEGraph* retrieve(const PEGraph_Pointer graph_pointer) const;
 
 	virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph);
 

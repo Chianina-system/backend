@@ -11,11 +11,11 @@ std::vector<CFGNode*> CFG::getNodes(){
 
 }
 
-std::vector<CFGNode*> CFG::getPredesessors(CFGNode* node){
+std::vector<CFGNode*> CFG::getPredesessors(const CFGNode* node) const {
 
 }
 
-std::vector<CFGNode*> CFG::getSuccessors(CFGNode* node){
+std::vector<CFGNode*> CFG::getSuccessors(const CFGNode* node) const {
 
 }
 
