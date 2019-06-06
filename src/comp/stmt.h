@@ -7,7 +7,7 @@
 
 #ifndef COMP_STMT_H_
 #define COMP_STMT_H_
-
+#include "../common/CommonLibs.hpp"
 
 enum class TYPE {
 	Copy,
@@ -25,14 +25,18 @@ public:
 		return t;
 	}
 
+	vertexid_t getSrc() const{
+		return src;	
+	}
 
+	vertexid_t getDst() const{
+		return dst;	
+	}
 
 private:
 	TYPE t;
-
-
-
-
+	vertexid_t src;
+	vertexid_t dst;
 
 };
 
