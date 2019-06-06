@@ -13,6 +13,7 @@
 class ART: public GraphStore {
 
 public:
+	~ART(){}
 
 	PEGraph* retrieve(PEGraph_Pointer graph_pointer);
 

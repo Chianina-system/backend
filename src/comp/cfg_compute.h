@@ -20,7 +20,7 @@ class CFGCompute{
 public:
 	unsigned int num_threads;
 
-	void load(Partition* part);
+	bool load(Partition* part, CFG* cfg, GraphStore* graphstore);
 
 	void do_worklist(CFG* cfg, GraphStore* graphstore); //worklist algorithm in parallel
 

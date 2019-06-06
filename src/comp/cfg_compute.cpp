@@ -9,6 +9,11 @@
 #include "cfg_compute.h"
 #include "edgesToDelete.h"
 
+
+bool CFGCompute::load(Partition* part, CFG* cfg, GraphStore* graphstore){
+
+}
+
 void CFGCompute::do_worklist(CFG* cfg, GraphStore* graphstore){
 	Concurrent_Worklist<CFGNode*>* worklist_1 = new Concurrent_Worklist<CFGNode*>();
 
@@ -105,6 +110,7 @@ PEGraph* CFGCompute::combine(const CFG* cfg, const GraphStore* graphstore, const
 
 		return out;
 	}
+
 }
 
 PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar){

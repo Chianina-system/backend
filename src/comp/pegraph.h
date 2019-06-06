@@ -13,7 +13,7 @@ class PEGraph{
 
 public:
 	PEGraph();
-	~PEGraph(){}
+	virtual ~PEGraph(){}
 
 	PEGraph(PEGraph *p); 
 	bool equals(PEGraph* another);

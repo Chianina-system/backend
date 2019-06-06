@@ -17,7 +17,7 @@ class CFG{
 public:
 	CFG();
 //	CFG(Partition* part);
-	~CFG();
+	~CFG(){}
 
 
 	std::vector<CFGNode*> getPredesessors(const CFGNode* node) const;

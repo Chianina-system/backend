@@ -15,7 +15,7 @@ class GraphStore{
 
 public:
 	GraphStore();
-	~GraphStore();
+	virtual ~GraphStore(){}
 
 
 
