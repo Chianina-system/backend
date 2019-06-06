@@ -13,7 +13,7 @@ class PEGraph{
 
 public:
 	PEGraph();
-	~PEGraph();
+	~PEGraph(){}
 
 	PEGraph(PEGraph *p); 
 	bool equals(PEGraph* another);
@@ -32,6 +32,15 @@ public:
 	
 	void setEdgeArray(vertexid_t index,int numEdges,vertexid_t *edges,label_t *labels);
 	void clearEdgeArray(vertexid_t index);
+
+	static PEGraph* merge(const PEGraph* graph_1, const PEGraph* graph_2){
+		//merge graph_1 and graph_2 together to generate a new graph
+
+		delete graph_1;
+		delete graph_2;
+
+//		return NULL;
+	}
 
 private:
 	vertexid_t firstVid;

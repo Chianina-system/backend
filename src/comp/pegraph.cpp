@@ -7,6 +7,11 @@
 
 #include "pegraph.h"
 
+PEGraph::PEGraph() {
+	//TODO: create an empty graph
+
+}
+
 PEGraph::PEGraph(PEGraph* p) {
 	this->firstVid = p->getFirstVid();
 	this->numVertices = p->getNumVertices();

@@ -23,11 +23,11 @@ public:
 		return stmt;
 	}
 
-	inline PEGraph_Pointer getInPointer(){
+	inline PEGraph_Pointer getInPointer() const {
 		return in_pointer;
 	}
 
-	inline PEGraph_Pointer getOutPointer(){
+	inline PEGraph_Pointer getOutPointer() const {
 		return out_pointer;
 	}
 

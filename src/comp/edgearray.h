@@ -11,7 +11,7 @@ class EdgeArray {
 	public:
 		EdgeArray();
 		EdgeArray(int size,vertexid_t *edges,label_t *labels);
-		~EdgeArray();
+		~EdgeArray(){}
 
 		// getters and setters
 		inline bool isEmpty() {return !size;}

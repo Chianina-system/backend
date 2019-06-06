@@ -94,16 +94,17 @@ PEGraph* CFGCompute::combine(const CFG* cfg, const GraphStore* graphstore, const
 		return out_graph;
 	}
 	else{
+		PEGraph* out = new PEGraph();
 
 		for(auto it = preds.cbegin(); it != preds.cend(); it++){
 			CFGNode* pred = *it;
 			PEGraph_Pointer out_pointer = pred->getOutPointer();
 			PEGraph* out_graph = graphstore->retrieve(out_pointer);
+			out = PEGraph::merge(out, out_graph);
 		}
 
+		return out;
 	}
-
-
 }
 
 PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar){

@@ -15,7 +15,7 @@ class EdgesToDelete {
 
 	public:	
 		EdgesToDelete();
-		~EdgesToDelete();
+		~EdgesToDelete(){}
 		void clear();
 
 		// getters and setters
