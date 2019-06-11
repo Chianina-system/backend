@@ -23,9 +23,9 @@ public:
 		return stmt;
 	}
 
-	inline PEGraph_Pointer getInPointer() const {
-		return in_pointer;
-	}
+//	inline PEGraph_Pointer getInPointer() const {
+//		return in_pointer;
+//	}
 
 	inline PEGraph_Pointer getOutPointer() const {
 		return out_pointer;
@@ -33,7 +33,7 @@ public:
 
 
 private:
-	PEGraph_Pointer in_pointer;
+//	PEGraph_Pointer in_pointer;
 	PEGraph_Pointer out_pointer;
 
 

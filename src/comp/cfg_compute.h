@@ -9,7 +9,7 @@
 #define COMP_CFG_COMPUTE_H_
 
 #include "graphstore.h"
-#include "cfg.h"
+#include "cfg_map.h"
 #include "concurrent_worklist.h"
 #include "grammar.h"
 #include "peg_compute.h"

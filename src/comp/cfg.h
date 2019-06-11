@@ -17,16 +17,16 @@ class CFG{
 public:
 	CFG();
 //	CFG(Partition* part);
-	~CFG(){}
+	virtual ~CFG();
 
 
-	std::vector<CFGNode*> getPredesessors(const CFGNode* node) const;
-	std::vector<CFGNode*> getSuccessors(const CFGNode* node) const;
-
-	std::vector<CFGNode*> getNodes();
+	virtual std::vector<CFGNode*> getPredesessors(const CFGNode* node) const;
+	virtual std::vector<CFGNode*> getSuccessors(const CFGNode* node) const;
+	virtual std::vector<CFGNode*> getNodes() const;
 
 
 private:
+
 
 
 };
