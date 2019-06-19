@@ -15,31 +15,31 @@
 class CFGNode{
 
 public:
-	CFGNode();
-	~CFGNode(){}
+    CFGNode();
+    ~CFGNode(){}
 
 
-	inline Stmt* getStmt(){
-		return stmt;
-	}
+    inline Stmt* getStmt(){
+        return stmt;
+    }
 
 //	inline PEGraph_Pointer getInPointer() const {
 //		return in_pointer;
 //	}
 
-	inline PEGraph_Pointer getOutPointer() const {
-		return out_pointer;
-	}
+    inline PEGraph_Pointer getOutPointer() const {
+        return out_pointer;
+    }
 
 
 private:
 //	PEGraph_Pointer in_pointer;
-	PEGraph_Pointer out_pointer;
+    PEGraph_Pointer out_pointer;
 
 
-	Stmt* stmt;
+    Stmt* stmt;
 
-	//vetex id...
+    //vetex id...
 
 
 };

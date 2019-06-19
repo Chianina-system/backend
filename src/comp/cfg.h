@@ -15,14 +15,14 @@ typedef unsigned Partition;
 class CFG{
 
 public:
-	CFG();
+    CFG();
 //	CFG(Partition* part);
-	virtual ~CFG();
+    virtual ~CFG();
 
 
-	virtual std::vector<CFGNode*> getPredesessors(const CFGNode* node) const;
-	virtual std::vector<CFGNode*> getSuccessors(const CFGNode* node) const;
-	virtual std::vector<CFGNode*> getNodes() const;
+    virtual std::vector<CFGNode*> getPredesessors(const CFGNode* node) const;
+    virtual std::vector<CFGNode*> getSuccessors(const CFGNode* node) const;
+    virtual std::vector<CFGNode*> getNodes() const;
 
 
 private:

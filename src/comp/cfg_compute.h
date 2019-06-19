@@ -18,11 +18,11 @@
 class CFGCompute{
 
 public:
-	unsigned int num_threads;
+    unsigned int num_threads;
 
-	bool load(Partition* part, CFG* cfg, GraphStore* graphstore);
+    bool load(Partition* part, CFG* cfg, GraphStore* graphstore);
 
-	void do_worklist(CFG* cfg, GraphStore* graphstore); //worklist algorithm in parallel
+    void do_worklist(CFG* cfg, GraphStore* graphstore); //worklist algorithm in parallel
 
 
 
@@ -33,48 +33,48 @@ private:
 
 
 
-	void compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2);
+    void compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2);
 
 
 //	void peg_compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist, CFGNode* cfg_node);
 
-	PEGraph* combine(const CFG* cfg, const GraphStore* graphstore, const CFGNode* cfg_node);
+    PEGraph* combine(const CFG* cfg, const GraphStore* graphstore, const CFGNode* cfg_node);
 
-	PEGraph* transfer(PEGraph* in, Stmt* stmt,Grammar* grammar){
-		switch(stmt->getType()){
-		case TYPE::Copy:
-			return transfer_copy(in, stmt, grammar);
-		case TYPE::Load:
-			return transfer_load(in, stmt, grammar);
-		case TYPE::Store:
-			return transfer_store(in, stmt, grammar);
-		case TYPE::Address:
-			return transfer_address(in, stmt, grammar);
-		default:
-			return NULL;
-		}
-	}
+    PEGraph* transfer(PEGraph* in, Stmt* stmt,Grammar* grammar){
+        switch(stmt->getType()){
+            case TYPE::Copy:
+                return transfer_copy(in, stmt, grammar);
+            case TYPE::Load:
+                return transfer_load(in, stmt, grammar);
+            case TYPE::Store:
+                return transfer_store(in, stmt, grammar);
+            case TYPE::Address:
+                return transfer_address(in, stmt, grammar);
+            default:
+                return NULL;
+        }
+    }
 
 
-	PEGraph* transfer_copy(PEGraph* in, Stmt* stmt,Grammar* grammar);
+    PEGraph* transfer_copy(PEGraph* in, Stmt* stmt,Grammar* grammar);
 
-	PEGraph* transfer_load(PEGraph* in, Stmt* stmt,Grammar* grammar);
+    PEGraph* transfer_load(PEGraph* in, Stmt* stmt,Grammar* grammar);
 
-	PEGraph* transfer_store(PEGraph* in, Stmt* stmt,Grammar* grammar);
+    PEGraph* transfer_store(PEGraph* in, Stmt* stmt,Grammar* grammar);
 
-	PEGraph* transfer_address(PEGraph* in, Stmt* stmt,Grammar* grammar);
+    PEGraph* transfer_address(PEGraph* in, Stmt* stmt,Grammar* grammar);
 
-	bool is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar);
+    bool is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar);
 
-	void strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar);
+    void strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar);
 
-	void must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar);
+    void must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar);
 
-	bool isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar);
+    bool isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar);
 
-	void peg_compute(PEGraph *out,Stmt* stmt,Grammar* grammar);
+    void peg_compute(PEGraph *out,Stmt* stmt,Grammar* grammar);
 
-	void initComputationSet(ComputationSet &compset,PEGraph *out,Stmt *stmt);
+    void initComputationSet(ComputationSet &compset,PEGraph *out,Stmt *stmt);
 };
 
 

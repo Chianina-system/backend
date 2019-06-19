@@ -13,13 +13,13 @@ using namespace std;
 
 
 int main() {
-	CFG* cfg;
-	GraphStore* graphstore;
-	Partition* partition;
+	CFG *cfg = nullptr;
+	GraphStore *graphstore = nullptr;
+	Partition *partition = nullptr;
 
 	CFGCompute* computer = new CFGCompute();
 	computer->load(partition, cfg, graphstore);
-	computer->do_worklist(cfg, graphstore);
+	computer->do_worklist(cfg, graphstore);             //get the pegraph using the graphstore
 
 	delete cfg;
 	delete graphstore;

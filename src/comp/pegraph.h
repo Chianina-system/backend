@@ -12,41 +12,41 @@
 class PEGraph{
 
 public:
-	PEGraph();
-	virtual ~PEGraph(){}
+    PEGraph();
+    virtual ~PEGraph(){}
 
-	PEGraph(PEGraph *p); 
-	bool equals(PEGraph* another);
-	
-	// getters and setters
-	inline vertexid_t getFirstVid() {return firstVid;}
-	inline EdgeArray* getGraph() {return graph;}
-	inline bool* getSingletonArray() {return isSingletonArray;}
-	inline vertexid_t getNumVertices() {return numVertices;}
-	inline bool isSingleton(vertexid_t vid) {return isSingletonArray[vid - firstVid];}	
+    PEGraph(PEGraph *p);
+    bool equals(PEGraph* another);
+
+    // getters and setters
+    inline vertexid_t getFirstVid() {return firstVid;}
+    inline EdgeArray* getGraph() {return graph;}
+    inline bool* getSingletonArray() {return isSingletonArray;}
+    inline vertexid_t getNumVertices() {return numVertices;}
+    inline bool isSingleton(vertexid_t vid) {return isSingletonArray[vid - firstVid];}
 
 
-	inline vertexid_t* getEdges(vertexid_t index) {return graph[index].getEdges();}
-	inline label_t* getLabels(vertexid_t index) {return graph[index].getLabels();}
-	inline vertexid_t getNumEdges(vertexid_t index) {return graph[index].getSize();}
-	
-	void setEdgeArray(vertexid_t index,int numEdges,vertexid_t *edges,label_t *labels);
-	void clearEdgeArray(vertexid_t index);
+    inline vertexid_t* getEdges(vertexid_t index) {return graph[index].getEdges();}
+    inline label_t* getLabels(vertexid_t index) {return graph[index].getLabels();}
+    inline vertexid_t getNumEdges(vertexid_t index) {return graph[index].getSize();}
 
-	static PEGraph* merge(const PEGraph* graph_1, const PEGraph* graph_2){
-		//merge graph_1 and graph_2 together to generate a new graph
+    void setEdgeArray(vertexid_t index,int numEdges,vertexid_t *edges,label_t *labels);
+    void clearEdgeArray(vertexid_t index);
 
-		delete graph_1;
-		delete graph_2;
+    static PEGraph* merge(const PEGraph* graph_1, const PEGraph* graph_2){
+        //merge graph_1 and graph_2 together to generate a new graph
+
+        delete graph_1;
+        delete graph_2;
 
 //		return NULL;
-	}
+    }
 
 private:
-	vertexid_t firstVid;
-	EdgeArray *graph;
-	bool *isSingletonArray;
-	vertexid_t numVertices;
+    vertexid_t firstVid;
+    EdgeArray *graph;
+    bool *isSingletonArray;
+    vertexid_t numVertices;
 };
 
 

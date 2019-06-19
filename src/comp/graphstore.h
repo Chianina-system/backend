@@ -14,19 +14,19 @@
 class GraphStore{
 
 public:
-	GraphStore();
-	virtual ~GraphStore(){}
+    GraphStore();
+    virtual ~GraphStore(){}
 
 
 
-	virtual PEGraph* retrieve(const PEGraph_Pointer graph_pointer) const;
+    virtual PEGraph* retrieve(const PEGraph_Pointer graph_pointer) const;
 
-	virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph);
+    virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph);
 
 
 
 private:
-	//	void add();
+    //	void add();
 
 
 };

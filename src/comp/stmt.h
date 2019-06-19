@@ -26,12 +26,13 @@ public:
 	}
 
 	vertexid_t getSrc() const{
-		return src;	
+		return src;
 	}
 
 	vertexid_t getDst() const{
-		return dst;	
+		return dst;
 	}
+
 
 private:
 	TYPE t;
