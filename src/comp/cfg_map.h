@@ -19,14 +19,14 @@ public:
 
 
     ~CFG_map(){
-        for(auto it = nodes.begin(); it != nodes.end(); it++){
-            delete *it;
+        for (auto &node : nodes) {
+            delete node;
         }
     }
 
 
     std::vector<CFGNode*> getPredesessors(const CFGNode* node) const{
-        std::unordered_map<const CFGNode*, std::vector<CFGNode*>>::const_iterator it = predes.find(node);
+        auto it = predes.find(node);
         if(it != predes.end()){
             return it->second;
         }
@@ -37,7 +37,7 @@ public:
     }
 
     std::vector<CFGNode*> getSuccessors(const CFGNode* node) const {
-        std::unordered_map<const CFGNode*, std::vector<CFGNode*>>::const_iterator it = succes.find(node);
+        auto it = succes.find(node);
         if(it != succes.end()){
             return it->second;
         }

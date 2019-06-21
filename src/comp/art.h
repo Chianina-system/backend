@@ -9,11 +9,11 @@
 #define COMP_ART_H_
 
 #include "graphstore.h"
-#include <map>
 #include <ostream>
 
 using std::vector;
 using std::map;
+using std::unordered_map;
 
 struct Edge {
     int src;
@@ -122,7 +122,7 @@ public:
 
 private:
     Node *root;
-    map<PEGraph_Pointer, Node *> m;
+    unordered_map<PEGraph_Pointer, Node *> m;
 };
 
 

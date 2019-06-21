@@ -17,7 +17,9 @@ public:
 
     const std::unordered_map<vertexid_t, EdgeArray *> &getEdgeArrayMap() const;
 
-    void setEdgeArrayMap(const std::unordered_map<vertexid_t, EdgeArray *> &edgeArrayMap);
+    EdgeArray* getEdgeArray(vertexid_t index);
+
+    void setEdgeArray(vertexid_t index,EdgeArray* edgeArray);
 
     int getNum() const;
 

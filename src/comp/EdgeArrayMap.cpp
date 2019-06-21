@@ -17,14 +17,21 @@ const std::unordered_map<vertexid_t, EdgeArray *> &EdgeArrayMap::getEdgeArrayMap
     return edgeArray_Map;
 }
 
-void EdgeArrayMap::setEdgeArrayMap(const std::unordered_map<vertexid_t, EdgeArray *> &edgeArrayMap) {
-    edgeArray_Map = edgeArrayMap;
-}
-
 int EdgeArrayMap::getNum() const {
     return num;
 }
 
 void EdgeArrayMap::setNum(int num) {
     EdgeArrayMap::num = num;
+}
+
+void EdgeArrayMap::setEdgeArray(vertexid_t index, EdgeArray *edgeArray) {
+    edgeArray_Map[index] = edgeArray;
+    num = edgeArray_Map.bucket_count();
+}
+
+EdgeArray *EdgeArrayMap::getEdgeArray(vertexid_t index) {
+    if (edgeArray_Map.find(index)== edgeArray_Map.end())
+        return nullptr;
+    else return edgeArray_Map[index];
 }

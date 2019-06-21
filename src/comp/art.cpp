@@ -10,11 +10,11 @@ using namespace std;
 Node *ART::insert(vector<Edge *> &v) {
     if (v.empty()) return nullptr;
     Node *parent = root;
-    for (int i = 0; i < v.size(); ++i) {
-        Node *child = findChild(parent, v[i]);
+    for (auto &i : v) {
+        Node *child = findChild(parent, i);
         if (!child) {
             child = new Node();
-            child->data = new Edge(*v[i]);
+            child->data = new Edge(*i);
             child->parent = parent;
             // insert new child to the front of the children
             child->next = parent->children;
@@ -67,11 +67,10 @@ void ART::del(Node *leaf) {
             if (leaf->next) {                                       // 1.1.1 if the node has next
                 leaf->parent->children = leaf->next;
             } else {                                                // 1.1.2 if the node does not have next
-                leaf->parent->children = NULL;
+                leaf->parent->children = nullptr;
             }
 
             delete leaf;
-            leaf = nullptr;
         } else {
             Node *before = leaf->parent->children;                                    // before is the node before the node to be deleted
             while (!before->next->equal(leaf)) {
@@ -79,7 +78,6 @@ void ART::del(Node *leaf) {
             }
             before->next = leaf->next;
             delete leaf;
-            leaf = nullptr;
         }
     } else {
         leaf->leafNum--;
@@ -87,13 +85,12 @@ void ART::del(Node *leaf) {
     }
 
     while (node->parent && node->leafNum == 0 && !node->children) {
-        Node *parent = node->parent;
-
+        Node *temp = node;
         if (node->parent->children->equal(node)) {
             if (node->next) {                                       // 1.1.1 if the node has next
                 node->parent->children = node->next;
             } else {                                                // 1.1.2 if the node does not have next
-                node->parent->children = NULL;
+                node->parent->children = nullptr;
             }
             delete node;
             node = nullptr;
@@ -106,9 +103,8 @@ void ART::del(Node *leaf) {
             delete node;
             node = nullptr;
         }
-        node = node->parent;
+        node = temp->parent;
     }
-    return;
 }
 
 void ART::DFS(Node *node) {
@@ -118,7 +114,7 @@ void ART::DFS(Node *node) {
     if (node->next) {
         DFS(node->next);
     }
-    //todo access the edge info
+    //access the edge info
 }
 
 Node *ART::findChild(Node *parent, Edge *child) {
@@ -133,9 +129,12 @@ Node *ART::findChild(Node *parent, Edge *child) {
 
 
 PEGraph *ART::retrieve(PEGraph_Pointer graph_pointer) {
-    Node *node = m[graph_pointer];
-    vector<Edge *> v = retrieve(node);
-    return convertToPEGraph(v);
+    if (m.find(graph_pointer)!= nullptr){
+        Node *node = m[graph_pointer];
+        vector<Edge *> v = retrieve(node);
+        return convertToPEGraph(v);
+    }
+
 }
 
 void ART::update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
@@ -147,13 +146,15 @@ void ART::update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
 }
 
 PEGraph *ART::convertToPEGraph(vector<Edge *> &v) {
+    PEGraph* peGraph = new PEGraph;
     //todo
+
 }
 
 vector<Edge *> ART::convertToVector(PEGraph *pegraph) {
     //todo
-}
 
+}
 
 void ART::edgeSort(vector<vector<Edge *>> &edges) {
     unordered_map<Edge, int> sortBase;

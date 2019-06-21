@@ -64,7 +64,7 @@ private:
 
     PEGraph* transfer_address(PEGraph* in, Stmt* stmt,Grammar* grammar);
 
-    bool is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar);
+    static bool is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar);
 
     void strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar);
 
@@ -74,7 +74,11 @@ private:
 
     void peg_compute(PEGraph *out,Stmt* stmt,Grammar* grammar);
 
+    void peg_compute(PEGraph *out,Grammar* grammar, std::unordered_map<int, EdgesToDelete*>& m);
+
     void initComputationSet(ComputationSet &compset,PEGraph *out,Stmt *stmt);
+
+    void initComputationSet(ComputationSet &compset,PEGraph *out, std::unordered_map<int, EdgesToDelete*>& m);
 };
 
 
