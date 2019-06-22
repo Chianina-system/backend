@@ -11,9 +11,7 @@
 #include "graphstore.h"
 #include <ostream>
 
-using std::vector;
-using std::map;
-using std::unordered_map;
+using namespace std;
 
 struct Edge {
     int src;
@@ -122,7 +120,7 @@ public:
 
 private:
     Node *root;
-    unordered_map<PEGraph_Pointer, Node *> m;
+    std::unordered_map<PEGraph_Pointer, Node*> m;
 };
 
 

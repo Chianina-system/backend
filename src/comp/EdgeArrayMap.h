@@ -21,15 +21,17 @@ public:
 
     void setEdgeArray(vertexid_t index,EdgeArray* edgeArray);
 
-    int getNum() const;
+    inline int getNum() const {
+    	return edgeArray_Map.size();
+    }
 
-    void setNum(int num);
+//    void setNum(int num);
 
 
 
 private:
     std::unordered_map<vertexid_t, EdgeArray*> edgeArray_Map;
-    int num;
+//    int num;
 };
 
 

@@ -12,6 +12,7 @@ class PEGraph_Pointer{
 
 private:
 
+	PEGraph* graph;
 
 };
 

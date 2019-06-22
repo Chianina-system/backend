@@ -36,7 +36,7 @@ void PEGraph::clearEdgeArray(vertexid_t index) {
 
 
 void PEGraph::setGraphMap(EdgeArrayMap *graphMap) {
-    graphMap = graphMap;
+    this->graph = graphMap;
 }
 
 void PEGraph::setFirstVid(vertexid_t _firstVid) {
