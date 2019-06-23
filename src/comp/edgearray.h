@@ -15,9 +15,9 @@ public:
 
     // getters and setters
     inline bool isEmpty() {return !size;}
-    inline vertexid_t *getEdges() {return edges;}
-    inline label_t* getLabels() {return labels;}
-    inline int getSize() {return size;}
+    inline vertexid_t *getEdges() const{return edges;}
+    inline label_t* getLabels() const{return labels;}
+    inline int getSize() const{return size;}
 
     void set(int size,vertexid_t *edges,label_t *labels);
     void clear();

@@ -63,7 +63,11 @@ namespace std {
                    ^ (hash<char>()(e.label) << 1);
         }
     };
+
 }
+
+
+
 
 struct Node {
     Edge *data;
@@ -119,8 +123,8 @@ public:
     vector<Edge *> convertToVector(PEGraph *pegraph);
 
 private:
-    Node *root;
-    std::unordered_map<PEGraph_Pointer, Node*> m;
+    Node *root{};
+    std::unordered_map<PEGraph_Pointer, Node*, hash_name> m;
 };
 
 

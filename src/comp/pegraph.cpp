@@ -9,52 +9,33 @@
 
 PEGraph::PEGraph() {
     //TODO: create an empty graph
-
 }
 
 PEGraph::PEGraph(PEGraph *p) {
-    this->firstVid = p->getFirstVid();
-    this->numVertices = p->getNumVertices();
-    this->isSingletonArray = new bool[this->numVertices];
-    memcpy(this->isSingletonArray, p->getSingletonArray(), sizeof(bool) * this->numVertices);
-
-    this->graph = new EdgeArrayMap;
-    for (int i = 0; i < this->numVertices; ++i) {
-        if (p->getGraph()->getEdgeArrayMap().at(i)->getSize())
-            this->graph->setEdgeArray(i, p->getGraph()->getEdgeArray(i));
-    }
+    this->graph = p->getGraph();
+    this->isSingletonArray = p->getIsSingletonArray();
 }
 
-void PEGraph::setEdgeArray(vertexid_t index, int numEdges, vertexid_t *edges, label_t *labels) {
-    this->graph->setEdgeArray(index, new EdgeArray(numEdges, edges, labels));
+const std::unordered_map<vertexid_t, EdgeArray> & PEGraph::getGraph() const {
+    return graph;
 }
 
-void PEGraph::clearEdgeArray(vertexid_t index) {
-    this->graph->getEdgeArrayMap().at(index)->clear();
+void PEGraph::setGraph(const std::unordered_map<vertexid_t, EdgeArray> &_graph) {
+    this->graph = _graph;
 }
 
-
-
-void PEGraph::setGraphMap(EdgeArrayMap *graphMap) {
-    this->graph = graphMap;
-}
-
-void PEGraph::setFirstVid(vertexid_t _firstVid) {
-    PEGraph::firstVid = _firstVid;
-}
-
-void PEGraph::setGraph(EdgeArrayMap *_graph) {
-    PEGraph::graph = _graph;
-}
-
-bool *PEGraph::getIsSingletonArray() const {
+const std::unordered_map<vertexid_t, bool> &PEGraph::getIsSingletonArray() const {
     return isSingletonArray;
 }
 
-void PEGraph::setIsSingletonArray(bool *_isSingletonArray) {
-    PEGraph::isSingletonArray = _isSingletonArray;
+bool PEGraph::equals(PEGraph *another) {
+    return false;
 }
 
-void PEGraph::setNumVertices(vertexid_t numVertices) {
-    PEGraph::numVertices = numVertices;
+void PEGraph::clearEdgeArray(vertexid_t index) {
+    this->graph[index].clear();
+}
+
+void PEGraph::setEdgeArray(vertexid_t index, int numEdges, vertexid_t *edges, label_t *labels) {
+    this->graph[index].set(numEdges,edges,labels);
 }

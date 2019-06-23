@@ -127,23 +127,22 @@ Node *ART::findChild(Node *parent, Edge *child) {
     return nullptr;
 }
 
+//PEGraph *ART::retrieve(PEGraph_Pointer graph_pointer) {
+//    if (m.find(graph_pointer)!= m.end()){
+//        Node *node = m[graph_pointer];
+//        vector<Edge *> v = retrieve(node);
+//        return convertToPEGraph(v);
+//    }
 
-PEGraph *ART::retrieve(PEGraph_Pointer graph_pointer) {
-    if (m.find(graph_pointer)!= nullptr){
-        Node *node = m[graph_pointer];
-        vector<Edge *> v = retrieve(node);
-        return convertToPEGraph(v);
-    }
+//}
 
-}
-
-void ART::update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
-    Node *node = m[graph_pointer];
-    del(node);
-    vector<Edge *> v = convertToVector(pegraph);
-    Node *leaf = insert(v);
-    m[graph_pointer] = leaf;
-}
+//void ART::update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
+//    Node *node = m[graph_pointer];
+//    del(node);
+//    vector<Edge *> v = convertToVector(pegraph);
+//    Node *leaf = insert(v);
+//    m[graph_pointer] = leaf;
+//}
 
 PEGraph *ART::convertToPEGraph(vector<Edge *> &v) {
     PEGraph* peGraph = new PEGraph;
@@ -175,4 +174,4 @@ void ART::edgeSort(vector<vector<Edge *>> &edges) {
     }
 }
 
-ART::ART() {}
+//ART::ART(){}

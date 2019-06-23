@@ -7,60 +7,83 @@
 
 #ifndef COMP_PEGRAPH_H_
 #define COMP_PEGRAPH_H_
+
 #include "../common/CommonLibs.hpp"
 #include "edgearray.h"
-#include "EdgeArrayMap.h"
-class PEGraph{
+#include "myalgorithm.h"
+
+class PEGraph {
 
 public:
     PEGraph();
-    virtual ~PEGraph(){}
+
+    ~PEGraph() {}
 
     PEGraph(PEGraph *p);
-    bool equals(PEGraph* another);
 
-    // getters and setters
-    inline vertexid_t getFirstVid() {return firstVid;}
-//	inline EdgeArray* getGraph() {return graph;}
-    EdgeArrayMap *getGraph() const {return graph;}
+    const std::unordered_map<vertexid_t, bool> &getIsSingletonArray() const;
 
-    inline bool* getSingletonArray() {return isSingletonArray;}
-    inline vertexid_t getNumVertices() {return numVertices;}
-    inline bool isSingleton(vertexid_t vid) {return isSingletonArray[vid - firstVid];}
+    bool equals(PEGraph *another);
 
-    void setGraphMap(EdgeArrayMap *graphMap);
+    const std::unordered_map<vertexid_t, EdgeArray> &getGraph() const;
 
-    inline vertexid_t* getEdges(vertexid_t index) {return graph->getEdgeArray(index)->getEdges();}
-    inline label_t* getLabels(vertexid_t index) {return graph->getEdgeArray(index)->getLabels();}
-    inline vertexid_t getNumEdges(vertexid_t index) {return graph->getEdgeArray(index)->getSize();}
+    inline vertexid_t getNumVertices() { return graph.size(); }
 
-    void setEdgeArray(vertexid_t index,int numEdges,vertexid_t *edges,label_t *labels);
+    inline bool isSingleton(vertexid_t vid) { return isSingletonArray[vid]; }
+
+
+    vertexid_t *getEdges(vertexid_t index) { return graph[index].getEdges(); }
+
+    label_t *getLabels(vertexid_t index) { return graph[index].getLabels(); }
+
+    int getNumEdges(vertexid_t index) { return graph[index].getSize(); }
+
+    void setEdgeArray(vertexid_t index, int numEdges, vertexid_t *edges, label_t *labels);
+
     void clearEdgeArray(vertexid_t index);
 
-    static PEGraph* merge(const PEGraph* graph_1, const PEGraph* graph_2){
+    static PEGraph *merge(PEGraph *graph_1, PEGraph *graph_2) {
         //merge graph_1 and graph_2 together to generate a new graph
+        PEGraph *peGraph = new PEGraph;
+        std::unordered_map<vertexid_t, EdgeArray> mergeGraph;
 
+        for (auto it = graph_1->getGraph().begin(); it != graph_1->getGraph().end(); it++) {
+            if (graph_2->getGraph().find(it->first) != graph_2->getGraph().end()) {
+                // merge the edgearray with the same src in graph_1 and graph_2
+                int len = 0;
+                int n1 = it->second.getSize();
+                int n2 = graph_2->getNumEdges(it->first);
+
+                vertexid_t *edges = new vertexid_t[n1 + n2];
+                char *labels = new char[n1 + n2];
+                myalgo::unionTwoArray(len, edges, labels, n1, it->second.getEdges(), it->second.getLabels(), n2,
+                                      graph_2->getEdges(it->first), graph_2->getLabels(it->first));
+                EdgeArray edgeArray;
+                edgeArray.set(len, edges, labels);
+                mergeGraph[it->first] = edgeArray;
+                delete[] edges;
+                delete[] labels;
+            } else {
+                mergeGraph[it->first] = it->second;
+            }
+        }
+
+        for (auto it = graph_2->getGraph().begin(); it != graph_2->getGraph().end(); it++) {
+            if (graph_1->getGraph().find(it->first) == graph_1->getGraph().end()) {
+                mergeGraph[it->first] = it->second;
+            }
+        }
         delete graph_1;
         delete graph_2;
-
-//		return NULL;
+        peGraph->setGraph(mergeGraph);
+        return peGraph;
     }
 
-    void setFirstVid(vertexid_t _firstVid);
-
-    void setGraph(EdgeArrayMap *_graph);
-
-    bool *getIsSingletonArray() const;
-
-    void setIsSingletonArray(bool *_isSingletonArray);
-
-    void setNumVertices(vertexid_t numVertices);
+    void setGraph(const std::unordered_map<vertexid_t, EdgeArray> &_graph);
 
 private:
-    vertexid_t firstVid;
-    EdgeArrayMap *graph;
-    bool *isSingletonArray;
-    vertexid_t numVertices;
+    std::unordered_map<vertexid_t, EdgeArray> graph;
+    std::unordered_map<vertexid_t, bool> isSingletonArray;
 };
 
 
