@@ -48,7 +48,7 @@ void ART::insert(vector<Edge *> v, Node *root, int begin) {
     insert(v, child, ++begin);
 }
 
-vector<Edge *> ART::retrieve(Node *node) {
+vector<Edge *> ART::retrieveFromLeaf(Node *node) const {
     vector<Edge *> v;
     while (node->data != nullptr) {
         v.push_back(node->data);
@@ -88,14 +88,14 @@ void ART::del(Node *leaf) {
     while (node->parent && node->leafNum == 0 && node->children == nullptr) {
         Node *temp = node;
         if (node->parent->children->equal(node)) {
-            if (node->next) {                                       // 1.1.1 if the node has next
+            if (node->next) {
                 node->parent->children = node->next;
-            } else {                                                // 1.1.2 if the node does not have next
+            } else {
                 node->parent->children = nullptr;
             }
             delete node;
         } else {
-            Node *before = node->parent->children;                  // before is the node before the node to be deleted
+            Node *before = node->parent->children;
             while (!before->next->equal(node)) {
                 before = before->next;
             }
@@ -126,32 +126,56 @@ Node *ART::findChild(Node *parent, Edge *child) {
     return nullptr;
 }
 
-//PEGraph *ART::retrieve(PEGraph_Pointer graph_pointer) {
-//    if (m.find(graph_pointer)!= m.end()){
-//        Node *node = m[graph_pointer];
-//        vector<Edge *> v = retrieve(node);
-//        return convertToPEGraph(v);
-//    }
-//
-//}
-
-//void ART::update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
-//    Node *node = m[graph_pointer];
-//    del(node);
-//    vector<Edge *> v = convertToVector(pegraph);
-//    Node *leaf = insert(v);
-//    m[graph_pointer] = leaf;
-//}
-
-PEGraph *ART::convertToPEGraph(vector<Edge *> &v) {
+PEGraph * ART::convertToPEGraph(vector<Edge *> &v) const {
     PEGraph* peGraph = new PEGraph;
-    //todo
+    std::unordered_map<vertexid_t, EdgeArray> graph;
 
+    for(auto & edge : v){
+        if(graph.find(edge->src)==graph.end()){
+            graph[edge->src].addOneEdge(edge->des, edge->label);
+        }
+    }
+    // should we sort the graph?
+
+    // what should we do with the singleton?
+
+    peGraph->setGraph(graph);
+    return peGraph;
 }
 
 vector<Edge *> ART::convertToVector(PEGraph *pegraph) {
-    //todo
+    vector<Edge *> v;
+    for(auto it = pegraph->getGraph().begin(); it!=pegraph->getGraph().end();it++){
+//        Edge * edge = new Edge()
+        int size = it->second.getSize();
+        vertexid_t* edges = it->second.getEdges();
+        label_t* labels = it->second.getLabels();
+        Edge* edge;
+        for (int i = 0; i < size; ++i) {
+            edge = new Edge(it->first, edges[i], labels[i]);
+            v.push_back(edge);
+            delete edge;
+        }
+    }
+    return v;
+}
 
+void ART::update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
+    Node *node = m[graph_pointer];
+    del(node);
+    vector<Edge *> v = convertToVector(pegraph);
+    // todo we can sort v before insert
+    Node *leaf = insert(v);
+    m[graph_pointer] = leaf;
+}
+
+
+PEGraph *ART::retrieve(const PEGraph_Pointer graph_pointer) const {
+    if (m.find(graph_pointer)!= m.end()){
+        Node *node = m[graph_pointer];
+        vector<Edge *> v = retrieveFromLeaf(node);
+        return convertToPEGraph(v);
+    }
 }
 
 void ART::edgeSort(vector<vector<Edge *>> &edges) {
@@ -173,11 +197,6 @@ void ART::edgeSort(vector<vector<Edge *>> &edges) {
     }
 }
 
-//PEGraph *ART::retrieve(const PEGraph_Pointer graph_pointer) const {
-//    if(m.find(graph_pointer) != m.end()){
-//        Node *node = m[graph_pointer];
-//        retrieve(node);
-//    }
-//}
+
 
 //ART::ART(){}

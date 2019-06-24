@@ -98,17 +98,15 @@ public:
 
     ~ART() {};
 
-    PEGraph *retrieve(PEGraph_Pointer graph_pointer);
+    PEGraph *retrieve(const PEGraph_Pointer graph_pointer) const override;
 
-    PEGraph* retrieve(const PEGraph_Pointer graph_pointer) const;
-
-    void update(PEGraph_Pointer graph_pointer, PEGraph *pegraph);
+    void update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
 
     Node *insert(vector<Edge *> &v);
 
     void insert(vector<Edge *> v, Node *root, int begin);
 
-    vector<Edge *> retrieve(Node *node);
+    vector<Edge *> retrieveFromLeaf(Node *node) const;
 
     static void del(Node *leaf);
 
@@ -118,13 +116,13 @@ public:
 
     Node *findChild(Node *parent, Edge *child);
 
-    PEGraph *convertToPEGraph(vector<Edge *> &v);
+    PEGraph * convertToPEGraph(vector<Edge *> &v) const;
 
     vector<Edge *> convertToVector(PEGraph *pegraph);
 
 private:
     Node *root{};
-//    std::unordered_map<PEGraph_Pointer, Node *> m;
+    std::unordered_map<PEGraph_Pointer, Node *> m;
 };
 
 
