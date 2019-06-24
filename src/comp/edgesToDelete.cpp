@@ -108,6 +108,10 @@ EdgesToDelete *EdgesToDelete::findDeletedEdge(vertexid_t src, std::set<vertexid_
     }
 }
 
+void EdgesToDelete::setRealNumEdges(int realNumEdges) {
+    EdgesToDelete::realNumEdges = realNumEdges;
+}
+
 
 
 

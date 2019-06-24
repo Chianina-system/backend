@@ -213,25 +213,44 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
 
     /* merge and remove duplicate edges
      */
-    for(auto it = out->getGraph().begin(); it!= out->getGraph().end(); it++){
-        int i = it->first;
-        if (m.find(i)!=m.end()){
-            m[i]->merge();
-            //m[i] only store the edges relevanted to vertices set
-            m[i] = m[i]->findDeletedEdge(i, vertices);
-            int len = 0; int n1 = out->getNumEdges(i); int n2 = m[i]->getRealNumEdges();
-            vertexid_t *edges = new vertexid_t[n1];
-            label_t *labels = new label_t[n1];
-            myalgo::minusTwoArray(len,edges,labels,n1,out->getEdges(i),out->getLabels(i),n2,m[i]->getEdges(),m[i]->getLabels());
+    for(auto it = m.begin(); it!= m.end(); it++){
+        int src = it->first;
+        m[src]->merge();
+        findDeletedEdge(it->second, src, vertices);
+        if(m[src]->getRealNumEdges()){
+            int len = 0; int n1 = out->getNumEdges(src); int n2 = m[src]->getRealNumEdges();
+            auto *edges = new vertexid_t[n1];
+            auto *labels = new label_t[n1];
+            myalgo::minusTwoArray(len,edges,labels,n1,out->getEdges(src),out->getLabels(src),n2,m[src]->getEdges(),m[src]->getLabels());
             if(len)
-                out->setEdgeArray(i,len,edges,labels);
+                out->setEdgeArray(src,len,edges,labels);
             else
-                out->clearEdgeArray(i);
+                out->clearEdgeArray(src);
 
             delete[] edges; delete[] labels;
-            m[i]->clear();
+            m[src]->clear();
         }
     }
+
+//    for(auto it = out->getGraph().begin(); it!= out->getGraph().end(); it++){
+//        int i = it->first;
+//        if (m.find(i)!=m.end()){
+//            m[i]->merge();
+//            //m[i] only store the edges relevanted to vertices set
+//            m[i] = m[i]->findDeletedEdge(i, vertices);
+//            int len = 0; int n1 = out->getNumEdges(i); int n2 = m[i]->getRealNumEdges();
+//            vertexid_t *edges = new vertexid_t[n1];
+//            label_t *labels = new label_t[n1];
+//            myalgo::minusTwoArray(len,edges,labels,n1,out->getEdges(i),out->getLabels(i),n2,m[i]->getEdges(),m[i]->getLabels());
+//            if(len)
+//                out->setEdgeArray(i,len,edges,labels);
+//            else
+//                out->clearEdgeArray(i);
+//
+//            delete[] edges; delete[] labels;
+//            m[i]->clear();
+//        }
+//    }
 }
 
 bool CFGCompute::isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar) {
@@ -322,6 +341,25 @@ void CFGCompute::initComputationSet_add(ComputationSet &compset,PEGraph *out,Stm
 
 void CFGCompute::initComputationSet_delete(ComputationSet &compset, PEGraph *out, std::unordered_map<int, EdgesToDelete *> &m) {
     compset.init_delete(out, m);
+}
+
+void CFGCompute::findDeletedEdge(EdgesToDelete *edgesToDelete, int src, std::set<vertexid_t> &vertices) {
+    // src is in the vertices set
+    if (vertices.find(src) != vertices.end()) {
+        return ;
+    } else {
+        EdgesToDelete* _edgesToDelete = new EdgesToDelete;
+        for (int i = 0; i < edgesToDelete->getRealNumEdges(); ++i) {
+            if (vertices.find(edgesToDelete->getEdges()[i]) != vertices.end()) {
+                _edgesToDelete->addOneEdge(edgesToDelete->getEdges()[i], edgesToDelete->getLabels()[i]);
+            }
+        }
+        _edgesToDelete->setRealNumEdges( _edgesToDelete->getSize() ) ;
+        edgesToDelete->clear();
+        edgesToDelete->set(_edgesToDelete->getSize(), _edgesToDelete->getEdges(), _edgesToDelete->getLabels() );
+        edgesToDelete->setRealNumEdges(_edgesToDelete->getSize() );
+        _edgesToDelete->clear();
+    }
 }
 
 

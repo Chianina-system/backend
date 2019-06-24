@@ -21,7 +21,7 @@ long PEGCompute::startCompute(ComputationSet &compset, Grammar *grammar) {
 
     while (true) {
         computeOneIteration(compset, grammar);
-        postProcessOneIteration(compset);
+        postProcessOneIteration_add(compset);
         long realAddedEdgesPerIter = compset.getDeltasTotalNumEdges();
         totalAddedEdges += realAddedEdgesPerIter;
         if (!realAddedEdgesPerIter)
@@ -153,7 +153,7 @@ void PEGCompute::checkEdges(vertexid_t dstInd, char dstVal, ComputationSet &comp
     }
 }
 
-void PEGCompute::postProcessOneIteration(ComputationSet &compset) {
+void PEGCompute::postProcessOneIteration_add(ComputationSet &compset) {
     // oldsV <- {oldsV,deltasV}
     auto vertexSet = compset.getVertices();
     for (auto it = vertexSet.begin(); it != vertexSet.end(); it++) {

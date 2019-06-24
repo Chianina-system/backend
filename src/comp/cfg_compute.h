@@ -31,8 +31,6 @@ private:
 //	GraphStore* graphstore;
 
 
-
-
     void compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2);
 
 
@@ -79,6 +77,8 @@ private:
     void initComputationSet_add(ComputationSet &compset,PEGraph *out,Stmt *stmt);
 
     void initComputationSet_delete(ComputationSet &compset,PEGraph *out, std::unordered_map<int, EdgesToDelete*>& m);
+
+    void findDeletedEdge(EdgesToDelete* edgesToDelete, int src, std::set<vertexid_t> &vertices);
 };
 
 
