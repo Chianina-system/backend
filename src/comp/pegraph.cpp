@@ -37,5 +37,8 @@ void PEGraph::clearEdgeArray(vertexid_t index) {
 }
 
 void PEGraph::setEdgeArray(vertexid_t index, int numEdges, vertexid_t *edges, label_t *labels) {
+    if(this->graph.find(index)==this->graph.end()){
+        this->graph[index] = EdgeArray();
+    }
     this->graph[index].set(numEdges,edges,labels);
 }

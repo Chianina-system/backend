@@ -2,11 +2,14 @@
 #define COMP_EDGEARRAY_H
 #include "../common/CommonLibs.hpp"
 
+#define CAPACITY_VALUE 8
+
 class EdgeArray {
 private:
     vertexid_t *edges;
     label_t *labels;
     int size;
+    int capacity;
 
 public:
     EdgeArray();
@@ -21,6 +24,8 @@ public:
 
     void set(int size,vertexid_t *edges,label_t *labels);
     void clear();
+
+    void addOneEdge(vertexid_t edge, label_t label);
 
     //void print();
 };

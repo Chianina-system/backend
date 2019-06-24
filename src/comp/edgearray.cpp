@@ -1,4 +1,5 @@
 #include "edgearray.h"
+#include "myalgorithm.h"
 
 EdgeArray::EdgeArray() {
     this->size = 0;
@@ -62,4 +63,32 @@ void EdgeArray::clear() {
         }
         size = 0;
     }
+}
+
+void EdgeArray::addOneEdge(vertexid_t edge, label_t label) {
+    if(size == 0) {
+        capacity = CAPACITY_VALUE;
+        edges = new vertexid_t[capacity];
+        labels = new label_t[capacity];
+        //initial
+        for(int i = 0;i < capacity;++i) {
+            edges[i] = -1;
+            labels[i] = (char)127;
+        }
+    }
+    else {
+        if(size >= capacity) {
+            capacity *= 2;
+            myalgo::myrealloc(edges,size,capacity);
+            myalgo::myrealloc(labels,size,capacity);
+            for(int i = size;i < capacity;++i) {
+                edges[i] = -1;
+                labels[i] = (char)127;
+            }
+        }
+    }
+    // add edge
+    edges[size] = edge;
+    labels[size] = label;
+    ++size;
 }
