@@ -24,8 +24,7 @@ public:
         }
     }
 
-
-    std::vector<CFGNode*> getPredesessors(const CFGNode* node) const{
+    std::vector<CFGNode*> getPredesessors(const CFGNode* node) const override{
         auto it = predes.find(node);
         if(it != predes.end()){
             return it->second;
@@ -36,7 +35,7 @@ public:
         }
     }
 
-    std::vector<CFGNode*> getSuccessors(const CFGNode* node) const {
+    std::vector<CFGNode*> getSuccessors(const CFGNode* node) const override {
         auto it = succes.find(node);
         if(it != succes.end()){
             return it->second;
@@ -47,7 +46,7 @@ public:
         }
     }
 
-    std::vector<CFGNode*> getNodes() const {
+    std::vector<CFGNode*> getNodes() const override {
         return nodes;
     }
 
@@ -65,6 +64,14 @@ private:
 
 };
 
+CFG_map::CFG_map(std::string file) {
+    std::ifstream fin;
+    fin.open(file);
+    if(!fin) {
+        cout << "can't load file_cfg: " << file << endl;
+    }
+
+}
 
 
 #endif /* COMP_CFG_MAP_H_ */

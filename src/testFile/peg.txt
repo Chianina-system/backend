@@ -1,0 +1,7 @@
+0	alloca	0	2	1
+1	alloca	3	5	4
+3	assign	6	0
+6	store	8	7	0
+5	load	9	10	6
+4	store	10	3	6
+2	alloca	7	12	11

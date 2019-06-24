@@ -362,5 +362,34 @@ void CFGCompute::findDeletedEdge(EdgesToDelete *edgesToDelete, int src, std::set
     }
 }
 
+bool CFGCompute::load(string file_cfg, string file_peg, string file_singleton, CFG *cfg, GraphStore *graphstore) {
+    std::ifstream fin;
+    fin.open(file_cfg);
+    if(!fin) {
+        cout << "can't load file_cfg: " << file_cfg << endl;
+        return false;
+    }
+    //todo
+    
+
+    fin.open(file_peg);
+    if(!fin) {
+        cout << "can't load file_peg: " << file_cfg << endl;
+        return false;
+    }
+    //todo
+
+    fin.open(file_singleton);
+    if(!fin) {
+        cout << "can't load file_cfg: " << file_singleton << endl;
+        return false;
+    }
+    //todo
+
+}
+
+
+
+
 
 

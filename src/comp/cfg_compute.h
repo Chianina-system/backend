@@ -14,6 +14,7 @@
 #include "grammar.h"
 #include "peg_compute.h"
 #include "computationset.h"
+using namespace std;
 
 class CFGCompute{
 
@@ -21,6 +22,8 @@ public:
     unsigned int num_threads;
 
     bool load(Partition* part, CFG* cfg, GraphStore* graphstore);
+
+    bool load(string file_cfg, string file_peg, string file_singleton, CFG* cfg, GraphStore* graphstore);
 
     void do_worklist(CFG* cfg, GraphStore* graphstore); //worklist algorithm in parallel
 
