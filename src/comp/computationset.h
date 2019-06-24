@@ -18,9 +18,9 @@ public:
     ComputationSet();
     void clear();
 
-    void init(PEGraph *out,Stmt *stmt);
+    void init_add(PEGraph *out,Stmt *stmt);
 
-    void init(PEGraph *out, std::unordered_map<int, EdgesToDelete*>& m);
+    void init_delete(PEGraph *out, std::unordered_map<int, EdgesToDelete*>& m);
 
     // getters and setters
     inline bool oldEmpty(vertexid_t index) {return Olds.find(index)==Olds.end();}

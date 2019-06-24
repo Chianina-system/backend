@@ -7,7 +7,7 @@ long PEGCompute::startCompute(ComputationSet &compset, Grammar *grammar, std::un
 
     while (true) {
         computeOneIteration(compset, grammar);
-        postProcessOneIteration(compset, m);
+        postProcessOneIteration_delete(compset, m);
         long realAddedEdgesPerIter = compset.getDeltasTotalNumEdges();
         totalAddedEdges += realAddedEdgesPerIter;
         if (!realAddedEdgesPerIter)
@@ -207,7 +207,7 @@ void PEGCompute::postProcessOneIteration(ComputationSet &compset) {
     }
 }
 
-void PEGCompute::postProcessOneIteration(ComputationSet &compset, std::unordered_map<int, EdgesToDelete *> &m) {
+void PEGCompute::postProcessOneIteration_delete(ComputationSet &compset, std::unordered_map<int, EdgesToDelete *> &m) {
     // oldsV <- {oldsV,deltasV}
     auto vertexSet = compset.getVertices();
     for (auto it = vertexSet.begin(); it != vertexSet.end(); it++) {

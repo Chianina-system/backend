@@ -121,7 +121,7 @@ PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar){
     strong_update(stmt->getDst(),out,vertices,grammar);
 
     // the GEN set
-    peg_compute(out,stmt,grammar);
+    peg_compute_add(out,stmt,grammar);
 
     return out;
 }
@@ -134,7 +134,7 @@ PEGraph* CFGCompute::transfer_load(PEGraph* in, Stmt* stmt,Grammar *grammar){
     strong_update(stmt->getDst(),out,vertices,grammar);
 
     // the GEN set
-    peg_compute(out,stmt,grammar);
+    peg_compute_add(out,stmt,grammar);
 
     return out;
 }
@@ -148,7 +148,7 @@ PEGraph* CFGCompute::transfer_store(PEGraph* in, Stmt* stmt,Grammar *grammar){
         strong_update(stmt->getDst(),out,vertices,grammar);
     }
     // the GEN set
-    peg_compute(out,stmt,grammar);
+    peg_compute_add(out,stmt,grammar);
 
     return out;
 }
@@ -161,7 +161,7 @@ PEGraph* CFGCompute::transfer_address(PEGraph* in, Stmt* stmt,Grammar *grammar){
     strong_update(stmt->getDst(),out,vertices,grammar);
 
     // the GEN set
-    peg_compute(out,stmt,grammar);
+    peg_compute_add(out,stmt,grammar);
 
     return out;
 }
@@ -209,7 +209,7 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
 
     //对out - m的边执行加边m中边操作
     // execute the add edge operation. the oldsSet is out - m, the deltasSdge is m
-    peg_compute(out, grammar, m);
+    peg_compute_delete(out, grammar, m);
 
     /* merge and remove duplicate edges
      */
@@ -273,29 +273,29 @@ void CFGCompute::must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vert
     }
 }
 
-void CFGCompute::peg_compute(PEGraph *out, Grammar *grammar, std::unordered_map<int, EdgesToDelete*>& m) {
+void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unordered_map<int, EdgesToDelete*>& m) {
 
     // add assgin edge based on stmt, (out,assign edge) -> compset
     ComputationSet *compset = new ComputationSet();
-    initComputationSet(*compset,out,m);
+    initComputationSet_delete(*compset,out,m);
 
     // start GEN
     PEGCompute pegCompute;
     pegCompute.startCompute(*compset,grammar, m);
 
-    // KILL fininshed, compset -> out
-    vertexid_t numVertices = out->getNumVertices();
+//    // KILL fininshed, compset -> out
+//    vertexid_t numVertices = out->getNumVertices();
 
     // clean
     compset->clear();
     delete compset;
 }
 
-void CFGCompute::peg_compute(PEGraph *out,Stmt *stmt,Grammar *grammar) {
+void CFGCompute::peg_compute_add(PEGraph *out,Stmt *stmt,Grammar *grammar) {
 
     // add assgin edge based on stmt, (out,assign edge) -> compset
     ComputationSet *compset = new ComputationSet();
-    initComputationSet(*compset,out,stmt);
+    initComputationSet_add(*compset,out,stmt);
 
     // start GEN
     PEGCompute pegCompute;
@@ -314,12 +314,12 @@ void CFGCompute::peg_compute(PEGraph *out,Stmt *stmt,Grammar *grammar) {
 	delete compset;
 }
 
-void CFGCompute::initComputationSet(ComputationSet &compset,PEGraph *out,Stmt *stmt) {
-    compset.init(out,stmt);
+void CFGCompute::initComputationSet_add(ComputationSet &compset,PEGraph *out,Stmt *stmt) {
+    compset.init_add(out,stmt);
 }
 
-void CFGCompute::initComputationSet(ComputationSet &compset, PEGraph *out, std::unordered_map<int, EdgesToDelete *> &m) {
-    compset.init(out, m);
+void CFGCompute::initComputationSet_delete(ComputationSet &compset, PEGraph *out, std::unordered_map<int, EdgesToDelete *> &m) {
+    compset.init_delete(out, m);
 }
 
 

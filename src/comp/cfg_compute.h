@@ -72,13 +72,13 @@ private:
 
     bool isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar);
 
-    void peg_compute(PEGraph *out,Stmt* stmt,Grammar* grammar);
+    void peg_compute_add(PEGraph *out,Stmt* stmt,Grammar* grammar);
 
-    void peg_compute(PEGraph *out,Grammar* grammar, std::unordered_map<int, EdgesToDelete*>& m);
+    void peg_compute_delete(PEGraph *out,Grammar* grammar, std::unordered_map<int, EdgesToDelete*>& m);
 
-    void initComputationSet(ComputationSet &compset,PEGraph *out,Stmt *stmt);
+    void initComputationSet_add(ComputationSet &compset,PEGraph *out,Stmt *stmt);
 
-    void initComputationSet(ComputationSet &compset,PEGraph *out, std::unordered_map<int, EdgesToDelete*>& m);
+    void initComputationSet_delete(ComputationSet &compset,PEGraph *out, std::unordered_map<int, EdgesToDelete*>& m);
 };
 
 

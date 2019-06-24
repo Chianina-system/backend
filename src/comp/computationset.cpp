@@ -6,7 +6,7 @@ ComputationSet::ComputationSet() {
 //    firstVid = numVertices = 0;
 }
 
-void ComputationSet::init(PEGraph *out, Stmt *stmt) {
+void ComputationSet::init_add(PEGraph *out, Stmt *stmt) {
     // TODO: after adding assign edge based on stmt,numVertices may increase.
 
     // OldsV <- (),NewsV <- (),DeltasV <- (out,stmt)
@@ -31,7 +31,7 @@ void ComputationSet::init(PEGraph *out, Stmt *stmt) {
     delete[] stmt_label;
 }
 
-void ComputationSet::init(PEGraph *out, std::unordered_map<int, EdgesToDelete *> &m) {
+void ComputationSet::init_delete(PEGraph *out, std::unordered_map<int, EdgesToDelete *> &m) {
     // Old <- out - m, Deltas <- m  News <- NULL
 
     for(auto & it : m){

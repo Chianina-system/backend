@@ -19,7 +19,7 @@ public:
     void computeOneIteration(ComputationSet &compset,Grammar *grammar);
     long computeOneVertex(vertexid_t index,ComputationSet &compset,Grammar *grammar);
     void postProcessOneIteration(ComputationSet &compset);
-    void postProcessOneIteration(ComputationSet &compset, std::unordered_map<int, EdgesToDelete *> &m);
+    void postProcessOneIteration_delete(ComputationSet &compset, std::unordered_map<int, EdgesToDelete *> &m);
 
     void getEdgesToMerge(vertexid_t index,ComputationSet &compset,bool oldEmpty,bool deltaEmpty,ContainersToMerge &containers,Grammar *grammar);
     void genS_RuleEdges(vertexid_t index,ComputationSet &compset,ContainersToMerge &containers,Grammar *grammar);
