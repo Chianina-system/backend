@@ -19,6 +19,8 @@ public:
 
     ~PEGraph() {}
 
+    void setIsSingletonArray(const std::unordered_map<vertexid_t, bool> &_isSingletonArray);
+
     PEGraph(PEGraph *p);
 
     const std::unordered_map<vertexid_t, bool> &getIsSingletonArray() const;
