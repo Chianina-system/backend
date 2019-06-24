@@ -23,9 +23,15 @@ public:
     inline vertexid_t *getEdges() {return edges;}
     inline label_t *getLabels() {return labels;}
 
-    void addOneEdge(vertexid_t edge,label_t label);
-    void merge();
 
+    inline int getSize() {return size;}
+
+    void addOneEdge(vertexid_t edge,label_t label);
+    void addEdges(int len, vertexid_t* edge, label_t* label);
+    void merge();
+    void set(int size,vertexid_t *edges,label_t *labels);
+
+    EdgesToDelete* findDeletedEdge(vertexid_t src, std::set<vertexid_t> &vertices);
 };
 
 #endif

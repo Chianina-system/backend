@@ -22,6 +22,7 @@ Node *ART::insert(vector<Edge *> &v) {
         }
         parent = child;
     }
+    parent->leafNum++;
     return parent;
 }
 
@@ -60,31 +61,31 @@ void ART::del(Node *leaf) {
     if (leaf == nullptr)
         return;
     Node *node = leaf->parent;
-    //Node* temp = node;
+    // 要删除的图只有一个叶子结点并且叶子结点没有孩子
     if (leaf->leafNum == 1 && leaf->children == nullptr) {
 
-        if (leaf->parent->children->equal(leaf)) {
-            if (leaf->next) {                                       // 1.1.1 if the node has next
+        if (leaf->parent->children->equal(leaf)) {                  // 如果待删除的是头结点
+            if (leaf->next) {                                           //如果有后继
                 leaf->parent->children = leaf->next;
-            } else {                                                // 1.1.2 if the node does not have next
+            } else {                                                    // 如果没有后继
                 leaf->parent->children = nullptr;
             }
 
             delete leaf;
-        } else {
-            Node *before = leaf->parent->children;                                    // before is the node before the node to be deleted
+        } else {                                                    // 如果待删除的不是头结点
+            Node *before = leaf->parent->children;                      //找到待删除的之前的结点
             while (!before->next->equal(leaf)) {
                 before = before->next;
             }
             before->next = leaf->next;
             delete leaf;
         }
-    } else {
+    } else {                                                        // 如果leaf大于1 或者Leaf还有孩子，LeafNum - 1
         leaf->leafNum--;
         return;
     }
 
-    while (node->parent && node->leafNum == 0 && !node->children) {
+    while (node->parent && node->leafNum == 0 && node->children == nullptr) {
         Node *temp = node;
         if (node->parent->children->equal(node)) {
             if (node->next) {                                       // 1.1.1 if the node has next
@@ -93,15 +94,13 @@ void ART::del(Node *leaf) {
                 node->parent->children = nullptr;
             }
             delete node;
-            node = nullptr;
         } else {
-            Node *before = node;                                    // before is the node before the node to be deleted
+            Node *before = node->parent->children;                  // before is the node before the node to be deleted
             while (!before->next->equal(node)) {
                 before = before->next;
             }
             before->next = node->next;
             delete node;
-            node = nullptr;
         }
         node = temp->parent;
     }
@@ -133,7 +132,7 @@ Node *ART::findChild(Node *parent, Edge *child) {
 //        vector<Edge *> v = retrieve(node);
 //        return convertToPEGraph(v);
 //    }
-
+//
 //}
 
 //void ART::update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
@@ -173,5 +172,12 @@ void ART::edgeSort(vector<vector<Edge *>> &edges) {
         });
     }
 }
+
+//PEGraph *ART::retrieve(const PEGraph_Pointer graph_pointer) const {
+//    if(m.find(graph_pointer) != m.end()){
+//        Node *node = m[graph_pointer];
+//        retrieve(node);
+//    }
+//}
 
 //ART::ART(){}

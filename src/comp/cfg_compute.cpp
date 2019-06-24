@@ -207,7 +207,7 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
         }
     }
 
-    //对out - m的边执行加边m中边操作
+    //对out - m上的边执行加m中所有的边的操作
     // execute the add edge operation. the oldsSet is out - m, the deltasSdge is m
     peg_compute_delete(out, grammar, m);
 
@@ -217,6 +217,8 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
         int i = it->first;
         if (m.find(i)!=m.end()){
             m[i]->merge();
+            //m[i] only store the edges relevanted to vertices set
+            m[i] = m[i]->findDeletedEdge(i, vertices);
             int len = 0; int n1 = out->getNumEdges(i); int n2 = m[i]->getRealNumEdges();
             vertexid_t *edges = new vertexid_t[n1];
             label_t *labels = new label_t[n1];

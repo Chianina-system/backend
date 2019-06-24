@@ -6,37 +6,60 @@ ComputationSet::ComputationSet() {
 //    firstVid = numVertices = 0;
 }
 
+//void ComputationSet::init_add(PEGraph *out, Stmt *stmt) {
+//    // TODO: after adding assign edge based on stmt,numVertices may increase.
+//
+//    // OldsV <- (),NewsV <- (),DeltasV <- (out,stmt)
+//    int i = stmt->getSrc();
+//    int len = 0;
+//    int n1 = out->getNumEdges(i);
+//    int n2 = 1;
+//    vertexid_t *stmt_edge = new vertexid_t[n2];
+//    label_t *stmt_label = new label_t[n2];
+//    *stmt_edge = stmt->getDst();
+//    *stmt_label = 'A'; //TODO: this label means "ASSIGN"
+//
+//    vertexid_t *edges = new vertexid_t[n1 + n2];
+//    label_t *labels = new label_t[n1 + n2];
+//    myalgo::unionTwoArray(len, edges, labels, n1, out->getEdges(i), out->getLabels(i), n2, stmt_edge,
+//                          stmt_label);
+//    Deltas[i] = EdgeArray();
+//    Deltas[i].set(len, edges, labels);
+//    delete[] edges;
+//    delete[] labels;
+//    delete[] stmt_edge;
+//    delete[] stmt_label;
+//}
+
 void ComputationSet::init_add(PEGraph *out, Stmt *stmt) {
     // TODO: after adding assign edge based on stmt,numVertices may increase.
 
-    // OldsV <- (),NewsV <- (),DeltasV <- (out,stmt)
+    // DeltasV <- stmt
     int i = stmt->getSrc();
-    int len = 0;
-    int n1 = out->getNumEdges(i);
-    int n2 = 1;
-    vertexid_t *stmt_edge = new vertexid_t[n2];
-    label_t *stmt_label = new label_t[n2];
+    Deltas[i] = EdgeArray();
+    int len_stmt = 1;
+    vertexid_t *stmt_edge = new vertexid_t[len_stmt];
+    label_t *stmt_label = new label_t[len_stmt];
     *stmt_edge = stmt->getDst();
     *stmt_label = 'A'; //TODO: this label means "ASSIGN"
-
-    vertexid_t *edges = new vertexid_t[n1 + n2];
-    label_t *labels = new label_t[n1 + n2];
-    myalgo::unionTwoArray(len, edges, labels, n1, out->getEdges(i), out->getLabels(i), n2, stmt_edge,
-                          stmt_label);
-    Deltas[i] = EdgeArray();
-    Deltas[i].set(len, edges, labels);
-    delete[] edges;
-    delete[] labels;
+    Deltas[i].set(len_stmt, stmt_edge, stmt_label);
     delete[] stmt_edge;
     delete[] stmt_label;
+
+    //OldsV <- out
+    for(auto it = out->getGraph().begin(); it != out->getGraph().end(); it++){
+        Olds[it->first] = EdgeArray();
+        Olds[it->first].set(it->second.getSize(), it->second.getEdges(), it->second.getLabels());
+    }
 }
 
 void ComputationSet::init_delete(PEGraph *out, std::unordered_map<int, EdgesToDelete *> &m) {
     // Old <- out - m, Deltas <- m  News <- NULL
 
     for(auto & it : m){
-        it.second->merge();
-        Deltas[it.first].set(it.second->getRealNumEdges(), it.second->getEdges(), it.second->getLabels());
+//        it.second->merge();
+        // notice: the difference between getSize and getRealNumEdges
+        Deltas[it.first].set(it.second->getSize(), it.second->getEdges(), it.second->getLabels());
 
         int len = 0;
         int n1 = out->getNumEdges(it.first);

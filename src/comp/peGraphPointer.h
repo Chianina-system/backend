@@ -27,12 +27,6 @@ private:
 
 };
 
-struct hash_name{
-    size_t operator() (const PEGraph_Pointer& p)const{
-        using std::hash;
-        return hash<int>()(random());
-    }
-};
 
 
 

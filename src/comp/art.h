@@ -67,8 +67,6 @@ namespace std {
 }
 
 
-
-
 struct Node {
     Edge *data;
     Node *parent;
@@ -102,6 +100,8 @@ public:
 
     PEGraph *retrieve(PEGraph_Pointer graph_pointer);
 
+    PEGraph* retrieve(const PEGraph_Pointer graph_pointer) const;
+
     void update(PEGraph_Pointer graph_pointer, PEGraph *pegraph);
 
     Node *insert(vector<Edge *> &v);
@@ -110,7 +110,7 @@ public:
 
     vector<Edge *> retrieve(Node *node);
 
-    void del(Node *leaf);
+    static void del(Node *leaf);
 
     void DFS(Node *node);
 
@@ -124,7 +124,7 @@ public:
 
 private:
     Node *root{};
-    std::unordered_map<PEGraph_Pointer, Node*, hash_name> m;
+//    std::unordered_map<PEGraph_Pointer, Node *> m;
 };
 
 

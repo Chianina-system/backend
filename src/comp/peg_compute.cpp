@@ -250,9 +250,8 @@ void PEGCompute::postProcessOneIteration_delete(ComputationSet &compset, std::un
             myalgo::minusTwoArray(len, edges, labels, n1, compset.getNewsEdges(i), compset.getNewsLabels(i), n2,
                                   compset.getOldsEdges(i), compset.getOldsLabels(i));
 
-            for (int j = 0; j < len; ++j) {
-                m[i]->addOneEdge(edges[j], labels[j]);
-            }
+//            m[i]->addOneEdge(edges, labels);
+            m[i]->set(len, edges, labels);
 
             if (len)
                 compset.setDeltas(i, len, edges, labels);
