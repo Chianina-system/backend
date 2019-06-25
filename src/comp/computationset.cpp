@@ -37,15 +37,17 @@ void ComputationSet::init_add(PEGraph *out, Stmt *stmt) {
     label_t *stmt_label = new label_t[1];
     *stmt_edge = stmt->getDst();
     *stmt_label = 'A'; //TODO: this label means "ASSIGN"
-    Deltas[stmt->getSrc()] = EdgeArray();
-    Deltas[stmt->getSrc()].set(1, stmt_edge, stmt_label);
+//    Deltas[stmt->getSrc()] = EdgeArray();
+//    Deltas[stmt->getSrc()].set(1, stmt_edge, stmt_label);
+    setDeltas(stmt->getSrc(), 1, stmt_edge, stmt_label);
     delete[] stmt_edge;
     delete[] stmt_label;
 
     //OldsV <- out
     for(auto it = out->getGraph().begin(); it != out->getGraph().end(); it++){
-        Olds[it->first] = EdgeArray();
-        Olds[it->first].set(it->second.getSize(), it->second.getEdges(), it->second.getLabels());
+//        Olds[it->first] = EdgeArray();
+//        Olds[it->first].set(it->second.getSize(), it->second.getEdges(), it->second.getLabels());
+        setOlds(it->first, it->second.getSize(), it->second.getEdges(), it->second.getLabels());
     }
 }
 
@@ -53,8 +55,9 @@ void ComputationSet::init_add(PEGraph *out, Stmt *stmt) {
 void ComputationSet::init_delete(PEGraph *out, std::unordered_map<int, EdgesToDelete *> &m) {
 	// Deltas <- m
     for(auto & it : m){
-    	Deltas[it.first] = EdgeArray();
-        Deltas[it.first].set(it.second->getSize(), it.second->getEdges(), it.second->getLabels());
+//    	Deltas[it.first] = EdgeArray();
+//        Deltas[it.first].set(it.second->getSize(), it.second->getEdges(), it.second->getLabels());
+    	setDeltas(it.first, it.second->getSize(), it.second->getEdges(), it.second->getLabels());
     }
 
     //Olds <- out - m
@@ -66,16 +69,18 @@ void ComputationSet::init_delete(PEGraph *out, std::unordered_map<int, EdgesToDe
             auto *labels = new label_t[n1];
             int len = myalgo::minusTwoArray(edges, labels, n1, it->second.getEdges(), it->second.getLabels(), n2, Deltas[it->first].getEdges(), Deltas[it->first].getLabels());
             if (len){
-            	Olds[it->first] = EdgeArray();
-                Olds[it->first].set(len, edges, labels);
+//            	Olds[it->first] = EdgeArray();
+//                Olds[it->first].set(len, edges, labels);
+            	setOlds(it->first, len, edges, labels);
             }
 
             delete[] edges;
             delete[] labels;
     	}
     	else{
-			Olds[it->first] = EdgeArray();
-			Olds[it->first].set(it->second.getSize(), it->second.getEdges(), it->second.getLabels());
+//			Olds[it->first] = EdgeArray();
+//			Olds[it->first].set(it->second.getSize(), it->second.getEdges(), it->second.getLabels());
+			setOlds(it->first, it->second.getSize(), it->second.getEdges(), it->second.getLabels());
     	}
     }
 
@@ -132,11 +137,13 @@ void ComputationSet::setNews(vertexid_t index, int numEdges, vertexid_t *edges, 
 }
 
 void ComputationSet::clearOlds(vertexid_t index) {
-	Olds.erase(index);
+	if(Olds.find(index) != Olds.end())
+		Olds.erase(index);
 }
 
 void ComputationSet::clearDeltas(vertexid_t index) {
-    Deltas.erase(index);
+	if(Deltas.find(index) != Deltas.end())
+		Deltas.erase(index);
 }
 
 void ComputationSet::clearNews(vertexid_t index) {
@@ -170,6 +177,6 @@ const std::unordered_map<vertexid_t, EdgeArray> &ComputationSet::getNews() const
     return News;
 }
 
-void ComputationSet::clear() {
-
-}
+//void ComputationSet::clear() {
+//
+//}

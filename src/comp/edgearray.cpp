@@ -27,7 +27,6 @@ void EdgeArray::set(int size,vertexid_t *edges,label_t *labels) {
         memcpy(this->labels,labels,sizeof(label_t)*size);
     }
     else {
-
         if(this->size != size) {
             if(this->edges)	delete[] this->edges;
             if(this->labels) delete[] this->labels;

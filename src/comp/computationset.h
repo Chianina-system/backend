@@ -16,7 +16,8 @@ private:
 
 public:
     ComputationSet();
-    void clear();
+    ~ComputationSet(){};
+//    void clear();
 
     void init_add(PEGraph *out,Stmt *stmt);
 

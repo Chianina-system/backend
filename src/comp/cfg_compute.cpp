@@ -190,7 +190,7 @@ bool CFGCompute::is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar) {
 }
 
 void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar) {
-    // vertices <- must_alias(x)
+    // vertices <- must_alias(x); put *x into this set as well
     must_alias(x,out,vertices,grammar);
 
     /* foreach v in vertices do
@@ -312,12 +312,11 @@ void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unorder
 //    vertexid_t numVertices = out->getNumVertices();
 
     // clean
-    compset->clear();
     delete compset;
 }
 
 void CFGCompute::peg_compute_add(PEGraph *out,Stmt *stmt,Grammar *grammar) {
-    // add assgin edge based on stmt, (out,assign edge) -> compset
+    // add assign edge based on stmt, (out,assign edge) -> compset
     ComputationSet *compset = new ComputationSet();
     compset->init_add(out,stmt);
 
@@ -325,16 +324,26 @@ void CFGCompute::peg_compute_add(PEGraph *out,Stmt *stmt,Grammar *grammar) {
     PEGCompute pegCompute;
     pegCompute.startCompute_add(*compset,grammar);
 
-    // GEN fininshed, compset -> out
-    vertexid_t numVertices = out->getNumVertices();
-    for(vertexid_t i = 0;i < numVertices;++i) {
-        if(compset->getOldsNumEdges(i))
-            out->setEdgeArray(i,compset->getOldsNumEdges(i),compset->getOldsEdges(i),compset->getOldsLabels(i));
-        else
-            out->clearEdgeArray(i);
+    // GEN finished, compset -> out
+//    vertexid_t numVertices = out->getNumVertices();
+//    for(vertexid_t i = 0;i < numVertices;++i) {
+//        if(compset->getOldsNumEdges(i))
+//            out->setEdgeArray(i,compset->getOldsNumEdges(i),compset->getOldsEdges(i),compset->getOldsLabels(i));
+//        else
+//            out->clearEdgeArray(i);
+//    }
+    auto olds = compset->getOlds();
+    for(auto it = olds.begin(); it != olds.end(); ++it){
+    	vertexid_t id = it->first;
+    	if(out->getGraph().find(id) == out->getGraph().end()){
+    		out->setEdgeArray(id, it->second.getSize(), it->second.getEdges(), it->second.getLabels());
+    	}
+    	else if(out->getNumEdges(id) != it->second.getSize()){
+			out->setEdgeArray(id, it->second.getSize(), it->second.getEdges(), it->second.getLabels());
+    	}
     }
+
     // clean
-	compset->clear();
 	delete compset;
 }
 
