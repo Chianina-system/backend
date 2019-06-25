@@ -70,6 +70,7 @@ void ART::del(Node *leaf) {
     if (leaf == nullptr)
         return;
     Node *node = leaf->parent;
+
     // 要删除的图只有一个叶子结点并且叶子结点没有孩子
     if (leaf->leafNum == 1 && leaf->children == nullptr) {
 

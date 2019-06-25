@@ -47,8 +47,26 @@ void EdgesToDelete::addOneEdge(vertexid_t edge, label_t label) {
     ++size;
 }
 
-void EdgesToDelete::addEdges(int len, vertexid_t *edge, label_t *label) {
-
+void EdgesToDelete::addEdges(int len, vertexid_t *_edges, label_t *_labels) {
+    if (len == 0) return;
+    if (len == 1){
+        addOneEdge(_edges[0], _labels[0]);
+        return;
+    }
+    int realSize = size + len;
+    while (realSize >= capacity){
+        capacity *= 2;
+    }
+    myalgo::myrealloc(edges, size, capacity);
+    myalgo::myrealloc(labels, size, capacity);
+    for (int i = size; i < realSize; ++i) {
+        edges[i] = _edges[i-size];
+        labels[i] = _labels[i-size];
+    }
+    for (int i = realSize; i < capacity; ++i) {
+        edges[i] = -1;
+        labels[i] = (char) 127;
+    }
 }
 
 void EdgesToDelete::merge() {
@@ -87,24 +105,6 @@ void EdgesToDelete::set(int size, vertexid_t *edges, label_t *labels) {
         this->size = size;
         memcpy(this->edges, edges, sizeof(vertexid_t) * size);
         memcpy(this->labels, labels, sizeof(label_t) * size);
-    }
-}
-
-EdgesToDelete *EdgesToDelete::findDeletedEdge(vertexid_t src, std::set<vertexid_t> &vertices) {
-
-    // src is in the vertices set
-    if (vertices.find(src) != vertices.end()) {
-        return this;
-    } else {
-        EdgesToDelete* edgesToDelete = new EdgesToDelete;
-        realNumEdges = 0;
-        for (int i = 0; i < this->getRealNumEdges(); ++i) {
-            if (vertices.find(edges[i]) != vertices.end()) {
-                edgesToDelete->addOneEdge(edges[i], labels[i]);
-                realNumEdges++;
-            }
-        }
-        return edgesToDelete;
     }
 }
 
