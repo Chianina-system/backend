@@ -10,20 +10,20 @@ private:
     label_t *labels;
     int size;
     int capacity;
+    int realNumEdges; // exclude duplicate edges
 
 public:
     EdgeArray();
     EdgeArray(int size,vertexid_t *edges,label_t *labels);
     ~EdgeArray(){}
+    void clear();
 
-    // getters and setters
-    inline bool isEmpty() {return !size;}
+    inline int getRealNumEdges() {return realNumEdges;}
     inline vertexid_t *getEdges() const{return edges;}
     inline label_t* getLabels() const{return labels;}
     inline int getSize() const{return size;}
 
     void set(int size,vertexid_t *edges,label_t *labels);
-    void clear();
 
     void addOneEdge(vertexid_t edge, label_t label);
 
