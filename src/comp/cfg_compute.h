@@ -66,9 +66,9 @@ private:
 
     static bool is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar);
 
-    void strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar);
+    void strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar,std::set<vertexid_t> &vertices_delete);
 
-    void must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar);
+    void must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar, std::set<vertexid_t> &vertices_delete);
 
     bool isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar);
 
@@ -80,7 +80,7 @@ private:
 //
 //    void initComputationSet_delete(ComputationSet &compset,PEGraph *out, std::unordered_map<int, EdgesToDelete*>& m);
 
-    void findDeletedEdge(EdgesToDelete* edgesToDelete, int src, std::set<vertexid_t> &vertices);
+    void findDeletedEdge(EdgesToDelete* edgesToDelete, int src, std::set<vertexid_t> &vertices, std::set<vertexid_t> &vertices_affected);
 };
 
 

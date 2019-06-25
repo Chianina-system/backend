@@ -120,8 +120,9 @@ PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar){
 	PEGraph* out = in;
 
     // the KILL set
-    std::set<vertexid_t> vertices;
-    strong_update(stmt->getDst(),out,vertices,grammar);
+    std::set<vertexid_t> vertices_changed;
+    std::set<vertexid_t> vertices_affected;
+    strong_update(stmt->getDst(),out,vertices_changed,grammar,vertices_affected);
 
     // the GEN set
     peg_compute_add(out,stmt,grammar);
@@ -134,8 +135,9 @@ PEGraph* CFGCompute::transfer_load(PEGraph* in, Stmt* stmt,Grammar *grammar){
 	PEGraph* out = in;
 
     // the KILL set
-    std::set<vertexid_t> vertices;
-    strong_update(stmt->getDst(),out,vertices,grammar);
+    std::set<vertexid_t> vertices_changed;
+    std::set<vertexid_t> vertices_affected;
+    strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected);
 
     // the GEN set
     peg_compute_add(out,stmt,grammar);
@@ -148,10 +150,10 @@ PEGraph* CFGCompute::transfer_store(PEGraph* in, Stmt* stmt,Grammar *grammar){
 	PEGraph* out = in;
 
     // the KILL set
-    std::set<vertexid_t> vertices;
-
+    std::set<vertexid_t> vertices_changed;
+    std::set<vertexid_t> vertices_affected;
     if(is_strong_update(stmt->getDst(),out,grammar)) {
-        strong_update(stmt->getDst(),out,vertices,grammar);
+        strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected);
     }
     // the GEN set
     peg_compute_add(out,stmt,grammar);
@@ -164,8 +166,9 @@ PEGraph* CFGCompute::transfer_address(PEGraph* in, Stmt* stmt,Grammar *grammar){
 	PEGraph* out = in;
 
     // the KILL set
-    std::set<vertexid_t> vertices;
-    strong_update(stmt->getDst(),out,vertices,grammar);
+    std::set<vertexid_t> vertices_changed;
+    std::set<vertexid_t> vertices_affected;
+    strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected);
 
     // the GEN set
     peg_compute_add(out,stmt,grammar);
@@ -183,15 +186,15 @@ bool CFGCompute::is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar) {
     label_t *labels = out->getLabels(x);
 
     for(int i = 0;i < numEdges;++i) {
-        if(grammar->isMemory(labels[i]) && out->isSingleton(edges[i]))
+        if(grammar->isMemoryAlias(labels[i]) && out->isSingleton(edges[i]))
             ++numOfSingleTon;
     }
     return (numOfSingleTon == 1);
 }
 
-void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar) {
+void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices_changed,Grammar *grammar, std::set<vertexid_t> &vertices_affected) {
     // vertices <- must_alias(x); put *x into this set as well
-    must_alias(x,out,vertices,grammar);
+    must_alias(x,out,vertices_changed,grammar,vertices_affected);
 
     /* foreach v in vertices do
      * delete all the direct incoming and outgoing a edges of v from OUT
@@ -205,7 +208,7 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
         vertexid_t *edges = out->getEdges(it->first);
         label_t *labels = out->getLabels(it->first);
         for(int j = 0; j <numEdges; j++){
-            if(isDirectAssignEdges(it->first,edges[j],labels[j],vertices,grammar)) {
+            if(isDirectAssignEdges(it->first,edges[j],labels[j],vertices_changed,grammar)) {
                 // delete the direct incoming and outgoing assign edges
                 if(m.find(it->first)==m.end())
                     m[it->first] = new EdgesToDelete;
@@ -218,11 +221,14 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
     // execute the add edge operation. the oldsSet is out - m, the deltasSdge is m
     peg_compute_delete(out, grammar, m);
 
-    /* merge and remove duplicate edges */
+    /* remove edges */
     for(auto it = m.begin(); it!= m.end(); it++){
         int src = it->first;
-        m[src]->merge();
-        findDeletedEdge(it->second, src, vertices);
+//        m[src]->merge();
+
+        //get all the deleted edges
+        findDeletedEdge(it->second, src, vertices_changed, vertices_affected);
+
         if(m[src]->getRealNumEdges()){
             int n1 = out->getNumEdges(src);
             int n2 = m[src]->getRealNumEdges();
@@ -266,38 +272,90 @@ bool CFGCompute::isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label
     return ( (vertices.find(src) != vertices.end()) || (vertices.find(dst) != vertices.end()) );
 }
 
-void CFGCompute::must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar) {
-    /* if there exists one and only one variable o,which
-     * refers to a singleton memory location,such that x and
-     * y are both memory aliases of o,then x and y are Must-alias
-     */
-    vertexid_t o ;
-    int numOfSingleTon = 0;
+
+void CFGCompute::must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices_changed,Grammar *grammar, std::set<vertexid_t> &vertices_affected) {
+	/* if there exists one and only one variable o,which
+	 * refers to a singleton memory location,such that x and
+	 * y are both memory aliases of o,then x and y are Must-alias
+	 */
     int numEdges = out->getNumEdges(x);
-    vertexid_t *edges = out->getEdges(x);
+    vertexid_t * edges = out->getEdges(x);
     label_t *labels = out->getLabels(x);
 
-    for(auto it = out->getGraph().begin(); it!= out->getGraph().end(); it++){
-        int i= (*it).first;
-        if(grammar->isMemory(labels[i]) && out->isSingleton(edges[i])) {
-            ++numOfSingleTon;
-            o = edges[i];
+    int numOfSingleTon = 0;
+    for(int i = 0;i < numEdges;++i) {
+        if(grammar->isMemoryAlias(labels[i])){
+        	vertices_changed.insert(edges[i]);
+        	if(out->isSingleton(edges[i])){
+        		++numOfSingleTon;
+        	}
         }
     }
 
-    if(numOfSingleTon != 1)
-        return;
-
-    numEdges = out->getNumEdges(o);
-    edges = out->getEdges(o);
-    labels = out->getLabels(o);
-
-    for(auto it = out->getGraph().begin(); it!= out->getGraph().end(); it++){
-        int i = it->first;
-        if(grammar->isMemory(labels[i]) && (edges[i] != x) && is_strong_update(edges[i],out,grammar))
-            vertices.insert(edges[i]);
+    //check the number of singletons
+    if(numOfSingleTon == 0){
+    	perror("invalid number of singletons!");
     }
+    else if(numOfSingleTon == 1){
+
+    }
+    else{
+    	vertices_changed.clear();
+    }
+	vertices_changed.insert(x);
+
+	//add *x into vertices as well
+	for(auto it = vertices_changed.begin(); it != vertices_changed.end(); ++it){
+		vertexid_t x = *it;
+
+	    int numEdges = out->getNumEdges(x);
+	    vertexid_t * edges = out->getEdges(x);
+	    label_t *labels = out->getLabels(x);
+
+	    for(int i = 0;i < numEdges;++i) {
+	        if(grammar->isDereference(labels[i])){
+	        	vertices_changed.insert(edges[i]);
+	        }
+
+	        if(grammar->isDereference_reverse(labels[i])){
+	        	vertices_affected.insert(edges[i]);
+	        }
+	    }
+	}
 }
+
+//void CFGCompute::must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar) {
+//    /* if there exists one and only one variable o,which
+//     * refers to a singleton memory location,such that x and
+//     * y are both memory aliases of o,then x and y are Must-alias
+//     */
+//    vertexid_t o ;
+//    int numOfSingleTon = 0;
+////    int numEdges = out->getNumEdges(x);
+//    vertexid_t *edges = out->getEdges(x);
+//    label_t *labels = out->getLabels(x);
+//
+//    for(auto it = out->getGraph().begin(); it!= out->getGraph().end(); it++){
+//        vertexid_t i= it->first;
+//        if(grammar->isMemory(labels[i]) && out->isSingleton(edges[i])) {
+//            ++numOfSingleTon;
+//            o = edges[i];
+//        }
+//    }
+//
+//    if(numOfSingleTon != 1)
+//        return;
+//
+//    int numEdges = out->getNumEdges(o);
+//    edges = out->getEdges(o);
+//    labels = out->getLabels(o);
+//
+//    for(auto it = out->getGraph().begin(); it!= out->getGraph().end(); it++){
+//        int i = it->first;
+//        if(grammar->isMemory(labels[i]) && (edges[i] != x) && is_strong_update(edges[i],out,grammar))
+//            vertices.insert(edges[i]);
+//    }
+//}
 
 void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unordered_map<int, EdgesToDelete*>& m) {
     // add assgin edge based on stmt, (out,assign edge) -> compset
@@ -355,7 +413,7 @@ void CFGCompute::peg_compute_add(PEGraph *out,Stmt *stmt,Grammar *grammar) {
 //    compset.init_delete(out, m);
 //}
 
-void CFGCompute::findDeletedEdge(EdgesToDelete *edgesToDelete, int src, std::set<vertexid_t> &vertices) {
+void CFGCompute::findDeletedEdge(EdgesToDelete *edgesToDelete, int src, std::set<vertexid_t> &vertices, std::set<vertexid_t> &vertices_affected) {
     // src is in the vertices set
     if (vertices.find(src) != vertices.end()) {
         return ;
