@@ -48,13 +48,12 @@ public:
         for (auto it = graph_1->getGraph().begin(); it != graph_1->getGraph().end(); it++) {
             if (graph_2->getGraph().find(it->first) != graph_2->getGraph().end()) {
                 // merge the edgearray with the same src in graph_1 and graph_2
-                int len = 0;
                 int n1 = it->second.getSize();
                 int n2 = graph_2->getNumEdges(it->first);
 
                 vertexid_t *edges = new vertexid_t[n1 + n2];
                 char *labels = new char[n1 + n2];
-                myalgo::unionTwoArray(len, edges, labels, n1, it->second.getEdges(), it->second.getLabels(), n2,
+                int len = myalgo::unionTwoArray(edges, labels, n1, it->second.getEdges(), it->second.getLabels(), n2,
                                       graph_2->getEdges(it->first), graph_2->getLabels(it->first));
                 EdgeArray edgeArray;
                 edgeArray.set(len, edges, labels);

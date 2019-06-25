@@ -4,6 +4,8 @@
 
 class ContainersToMerge {
 public:
+	virtual ~ContainersToMerge(){}
+
     virtual void addOneContainer() = 0;
     virtual void addOneEdge(vertexid_t vid,char label) = 0;
     virtual int getNumEdges() = 0;
