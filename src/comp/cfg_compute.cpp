@@ -55,13 +55,14 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<C
     CFGNode* cfg_node;
     while(worklist_1->pop_atomic(cfg_node)){
         //merge
-        PEGraph* in = combine(cfg, graphstore, cfg_node);
+    	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
+        PEGraph* in = combine(graphstore, preds);
 
         //transfer
         PEGraph* out = transfer(in, cfg_node->getStmt(),grammar);
 
-        //clean in
-        delete in;
+//        // clean in
+//        delete in;
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
@@ -84,9 +85,9 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<C
 
 
 
-PEGraph* CFGCompute::combine(const CFG* cfg, GraphStore* graphstore, const CFGNode* node){
+PEGraph* CFGCompute::combine(GraphStore* graphstore, std::vector<CFGNode*>& preds){
     //get the predecessors of node
-    std::vector<CFGNode*> preds = cfg->getPredesessors(node);
+//    std::vector<CFGNode*> preds = cfg->getPredesessors(node);
 
     if(preds.size() == 0){//entry node
         //return an empty graph
@@ -114,7 +115,8 @@ PEGraph* CFGCompute::combine(const CFG* cfg, GraphStore* graphstore, const CFGNo
 }
 
 PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar){
-    PEGraph* out = new PEGraph(in);
+//    PEGraph* out = new PEGraph(in);
+	PEGraph* out = in;
 
     // the KILL set
     std::set<vertexid_t> vertices;
@@ -127,7 +129,8 @@ PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar){
 }
 
 PEGraph* CFGCompute::transfer_load(PEGraph* in, Stmt* stmt,Grammar *grammar){
-    PEGraph* out = new PEGraph(in);
+//    PEGraph* out = new PEGraph(in);
+	PEGraph* out = in;
 
     // the KILL set
     std::set<vertexid_t> vertices;
@@ -140,7 +143,9 @@ PEGraph* CFGCompute::transfer_load(PEGraph* in, Stmt* stmt,Grammar *grammar){
 }
 
 PEGraph* CFGCompute::transfer_store(PEGraph* in, Stmt* stmt,Grammar *grammar){
-    PEGraph* out = new PEGraph(in);
+//    PEGraph* out = new PEGraph(in);
+	PEGraph* out = in;
+
     // the KILL set
     std::set<vertexid_t> vertices;
 
@@ -154,7 +159,8 @@ PEGraph* CFGCompute::transfer_store(PEGraph* in, Stmt* stmt,Grammar *grammar){
 }
 
 PEGraph* CFGCompute::transfer_address(PEGraph* in, Stmt* stmt,Grammar *grammar){
-    PEGraph* out = new PEGraph(in);
+//    PEGraph* out = new PEGraph(in);
+	PEGraph* out = in;
 
     // the KILL set
     std::set<vertexid_t> vertices;
@@ -256,8 +262,7 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
 bool CFGCompute::isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar) {
     if(!grammar->isAssign(label))
         return false;
-    std::set<vertexid_t>::iterator iter;
-    return ( ((iter = vertices.find(src)) != vertices.end()) || ((iter = vertices.find(dst)) != vertices.end()) );
+    return ( (vertices.find(src) != vertices.end()) || (vertices.find(dst) != vertices.end()) );
 }
 
 void CFGCompute::must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar) {
