@@ -10,12 +10,10 @@
 
 #include "cfg.h"
 
-class CFG_map : CFG {
+class CFG_map : public CFG {
 
 public:
     CFG_map();
-
-    CFG_map(std::string file);
 
 
     ~CFG_map(){
@@ -50,7 +48,18 @@ public:
         return nodes;
     }
 
+    void addOneNode(CFGNode *Node) override {
+        nodes.push_back(Node);
+    }
 
+
+    void addOnePred(CFGNode *succ, CFGNode *pred) override {
+       predes[succ].push_back(pred);
+    }
+
+    void addOneSucc(CFGNode *pred, CFGNode *succ) override {
+        succes[pred].push_back(succ);
+    }
 
 private:
 
@@ -60,18 +69,8 @@ private:
 
     std::unordered_map<const CFGNode*, std::vector<CFGNode*>> succes;
 
-
-
 };
 
-CFG_map::CFG_map(std::string file) {
-    std::ifstream fin;
-    fin.open(file);
-    if(!fin) {
-        cout << "can't load file_cfg: " << file << endl;
-    }
-
-}
 
 
 #endif /* COMP_CFG_MAP_H_ */

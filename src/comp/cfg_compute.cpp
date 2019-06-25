@@ -362,30 +362,62 @@ void CFGCompute::findDeletedEdge(EdgesToDelete *edgesToDelete, int src, std::set
     }
 }
 
-bool CFGCompute::load(string file_cfg, string file_peg, string file_singleton, CFG *cfg, GraphStore *graphstore) {
+// 使用tab键分割
+bool CFGCompute::load(string file_cfg, string file_stmt, CFG *cfg, GraphStore *graphstore) {
     std::ifstream fin;
+    cfg = dynamic_cast<CFG_map * > (cfg);
+
+    fin.open(file_stmt);
+    if(!fin) {
+        cout << "can't load file_stmt " << endl;
+        return false;
+    }
+
+    std::map<int, CFGNode*> m;
+
+    std::string line;
+    while (getline(fin, line)) {
+        std::stringstream stream(line);
+        std::string stmt_id, type, dst, src, added;
+        stream >> stmt_id >> type >> dst >> src >> added;
+
+        TYPE t;
+        if(type == "assign"){
+            t = TYPE::Assign;
+        }
+        if(type == "load"){
+            t = TYPE::Load;
+        }
+        if(type == "store"){
+            t = TYPE ::Store;
+        }
+        if(type == "alloca"){
+            t = TYPE ::Alloca;
+        }
+
+        Stmt* stmt = new Stmt(t, atoi(src.c_str()), atoi(dst.c_str()), atoi(added.c_str()));
+        CFGNode* cfgNode = new CFGNode(atoi(stmt_id.c_str()), stmt);
+        m[atoi(stmt_id.c_str())] = cfgNode;
+    }
+
     fin.open(file_cfg);
     if(!fin) {
         cout << "can't load file_cfg: " << file_cfg << endl;
         return false;
     }
-    //todo
-    
 
-    fin.open(file_peg);
-    if(!fin) {
-        cout << "can't load file_peg: " << file_cfg << endl;
-        return false;
+    while (getline(fin, line)) {
+        std::stringstream stream(line);
+        std::string pred, succ;
+        stream >> pred >> succ;
+
+        cfg->addOneNode(m[atoi(pred.c_str())]);
+        cfg->addOneNode(m[atoi(succ.c_str())]);
+        cfg->addOneSucc(m[atoi(pred.c_str())], m[atoi(succ.c_str())]);
+        cfg->addOnePred(m[atoi(succ.c_str())], m[atoi(pred.c_str())]);
     }
-    //todo
 
-    fin.open(file_singleton);
-    if(!fin) {
-        cout << "can't load file_cfg: " << file_singleton << endl;
-        return false;
-    }
-    //todo
-
+    //todo handle the singleton.txt
 }
 
 

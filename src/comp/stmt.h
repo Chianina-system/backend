@@ -10,10 +10,10 @@
 #include "../common/CommonLibs.hpp"
 
 enum class TYPE {
-	Copy,
+	Assign,
 	Load,
 	Store,
-	Address
+	Alloca
 };
 
 class Stmt{
@@ -33,11 +33,17 @@ public:
 		return dst;
 	}
 
+    vertexid_t getAdded() const{
+        return added;
+    }
+
+    Stmt(TYPE t, vertexid_t src, vertexid_t dst, vertexid_t added = -1) : t(t), src(src), dst(dst), added(added) {}
 
 private:
 	TYPE t;
 	vertexid_t src;
 	vertexid_t dst;
+	vertexid_t added;
 
 };
 
