@@ -9,7 +9,7 @@
 #define COMP_ART_H_
 
 #include "graphstore.h"
-#include <ostream>
+//#include <ostream>
 
 using namespace std;
 
@@ -96,9 +96,9 @@ class ART : public GraphStore {
 public:
     ART();
 
-    ~ART() {};
+    ~ART();
 
-    PEGraph *retrieve(const PEGraph_Pointer graph_pointer) const override;
+    PEGraph *retrieve(PEGraph_Pointer graph_pointer) override;
 
     void update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
 

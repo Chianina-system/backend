@@ -84,7 +84,7 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<C
 
 
 
-PEGraph* CFGCompute::combine(const CFG* cfg, const GraphStore* graphstore, const CFGNode* node){
+PEGraph* CFGCompute::combine(const CFG* cfg, GraphStore* graphstore, const CFGNode* node){
     //get the predecessors of node
     std::vector<CFGNode*> preds = cfg->getPredesessors(node);
 

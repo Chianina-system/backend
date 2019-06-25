@@ -13,9 +13,15 @@
 class CFG_map : CFG {
 
 public:
-    CFG_map();
+    CFG_map(){}
 
-    CFG_map(std::string file);
+    CFG_map(std::string file){
+		std::ifstream fin;
+		fin.open(file);
+		if (!fin) {
+			cout << "can't load file_cfg: " << file << endl;
+		}
+    }
 
 
     ~CFG_map(){
@@ -64,14 +70,14 @@ private:
 
 };
 
-CFG_map::CFG_map(std::string file) {
-    std::ifstream fin;
-    fin.open(file);
-    if(!fin) {
-        cout << "can't load file_cfg: " << file << endl;
-    }
-
-}
+//CFG_map::CFG_map(std::string file) {
+//    std::ifstream fin;
+//    fin.open(file);
+//    if(!fin) {
+//        cout << "can't load file_cfg: " << file << endl;
+//    }
+//
+//}
 
 
 #endif /* COMP_CFG_MAP_H_ */

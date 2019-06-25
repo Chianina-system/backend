@@ -39,7 +39,7 @@ private:
 
 //	void peg_compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist, CFGNode* cfg_node);
 
-    PEGraph* combine(const CFG* cfg, const GraphStore* graphstore, const CFGNode* cfg_node);
+    PEGraph* combine(const CFG* cfg, GraphStore* graphstore, const CFGNode* cfg_node);
 
     PEGraph* transfer(PEGraph* in, Stmt* stmt,Grammar* grammar){
         switch(stmt->getType()){

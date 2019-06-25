@@ -12,6 +12,7 @@
 #include "stmt.h"
 #include "../common/CommonLibs.hpp"
 
+
 class CFGNode{
 
 public:
@@ -28,14 +29,20 @@ public:
 //	}
 
     inline PEGraph_Pointer getOutPointer() const {
-        return out_pointer;
+        return id;
     }
+
+//    inline PEGraph_Pointer getId(){
+//    	return id;
+//    }
 
 
 private:
 //	PEGraph_Pointer in_pointer;
-    PEGraph_Pointer out_pointer;
+//    PEGraph_Pointer out_pointer;
 
+
+    PEGraph_Pointer id;
 
     Stmt* stmt;
 
