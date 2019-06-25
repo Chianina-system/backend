@@ -57,9 +57,9 @@ namespace myalgo {
         return i;
     }
 
-    void unionTwoArray(int &len,vertexid_t *dstA,char *dstB,int len1,vertexid_t *A1,char *B1,int len2,vertexid_t *A2,char *B2) {
+    int unionTwoArray(vertexid_t *dstA,char *dstB,int len1,vertexid_t *A1,char *B1,int len2,vertexid_t *A2,char *B2) {
         // (A1,B1),(A2,B2) is sorted
-        len = 0;
+        int len = 0;
         if(len1) {
             if(len2) {
                 int p1 = 0; int p2 = 0;
@@ -101,11 +101,13 @@ namespace myalgo {
             }
         }
 
+        return len;
+
     }
 
-    void minusTwoArray(int &len,vertexid_t *dstA,char *dstB,int len1,vertexid_t *A1,char *B1,int len2,vertexid_t *A2,char *B2) {
+    int minusTwoArray(vertexid_t *dstA,char *dstB,int len1,vertexid_t *A1,char *B1,int len2,vertexid_t *A2,char *B2) {
         // (A1,B1),(A2,B2) is sorted
-        len = 0;
+        int len = 0;
         if(len1) {
             if(len2) {
                 int p1 = 0; int p2 = 0;
@@ -133,6 +135,8 @@ namespace myalgo {
                 memcpy(dstB,B1,sizeof(char)*len);
             }
         }
+
+        return len;
     }
 
     void removeDuple(int &len,vertexid_t *dstA,char *dstB,int srclen,vertexid_t *srcA,char *srcB) {

@@ -77,9 +77,9 @@ private:
 
     void peg_compute_delete(PEGraph *out,Grammar* grammar, std::unordered_map<int, EdgesToDelete*>& m);
 
-    void initComputationSet_add(ComputationSet &compset,PEGraph *out,Stmt *stmt);
-
-    void initComputationSet_delete(ComputationSet &compset,PEGraph *out, std::unordered_map<int, EdgesToDelete*>& m);
+//    void initComputationSet_add(ComputationSet &compset,PEGraph *out,Stmt *stmt);
+//
+//    void initComputationSet_delete(ComputationSet &compset,PEGraph *out, std::unordered_map<int, EdgesToDelete*>& m);
 
     void findDeletedEdge(EdgesToDelete* edgesToDelete, int src, std::set<vertexid_t> &vertices);
 };

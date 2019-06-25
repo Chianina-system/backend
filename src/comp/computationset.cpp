@@ -32,17 +32,13 @@ ComputationSet::ComputationSet() {
 //}
 
 void ComputationSet::init_add(PEGraph *out, Stmt *stmt) {
-    // TODO: after adding assign edge based on stmt,numVertices may increase.
-
-    // DeltasV <- stmt
-    int i = stmt->getSrc();
-    Deltas[i] = EdgeArray();
-    int len_stmt = 1;
-    vertexid_t *stmt_edge = new vertexid_t[len_stmt];
-    label_t *stmt_label = new label_t[len_stmt];
+    // Deltas <- stmt
+    vertexid_t *stmt_edge = new vertexid_t[1];
+    label_t *stmt_label = new label_t[1];
     *stmt_edge = stmt->getDst();
     *stmt_label = 'A'; //TODO: this label means "ASSIGN"
-    Deltas[i].set(len_stmt, stmt_edge, stmt_label);
+    Deltas[stmt->getSrc()] = EdgeArray();
+    Deltas[stmt->getSrc()].set(1, stmt_edge, stmt_label);
     delete[] stmt_edge;
     delete[] stmt_label;
 
@@ -53,26 +49,36 @@ void ComputationSet::init_add(PEGraph *out, Stmt *stmt) {
     }
 }
 
+    // Olds <- out - m, Deltas <- m, News <- empty
 void ComputationSet::init_delete(PEGraph *out, std::unordered_map<int, EdgesToDelete *> &m) {
-    // Old <- out - m, Deltas <- m  News <- NULL
-
+	// Deltas <- m
     for(auto & it : m){
-//        it.second->merge();
-        // notice: the difference between getSize and getRealNumEdges
+    	Deltas[it.first] = EdgeArray();
         Deltas[it.first].set(it.second->getSize(), it.second->getEdges(), it.second->getLabels());
-
-        int len = 0;
-        int n1 = out->getNumEdges(it.first);
-        int n2 = Deltas[it.first].getSize();
-        auto *edges = new vertexid_t[n1];
-        auto *labels = new label_t[n1];
-        myalgo::minusTwoArray(len, edges, labels, n1, out->getEdges(it.first), out->getLabels(it.first), n2, Deltas[it.first].getEdges(), Deltas[it.first].getLabels());
-        if (len)
-            Olds[it.first].set(len, edges, labels);
-
-        delete[] edges;
-        delete[] labels;
     }
+
+    //Olds <- out - m
+    for(auto it = out->getGraph().begin(); it != out->getGraph().end(); it++){
+    	if(m.find(it->first) != m.end()){
+            int n1 = it->second.getSize();
+            int n2 = Deltas[it->first].getSize();
+            auto *edges = new vertexid_t[n1];
+            auto *labels = new label_t[n1];
+            int len = myalgo::minusTwoArray(edges, labels, n1, it->second.getEdges(), it->second.getLabels(), n2, Deltas[it->first].getEdges(), Deltas[it->first].getLabels());
+            if (len){
+            	Olds[it->first] = EdgeArray();
+                Olds[it->first].set(len, edges, labels);
+            }
+
+            delete[] edges;
+            delete[] labels;
+    	}
+    	else{
+			Olds[it->first] = EdgeArray();
+			Olds[it->first].set(it->second.getSize(), it->second.getEdges(), it->second.getLabels());
+    	}
+    }
+
 }
 
 //void ComputationSet::clear() {
@@ -134,7 +140,8 @@ void ComputationSet::clearDeltas(vertexid_t index) {
 }
 
 void ComputationSet::clearNews(vertexid_t index) {
-    News.erase(index);
+	if(News.find(index) != News.end())
+		News.erase(index);
 }
 
 std::set<vertexid_t> ComputationSet::getVertices() {
