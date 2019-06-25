@@ -16,8 +16,8 @@ class CFGNode{
 
 public:
     CFGNode();
-    CFGNode(int id, Stmt* _stmt) {
-    cfg_node_id = id;
+    CFGNode(int _id, Stmt* _stmt) {
+    id = _id;
     stmt = _stmt;
     }
 
@@ -37,22 +37,17 @@ public:
     }
 
     inline int getCfgNodeId() const {
-        return cfg_node_id;
+        return id;
     }
 
     inline void setCfgNodeId(int cfgNodeId) {
-        cfg_node_id = cfgNodeId;
+        id = cfgNodeId;
     }
 
 
 private:
-//	PEGraph_Pointer in_pointer;
-//    PEGraph_Pointer out_pointer;
-
-
     PEGraph_Pointer id;
-    PEGraph_Pointer out_pointer;
-    int cfg_node_id;
+//    int id;
 
     Stmt* stmt;
 

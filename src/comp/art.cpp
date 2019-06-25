@@ -144,9 +144,9 @@ PEGraph * ART::convertToPEGraph(vector<Edge *> &v) const {
             graph[edge->src].addOneEdge(edge->des, edge->label);
         }
     }
-    // should we sort the graph?
+    // todo should we sort the graph?
 
-    // what should we do with the singleton?
+    // todo what should we do with the singleton?
 
     peGraph->setGraph(graph);
     return peGraph;
@@ -205,6 +205,10 @@ void ART::edgeSort(vector<vector<Edge *>> &edges) {
             return sortBase[*lhs] > sortBase[*rhs];
         });
     }
+}
+
+void ART::addOneSingleton(vertexid_t t) {
+    this->singletonSet.insert(t);
 }
 
 

@@ -12,20 +12,18 @@ PEGraph::PEGraph() {
 }
 
 PEGraph::PEGraph(PEGraph *p) {
-//    this->graph = p->getGraph();
-//    this->isSingletonArray = p->getIsSingletonArray();
+
 
     std::unordered_map<vertexid_t, EdgeArray> _graph;
-    std::unordered_map<vertexid_t, bool> _isSingletonArray;
+    std::set<vertexid_t> _singletonSet;
     for (auto it = p->getGraph().begin(); it != p->getGraph().end(); it++){
         _graph[it->first] = it->second;
     }
-    for (auto it = p->getIsSingletonArray().begin(); it != p->getIsSingletonArray().end(); it++){
-        _isSingletonArray[it->first] = it->second;
+    for (auto it = p->getSingletonSet().begin(); it != p->getSingletonSet().end(); it++){
+        _singletonSet.insert(*it);
     }
     this->setGraph(_graph);
-    this->setIsSingletonArray(_isSingletonArray);
-
+    this->setSingletonSet(singletonSet);
 }
 
 const std::unordered_map<vertexid_t, EdgeArray> & PEGraph::getGraph() const {
@@ -34,10 +32,6 @@ const std::unordered_map<vertexid_t, EdgeArray> & PEGraph::getGraph() const {
 
 void PEGraph::setGraph(const std::unordered_map<vertexid_t, EdgeArray> &_graph) {
     this->graph = _graph;
-}
-
-const std::unordered_map<vertexid_t, bool> &PEGraph::getIsSingletonArray() const {
-    return isSingletonArray;
 }
 
 bool PEGraph::equals(PEGraph *another) {
@@ -55,6 +49,11 @@ void PEGraph::setEdgeArray(vertexid_t index, int numEdges, vertexid_t *edges, la
     this->graph[index].set(numEdges,edges,labels);
 }
 
-void PEGraph::setIsSingletonArray(const std::unordered_map<vertexid_t, bool> &_isSingletonArray) {
-    this->isSingletonArray = _isSingletonArray;
+const std::set<vertexid_t> &PEGraph::getSingletonSet() const {
+    return singletonSet;
 }
+
+void PEGraph::setSingletonSet(const std::set<vertexid_t> &singletonSet) {
+    PEGraph::singletonSet = singletonSet;
+}
+

@@ -120,9 +120,13 @@ public:
 
     vector<Edge *> convertToVector(PEGraph *pegraph);
 
+    void addOneSingleton(vertexid_t t);
+
 private:
-    Node *root{};
+    Node *root;
     std::unordered_map<PEGraph_Pointer, Node *> m;
+    std::set<vertexid_t> singletonSet;
+
 };
 
 

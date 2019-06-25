@@ -23,7 +23,7 @@ public:
 
     bool load(Partition* part, CFG* cfg, GraphStore* graphstore);
 
-    bool load(string file_cfg, string file_stmt, CFG *cfg, GraphStore *graphstore);
+    bool load(const string& file_cfg, const string& file_stmt, const string& file_singleton, CFG *cfg, GraphStore *graphstore);
 
     void do_worklist(CFG* cfg, GraphStore* graphstore); //worklist algorithm in parallel
 
@@ -52,10 +52,9 @@ private:
             case TYPE::Alloca:
                 return transfer_address(in, stmt, grammar);
             default:
-                return NULL;
+                return nullptr;
         }
     }
-
 
     PEGraph* transfer_copy(PEGraph* in, Stmt* stmt,Grammar* grammar);
 
@@ -82,8 +81,6 @@ private:
     void initComputationSet_delete(ComputationSet &compset,PEGraph *out, std::unordered_map<int, EdgesToDelete*>& m);
 
     void findDeletedEdge(EdgesToDelete* edgesToDelete, int src, std::set<vertexid_t> &vertices);
-
-
 };
 
 

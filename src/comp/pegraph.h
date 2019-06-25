@@ -19,11 +19,7 @@ public:
 
     ~PEGraph() {}
 
-    void setIsSingletonArray(const std::unordered_map<vertexid_t, bool> &_isSingletonArray);
-
     PEGraph(PEGraph *p);
-
-    const std::unordered_map<vertexid_t, bool> &getIsSingletonArray() const;
 
     bool equals(PEGraph *another);
 
@@ -31,7 +27,7 @@ public:
 
     inline vertexid_t getNumVertices() { return graph.size(); }
 
-    inline bool isSingleton(vertexid_t vid) { return isSingletonArray[vid]; }
+    inline bool isSingleton(vertexid_t vid) { return singletonSet.find(vid)!= singletonSet.end(); }
 
 
     vertexid_t *getEdges(vertexid_t index) { return graph[index].getEdges(); }
@@ -75,17 +71,27 @@ public:
                 mergeGraph[it->first] = it->second;
             }
         }
+
+        std::set<vertexid_t> singletonSet;
+        singletonSet.insert(graph_1->getSingletonSet().begin(), graph_1->getSingletonSet().end());
+        singletonSet.insert(graph_2->getSingletonSet().begin(), graph_2->getSingletonSet().end());
+
         delete graph_1;
         delete graph_2;
         peGraph->setGraph(mergeGraph);
+        peGraph->setSingletonSet(singletonSet);
         return peGraph;
     }
+
+    const std::set<vertexid_t> &getSingletonSet() const;
+
+    void setSingletonSet(const std::set<vertexid_t> &singletonSet);
 
     void setGraph(const std::unordered_map<vertexid_t, EdgeArray> &_graph);
 
 private:
     std::unordered_map<vertexid_t, EdgeArray> graph;
-    std::unordered_map<vertexid_t, bool> isSingletonArray;
+    std::set<vertexid_t> singletonSet;
 };
 
 

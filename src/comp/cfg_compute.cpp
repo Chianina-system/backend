@@ -8,6 +8,7 @@
 
 #include "cfg_compute.h"
 #include "edgesToDelete.h"
+#include "art.h"
 
 
 bool CFGCompute::load(Partition* part, CFG* cfg, GraphStore* graphstore){
@@ -368,9 +369,10 @@ void CFGCompute::findDeletedEdge(EdgesToDelete *edgesToDelete, int src, std::set
 }
 
 // 使用tab键分割
-bool CFGCompute::load(string file_cfg, string file_stmt, CFG *cfg, GraphStore *graphstore) {
+bool CFGCompute::load(const string& file_cfg, const string& file_stmt,const string& file_singleton,  CFG *cfg, GraphStore *graphstore) {
+    // handle the stmt file
     std::ifstream fin;
-    cfg = dynamic_cast<CFG_map * > (cfg);
+    CFG_map* cfgMap = dynamic_cast<CFG_map* > (cfg);
 
     fin.open(file_stmt);
     if(!fin) {
@@ -405,6 +407,7 @@ bool CFGCompute::load(string file_cfg, string file_stmt, CFG *cfg, GraphStore *g
         m[atoi(stmt_id.c_str())] = cfgNode;
     }
 
+    //handle the cfg.txt
     fin.open(file_cfg);
     if(!fin) {
         cout << "can't load file_cfg: " << file_cfg << endl;
@@ -416,13 +419,28 @@ bool CFGCompute::load(string file_cfg, string file_stmt, CFG *cfg, GraphStore *g
         std::string pred, succ;
         stream >> pred >> succ;
 
-        cfg->addOneNode(m[atoi(pred.c_str())]);
-        cfg->addOneNode(m[atoi(succ.c_str())]);
-        cfg->addOneSucc(m[atoi(pred.c_str())], m[atoi(succ.c_str())]);
-        cfg->addOnePred(m[atoi(succ.c_str())], m[atoi(pred.c_str())]);
+        cfgMap->addOneNode(m[atoi(pred.c_str())]);
+        cfgMap->addOneNode(m[atoi(succ.c_str())]);
+        cfgMap->addOneSucc(m[atoi(pred.c_str())], m[atoi(succ.c_str())]);
+        cfgMap->addOnePred(m[atoi(succ.c_str())], m[atoi(pred.c_str())]);
     }
 
-    //todo handle the singleton.txt
+
+    //handle the singleton.txt
+    fin.open(file_singleton);
+    if(!fin) {
+        cout << "can't load file_singleton: " << file_cfg << endl;
+        return false;
+    }
+    ART* art = dynamic_cast<ART* > (graphstore);
+    while (getline(fin, line)) {
+        std::stringstream stream(line);
+        std::string id;
+        stream >> id;
+        art->addOneSingleton(atoi(id.c_str()));
+    }
+
+    return true;
 }
 
 

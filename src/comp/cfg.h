@@ -23,9 +23,6 @@ public:
     virtual std::vector<CFGNode*> getPredesessors(const CFGNode* node) const = 0;
     virtual std::vector<CFGNode*> getSuccessors(const CFGNode* node) const = 0;
     virtual std::vector<CFGNode*> getNodes() const = 0;
-    virtual void addOneNode(CFGNode* Node) = 0;
-    virtual void addOnePred(CFGNode* succ, CFGNode* pred) = 0;
-    virtual void addOneSucc(CFGNode* pred, CFGNode* succ) = 0;
 
 
 

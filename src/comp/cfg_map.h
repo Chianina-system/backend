@@ -13,8 +13,15 @@
 class CFG_map : public CFG {
 
 public:
-    CFG_map();
+    CFG_map(){}
 
+    CFG_map(std::string file){
+		std::ifstream fin;
+		fin.open(file);
+		if (!fin) {
+			cout << "can't load file_cfg: " << file << endl;
+		}
+    }
 
     ~CFG_map(){
         for (auto &node : nodes) {
@@ -48,16 +55,16 @@ public:
         return nodes;
     }
 
-    void addOneNode(CFGNode *Node) override {
+    void addOneNode(CFGNode *Node)  {
         nodes.push_back(Node);
     }
 
 
-    void addOnePred(CFGNode *succ, CFGNode *pred) override {
+    void addOnePred(CFGNode *succ, CFGNode *pred)  {
        predes[succ].push_back(pred);
     }
 
-    void addOneSucc(CFGNode *pred, CFGNode *succ) override {
+    void addOneSucc(CFGNode *pred, CFGNode *succ)  {
         succes[pred].push_back(succ);
     }
 
