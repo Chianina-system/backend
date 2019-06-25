@@ -12,8 +12,6 @@ PEGraph::PEGraph() {
 }
 
 PEGraph::PEGraph(PEGraph *p) {
-
-
     std::unordered_map<vertexid_t, EdgeArray> _graph;
     std::set<vertexid_t> _singletonSet;
     for (auto it = p->getGraph().begin(); it != p->getGraph().end(); it++){

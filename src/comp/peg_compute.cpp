@@ -231,7 +231,6 @@ void PEGCompute::genD_RuleEdges_delta(vertexid_t index, ComputationSet &compset,
 //}
 
 void PEGCompute::postProcessOneIteration(ComputationSet &compset, bool isDelete, std::unordered_map<int, EdgesToDelete *> *m) {
-
 	// oldsV <- {oldsV,deltasV}
 	for (auto it = compset.getOlds().begin(); it != compset.getOlds().end(); it++) {
 		vertexid_t id_old = it->first;
@@ -275,6 +274,7 @@ void PEGCompute::postProcessOneIteration(ComputationSet &compset, bool isDelete,
 			compset.setDeltas(i_new, len, edges, labels);
 
 			if(isDelete){
+				//TODO: instead of set, we should use merge
 				m->at(i_new)->set(len, edges, labels);
 			}
 		}
