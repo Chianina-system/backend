@@ -7,6 +7,15 @@
 
 using namespace std;
 
+ART::ART(){
+	//TODO
+}
+
+ART::~ART() {
+	//TODO
+
+}
+
 Node *ART::insert(vector<Edge *> &v) {
     if (v.empty()) return nullptr;
     Node *parent = root;
@@ -170,12 +179,13 @@ void ART::update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
 }
 
 
-PEGraph *ART::retrieve(const PEGraph_Pointer graph_pointer) const {
+PEGraph * ART::retrieve(PEGraph_Pointer graph_pointer) {
     if (m.find(graph_pointer)!= m.end()){
-        Node *node = m[graph_pointer];
+        Node* node = m[graph_pointer];
         vector<Edge *> v = retrieveFromLeaf(node);
         return convertToPEGraph(v);
     }
+    return nullptr;
 }
 
 void ART::edgeSort(vector<vector<Edge *>> &edges) {

@@ -28,17 +28,12 @@ public:
         return stmt;
     }
 
-//    inline int getCfgNodeId(){
-//        return cfg_node_id;
-//    }
-
-
 //	inline PEGraph_Pointer getInPointer() const {
 //		return in_pointer;
 //	}
 
     inline PEGraph_Pointer getOutPointer() const {
-        return out_pointer;
+        return id;
     }
 
     inline int getCfgNodeId() const {
@@ -52,6 +47,10 @@ public:
 
 private:
 //	PEGraph_Pointer in_pointer;
+//    PEGraph_Pointer out_pointer;
+
+
+    PEGraph_Pointer id;
     PEGraph_Pointer out_pointer;
     int cfg_node_id;
 
@@ -61,11 +60,6 @@ private:
 
 
 };
-
-//CFGNode::CFGNode(int id, Stmt *_stmt) {
-//    cfg_node_id = id;
-//    stmt = _stmt;
-//}
 
 
 

@@ -85,5 +85,7 @@ typedef uint8_t uint8;
 typedef int vertexid_t;
 typedef char label_t;
 
+typedef int PEGraph_Pointer;
+
 #define GRAMMAR_STR_LEN 36
 #endif /* SRC_COMMON_RSTREAMCOMMON_HPP_ */

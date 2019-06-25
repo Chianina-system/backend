@@ -9,19 +9,17 @@
 #define COMP_GRAPHSTORE_H_
 
 #include "pegraph.h"
-#include "peGraphPointer.h"
+//#include "peGraphPointer.h"
 
 class GraphStore{
 
 public:
-    GraphStore();
+//    GraphStore(){}
     virtual ~GraphStore(){}
 
+    virtual PEGraph* retrieve(PEGraph_Pointer graph_pointer) = 0;
 
-
-    virtual PEGraph* retrieve(const PEGraph_Pointer graph_pointer) const;
-
-    virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph);
+    virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
 
 
 

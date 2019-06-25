@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include "comp/cfg_compute.h"
+#include "comp/art.h"
 
 using namespace std;
 
@@ -14,7 +15,7 @@ using namespace std;
 
 int main() {
 	CFG *cfg = nullptr;
-	GraphStore *graphstore = nullptr;
+	GraphStore *graphstore = new ART();
 	Partition *partition = nullptr;
 
 	CFGCompute* computer = new CFGCompute();
