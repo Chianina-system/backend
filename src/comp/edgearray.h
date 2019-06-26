@@ -11,7 +11,7 @@ private:
     label_t *labels;
     int size;
     int capacity;
-    int realNumEdges; // exclude duplicate edges
+//    int realNumEdges; // exclude duplicate edges
 
 public:
     EdgeArray();
@@ -20,14 +20,14 @@ public:
     void clear();
 
 
-    inline int getRealNumEdges() {return realNumEdges;}
+//    inline int getRealNumEdges() {return realNumEdges;}
     inline vertexid_t *getEdges() const{return edges;}
     inline label_t* getLabels() const{return labels;}
     inline int getSize() const{return size;}
 
     void set(int size,vertexid_t *edges,label_t *labels);
 
-    void setRealNumEdges(int realNumEdges);
+//    void setRealNumEdges(int realNumEdges);
 
     void addOneEdge(vertexid_t edge,label_t label);
     void addEdges(int len, vertexid_t* _edges, label_t* _labels);

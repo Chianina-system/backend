@@ -217,7 +217,6 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
         }
     }
 
-    //对out - m上的边执行加m中所有的边的操作
     // execute the add edge operation. the oldsSet is out - m, the deltasSdge is m
     peg_compute_delete(out, grammar, m);
 
@@ -229,9 +228,9 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
         //get all the deleted edges
         findDeletedEdge(it->second, src, vertices_changed, vertices_affected);
 
-        if(m[src]->getRealNumEdges()){
+        if(m[src]->getSize()){
             int n1 = out->getNumEdges(src);
-            int n2 = m[src]->getRealNumEdges();
+            int n2 = m[src]->getSize();
             auto *edges = new vertexid_t[n1];
             auto *labels = new label_t[n1];
             int len = myalgo::minusTwoArray(edges,labels,n1,out->getEdges(src),out->getLabels(src),n2,m[src]->getEdges(),m[src]->getLabels());
@@ -419,15 +418,15 @@ void CFGCompute::findDeletedEdge(EdgeArray *edgesToDelete, int src, std::set<ver
         return ;
     } else {
         EdgeArray* _edgesToDelete = new EdgeArray;
-        for (int i = 0; i < edgesToDelete->getRealNumEdges(); ++i) {
+        for (int i = 0; i < edgesToDelete->getSize(); ++i) {
             if (vertices.find(edgesToDelete->getEdges()[i]) != vertices.end()) {
                 _edgesToDelete->addOneEdge(edgesToDelete->getEdges()[i], edgesToDelete->getLabels()[i]);
             }
         }
-        _edgesToDelete->setRealNumEdges( _edgesToDelete->getSize() ) ;
-        edgesToDelete->clear();
+//        _edgesToDelete->setRealNumEdges( _edgesToDelete->getSize() ) ;
+//        edgesToDelete->clear();
         edgesToDelete->set(_edgesToDelete->getSize(), _edgesToDelete->getEdges(), _edgesToDelete->getLabels() );
-        edgesToDelete->setRealNumEdges(_edgesToDelete->getSize() );
+//        edgesToDelete->setRealNumEdges(_edgesToDelete->getSize() );
         _edgesToDelete->clear();
     }
 }

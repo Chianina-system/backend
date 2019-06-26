@@ -4,7 +4,7 @@
 EdgeArray::EdgeArray() {
     edges = NULL;
     labels = NULL;
-    size = capacity = realNumEdges = 0;
+    size = capacity = 0;
 }
 
 EdgeArray::EdgeArray(int size,vertexid_t *edges,label_t *labels) {
@@ -61,7 +61,7 @@ void EdgeArray::clear() {
         if(labels) {
             delete[] labels;
         }
-        size = capacity = realNumEdges = 0;
+        size = capacity = 0;
     }
 }
 
@@ -93,9 +93,9 @@ void EdgeArray::addOneEdge(vertexid_t edge, label_t label) {
     ++size;
 }
 
-void EdgeArray::setRealNumEdges(int realNumEdges) {
-    this->realNumEdges = realNumEdges;
-}
+//void EdgeArray::setRealNumEdges(int realNumEdges) {
+//    this->realNumEdges = realNumEdges;
+//}
 
 void EdgeArray::addEdges(int len, vertexid_t *_edges, label_t *_labels) {
     if (len == 0) return;
@@ -127,7 +127,7 @@ void EdgeArray::merge() {
     label_t *_labels = new label_t[size];
     int _numEdges = 0;
     myalgo::removeDuple(_numEdges, _edges, _labels, size, edges, labels);
-    realNumEdges = _numEdges;
+    size = _numEdges;
     memcpy(edges, _edges, sizeof(vertexid_t) * _numEdges);
     memcpy(labels, _labels, sizeof(label_t) * _numEdges);
     delete[] _edges;
