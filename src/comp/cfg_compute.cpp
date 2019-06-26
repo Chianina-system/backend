@@ -201,7 +201,7 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
      * delete all the incoming and outgoing M or V edges of v induced previously by the deleted a edges from OUT
      */
 //    vertexid_t numVertices = out->getNumVertices();
-    std::unordered_map<int, EdgesToDelete*> m;
+    std::unordered_map<int, EdgeArray*> m;
 
     for(auto it = out->getGraph().begin(); it!= out->getGraph().end(); it++){
         int numEdges = out->getNumEdges(it->first);
@@ -211,7 +211,7 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
             if(isDirectAssignEdges(it->first,edges[j],labels[j],vertices_changed,grammar)) {
                 // delete the direct incoming and outgoing assign edges
                 if(m.find(it->first)==m.end())
-                    m[it->first] = new EdgesToDelete;
+                    m[it->first] = new EdgeArray;
                 m[it->first]->addOneEdge(edges[j],labels[j]);
             }
         }
@@ -357,7 +357,7 @@ void CFGCompute::must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vert
 //    }
 //}
 
-void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unordered_map<int, EdgesToDelete*>& m) {
+void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unordered_map<int, EdgeArray*>& m) {
     // add assgin edge based on stmt, (out,assign edge) -> compset
     ComputationSet *compset = new ComputationSet();
     compset->init_delete(out, m);
@@ -413,12 +413,12 @@ void CFGCompute::peg_compute_add(PEGraph *out,Stmt *stmt,Grammar *grammar) {
 //    compset.init_delete(out, m);
 //}
 
-void CFGCompute::findDeletedEdge(EdgesToDelete *edgesToDelete, int src, std::set<vertexid_t> &vertices, std::set<vertexid_t> &vertices_affected) {
+void CFGCompute::findDeletedEdge(EdgeArray *edgesToDelete, int src, std::set<vertexid_t> &vertices, std::set<vertexid_t> &vertices_affected) {
     // src is in the vertices set
     if (vertices.find(src) != vertices.end()) {
         return ;
     } else {
-        EdgesToDelete* _edgesToDelete = new EdgesToDelete;
+        EdgeArray* _edgesToDelete = new EdgeArray;
         for (int i = 0; i < edgesToDelete->getRealNumEdges(); ++i) {
             if (vertices.find(edgesToDelete->getEdges()[i]) != vertices.end()) {
                 _edgesToDelete->addOneEdge(edgesToDelete->getEdges()[i], edgesToDelete->getLabels()[i]);

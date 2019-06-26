@@ -2,7 +2,7 @@
 
 PEGCompute::PEGCompute() = default;
 
-long PEGCompute::startCompute_delete(ComputationSet &compset, Grammar *grammar, std::unordered_map<int, EdgesToDelete *> &m) {
+long PEGCompute::startCompute_delete(ComputationSet &compset, Grammar *grammar, std::unordered_map<int, EdgeArray *> &m) {
     long totalAddedEdges = 0;
 
     while (true) {
@@ -230,7 +230,7 @@ void PEGCompute::genD_RuleEdges_delta(vertexid_t index, ComputationSet &compset,
 //    }
 //}
 
-void PEGCompute::postProcessOneIteration(ComputationSet &compset, bool isDelete, std::unordered_map<int, EdgesToDelete *> *m) {
+void PEGCompute::postProcessOneIteration(ComputationSet &compset, bool isDelete, std::unordered_map<int, EdgeArray *> *m) {
 	// oldsV <- {oldsV,deltasV}
 	for (auto it = compset.getOlds().begin(); it != compset.getOlds().end(); it++) {
 		vertexid_t id_old = it->first;

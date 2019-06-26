@@ -52,7 +52,7 @@ void ComputationSet::init_add(PEGraph *out, Stmt *stmt) {
 }
 
     // Olds <- out - m, Deltas <- m, News <- empty
-void ComputationSet::init_delete(PEGraph *out, std::unordered_map<int, EdgesToDelete *> &m) {
+void ComputationSet::init_delete(PEGraph *out, std::unordered_map<int, EdgeArray *> &m) {
 	// Deltas <- m
     for(auto & it : m){
 //    	Deltas[it.first] = EdgeArray();

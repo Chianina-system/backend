@@ -1,8 +1,10 @@
 #include "edgearray.h"
-#include "myalgorithm.h"
+
 
 EdgeArray::EdgeArray() {
-    this->size = 0;
+    edges = NULL;
+    labels = NULL;
+    size = capacity = realNumEdges = 0;
 }
 
 EdgeArray::EdgeArray(int size,vertexid_t *edges,label_t *labels) {
@@ -50,6 +52,7 @@ void EdgeArray::print() {
 	}
 }
 */
+
 void EdgeArray::clear() {
     if(size) {
         if(edges) {
@@ -88,4 +91,45 @@ void EdgeArray::addOneEdge(vertexid_t edge, label_t label) {
     edges[size] = edge;
     labels[size] = label;
     ++size;
+}
+
+void EdgeArray::setRealNumEdges(int realNumEdges) {
+    this->realNumEdges = realNumEdges;
+}
+
+void EdgeArray::addEdges(int len, vertexid_t *_edges, label_t *_labels) {
+    if (len == 0) return;
+    if (len == 1){
+        addOneEdge(_edges[0], _labels[0]);
+        return;
+    }
+    int realSize = size + len;
+    while (realSize >= capacity){
+        capacity *= 2;
+    }
+    myalgo::myrealloc(edges, size, capacity);
+    myalgo::myrealloc(labels, size, capacity);
+    for (int i = size; i < realSize; ++i) {
+        edges[i] = _edges[i-size];
+        labels[i] = _labels[i-size];
+    }
+    for (int i = realSize; i < capacity; ++i) {
+        edges[i] = -1;
+        labels[i] = (char) 127;
+    }
+}
+
+void EdgeArray::merge() {
+    // sort edges
+    myalgo::quickSort(edges, labels, 0, size - 1);
+    // remove duplicate edges
+    vertexid_t *_edges = new vertexid_t[size];
+    label_t *_labels = new label_t[size];
+    int _numEdges = 0;
+    myalgo::removeDuple(_numEdges, _edges, _labels, size, edges, labels);
+    realNumEdges = _numEdges;
+    memcpy(edges, _edges, sizeof(vertexid_t) * _numEdges);
+    memcpy(labels, _labels, sizeof(label_t) * _numEdges);
+    delete[] _edges;
+    delete[] _labels;
 }

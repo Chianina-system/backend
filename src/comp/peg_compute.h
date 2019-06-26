@@ -14,12 +14,12 @@ private:
 public:
     PEGCompute();
     long startCompute_add(ComputationSet &compset,Grammar *grammar);
-    long startCompute_delete(ComputationSet &compset, Grammar *grammar, std::unordered_map<int, EdgesToDelete*> &m);
+    long startCompute_delete(ComputationSet &compset, Grammar *grammar, std::unordered_map<int, EdgeArray*> &m);
 
     void computeOneIteration(ComputationSet &compset,Grammar *grammar);
     long computeOneVertex(vertexid_t index,ComputationSet &compset,Grammar *grammar);
 //    void postProcessOneIteration_add(ComputationSet &compset);
-    void postProcessOneIteration(ComputationSet &compset, bool isDelete, std::unordered_map<int, EdgesToDelete *> *m = nullptr);
+    void postProcessOneIteration(ComputationSet &compset, bool isDelete, std::unordered_map<int, EdgeArray *> *m = nullptr);
 
     void getEdgesToMerge(vertexid_t index,ComputationSet &compset,bool oldEmpty,bool deltaEmpty,ContainersToMerge &containers,Grammar *grammar);
     void genS_RuleEdges_delta(vertexid_t index,ComputationSet &compset,ContainersToMerge &containers,Grammar *grammar);
