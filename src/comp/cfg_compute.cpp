@@ -12,7 +12,7 @@
 
 
 bool CFGCompute::load(Partition* part, CFG* cfg, GraphStore* graphstore){
-
+	return true;
 }
 
 void CFGCompute::do_worklist(CFG* cfg, GraphStore* graphstore){
@@ -362,8 +362,7 @@ void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unorder
     compset->init_delete(out, m);
 
     // start GEN
-    PEGCompute pegCompute;
-    pegCompute.startCompute_delete(*compset,grammar, m);
+     PEGCompute::startCompute_delete(*compset,grammar, m);
 
 //    // KILL fininshed, compset -> out
 //    vertexid_t numVertices = out->getNumVertices();
@@ -378,8 +377,7 @@ void CFGCompute::peg_compute_add(PEGraph *out,Stmt *stmt,Grammar *grammar) {
     compset->init_add(out,stmt);
 
     // start GEN
-    PEGCompute pegCompute;
-    pegCompute.startCompute_add(*compset,grammar);
+     PEGCompute::startCompute_add(*compset,grammar);
 
     // GEN finished, compset -> out
 //    vertexid_t numVertices = out->getNumVertices();
