@@ -32,9 +32,11 @@ class Grammar {
 
 		// TODO: modify following methods.
 		inline bool isAssign(char label) {return (label == 'A' || label == 'a');}
+		inline bool isAssign_bidirect(char label){return (label == 'A' || label == 'a' || label == -'A' || label == -'a');}
 		inline bool isMemoryAlias(char label) {return (label == 'M' || label == 'm');}
 		inline bool isDereference(char label) {return (label == 'D' || label == 'd');}
 		inline bool isDereference_reverse(char label) {return (label == -'D' || label == -'d');}
+		inline bool isDereference_bidirect(char label){return (label == 'D' || label == 'd' || label == -'D' || label == -'d');}
 };
 
 #endif

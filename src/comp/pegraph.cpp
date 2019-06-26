@@ -37,7 +37,8 @@ bool PEGraph::equals(PEGraph *another) {
 }
 
 void PEGraph::clearEdgeArray(vertexid_t index) {
-    this->graph[index].clear();
+//    this->graph[index].clear();
+	this->graph.erase(index);
 }
 
 void PEGraph::setEdgeArray(vertexid_t index, int numEdges, vertexid_t *edges, label_t *labels) {

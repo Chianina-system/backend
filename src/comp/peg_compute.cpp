@@ -2,7 +2,7 @@
 
 //PEGCompute::PEGCompute() = default;
 
-long PEGCompute::startCompute_delete(ComputationSet &compset, Grammar *grammar, std::unordered_map<int, EdgeArray *> &m) {
+long PEGCompute::startCompute_delete(ComputationSet &compset, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray> &m) {
     long totalAddedEdges = 0;
 
     while (true) {
@@ -232,7 +232,7 @@ void PEGCompute::genD_RuleEdges_delta(vertexid_t index, ComputationSet &compset,
 //    }
 //}
 
-void PEGCompute::postProcessOneIteration(ComputationSet &compset, bool isDelete, std::unordered_map<int, EdgeArray *> *m) {
+void PEGCompute::postProcessOneIteration(ComputationSet &compset, bool isDelete, std::unordered_map<vertexid_t, EdgeArray> *m) {
 	// oldsV <- {oldsV,deltasV}
 	for (auto it = compset.getOlds().begin(); it != compset.getOlds().end(); it++) {
 		vertexid_t id_old = it->first;
@@ -291,23 +291,23 @@ void PEGCompute::postProcessOneIteration(ComputationSet &compset, bool isDelete,
 	}
 }
 
-void PEGCompute::mergeToDeletedGraph(vertexid_t i_new, std::unordered_map<int, EdgeArray*>* m, ComputationSet& compset) {
+void PEGCompute::mergeToDeletedGraph(vertexid_t i_new, std::unordered_map<vertexid_t, EdgeArray>* m, ComputationSet& compset) {
 	if(m->find(i_new) != m->end()){
-		int n1 = m->at(i_new)->getSize();
+		int n1 = m->at(i_new).getSize();
 		int n2 = compset.getDeltasNumEdges(i_new);
 		vertexid_t* edges = new vertexid_t[n1 + n2];
 		char* labels = new char[n1 + n2];
 		int len_union = myalgo::unionTwoArray(edges, labels,
-				n1, m->at(i_new)->getEdges(), m->at(i_new)->getLabels(),
+				n1, m->at(i_new).getEdges(), m->at(i_new).getLabels(),
 				n2, compset.getDeltasEdges(i_new), compset.getDeltasLabels(i_new));
-		m->at(i_new)->set(len_union, edges, labels);
+		m->at(i_new).set(len_union, edges, labels);
 
 		delete[] edges;
 		delete[] labels;
 	}
 	else{
-		(*m)[i_new] = new EdgeArray();
-		m->at(i_new)->set(compset.getDeltasNumEdges(i_new), compset.getDeltasEdges(i_new), compset.getDeltasLabels(i_new));
+		(*m)[i_new] = EdgeArray();
+		m->at(i_new).set(compset.getDeltasNumEdges(i_new), compset.getDeltasEdges(i_new), compset.getDeltasLabels(i_new));
 	}
 }
 

@@ -7,15 +7,16 @@ EdgeArray::EdgeArray() {
     size = capacity = 0;
 }
 
-EdgeArray::EdgeArray(int size,vertexid_t *edges,label_t *labels) {
-    this->size = size;
-    if(size) {
-        this->edges = new vertexid_t[size];
-        this->labels = new label_t[size];
-        memcpy(this->edges,edges,sizeof(vertexid_t)*size);
-        memcpy(this->labels,labels,sizeof(label_t)*size);
-    }
-}
+//EdgeArray::EdgeArray(int size,vertexid_t *edges,label_t *labels) {
+//    this->size = size;
+//    if(size) {
+//        this->edges = new vertexid_t[size];
+//        this->labels = new label_t[size];
+//        memcpy(this->edges,edges,sizeof(vertexid_t)*size);
+//        memcpy(this->labels,labels,sizeof(label_t)*size);
+//    }
+//    this->capacity = size;
+//}
 
 void EdgeArray::set(int size,vertexid_t *edges,label_t *labels) {
     if(!size)

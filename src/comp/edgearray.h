@@ -15,18 +15,20 @@ private:
 
 public:
     EdgeArray();
-    EdgeArray(int size,vertexid_t *edges,label_t *labels);
-    ~EdgeArray(){}
+//    EdgeArray(int size,vertexid_t *edges,label_t *labels);
+    ~EdgeArray(){
+    	clear();
+    }
     void clear();
 
 
-//    inline int getRealNumEdges() {return realNumEdges;}
     inline vertexid_t *getEdges() const{return edges;}
     inline label_t* getLabels() const{return labels;}
     inline int getSize() const{return size;}
 
     void set(int size,vertexid_t *edges,label_t *labels);
 
+//    inline int getRealNumEdges() {return realNumEdges;}
 //    void setRealNumEdges(int realNumEdges);
 
     void addOneEdge(vertexid_t edge,label_t label);

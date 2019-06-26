@@ -2,9 +2,9 @@
 #include <unistd.h>
 #include <cstdlib>
 
-ComputationSet::ComputationSet() {
-//    firstVid = numVertices = 0;
-}
+//ComputationSet::ComputationSet() {
+////    firstVid = numVertices = 0;
+//}
 
 //void ComputationSet::init_add(PEGraph *out, Stmt *stmt) {
 //    // TODO: after adding assign edge based on stmt,numVertices may increase.
@@ -52,12 +52,12 @@ void ComputationSet::init_add(PEGraph *out, Stmt *stmt) {
 }
 
     // Olds <- out - m, Deltas <- m, News <- empty
-void ComputationSet::init_delete(PEGraph *out, std::unordered_map<int, EdgeArray *> &m) {
+void ComputationSet::init_delete(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray> &m) {
 	// Deltas <- m
     for(auto & it : m){
 //    	Deltas[it.first] = EdgeArray();
 //        Deltas[it.first].set(it.second->getSize(), it.second->getEdges(), it.second->getLabels());
-    	setDeltas(it.first, it.second->getSize(), it.second->getEdges(), it.second->getLabels());
+    	setDeltas(it.first, it.second.getSize(), it.second.getEdges(), it.second.getLabels());
     }
 
     //Olds <- out - m

@@ -15,13 +15,13 @@ private:
 
 
 public:
-    ComputationSet();
+    ComputationSet(){}
     ~ComputationSet(){};
 //    void clear();
 
     void init_add(PEGraph *out,Stmt *stmt);
 
-    void init_delete(PEGraph *out, std::unordered_map<int, EdgeArray*>& m);
+    void init_delete(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray>& m);
 
     // getters and setters
     inline bool oldEmpty(vertexid_t index) {return Olds.find(index)==Olds.end();}
@@ -31,6 +31,7 @@ public:
     inline vertexid_t getOldsNumEdges(vertexid_t index) {return Olds[index].getSize();}
     inline vertexid_t getDeltasNumEdges(vertexid_t index) {return Deltas[index].getSize();}
     inline vertexid_t getNewsNumEdges(vertexid_t index) {return News[index].getSize();}
+    long getDeltasTotalNumEdges();
 
     inline char* getOldsLabels(vertexid_t index) {return Olds[index].getLabels();}
     inline char* getDeltasLabels(vertexid_t index) {return Deltas[index].getLabels();}
@@ -40,20 +41,17 @@ public:
     inline vertexid_t* getDeltasEdges(vertexid_t index) {return Deltas[index].getEdges();}
     inline vertexid_t* getNewsEdges(vertexid_t index) {return News[index].getEdges();}
 
-    long getDeltasTotalNumEdges();
 
     void setOlds(vertexid_t index,int numEdges,vertexid_t *edges,char *labels);
     void setDeltas(vertexid_t index,int numEdges,vertexid_t *edges,char *labels);
     void setNews(vertexid_t index,int numEdges,vertexid_t *edges,char *labels);
 
-    void clearOlds(vertexid_t index);
 
     const std::unordered_map<vertexid_t, EdgeArray> &getOlds() const;
-
     const std::unordered_map<vertexid_t, EdgeArray> &getDeltas() const;
-
     const std::unordered_map<vertexid_t, EdgeArray> &getNews() const;
 
+    void clearOlds(vertexid_t index);
     void clearDeltas(vertexid_t index);
     void clearNews(vertexid_t index);
 

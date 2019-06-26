@@ -192,6 +192,30 @@ bool CFGCompute::is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar) {
     return (numOfSingleTon == 1);
 }
 
+bool isDeletable(vertexid_t src, vertexid_t dst, char label, std::set<vertexid_t> &vertices_changed, std::set<vertexid_t> &vertices_affected, Grammar *grammar){
+	if(vertices_changed.find(src) != vertices_changed.end() || vertices_changed.find(dst) != vertices_changed.end()){
+		return !grammar->isDereference_bidirect(label);
+	}
+	else if(vertices_affected.find(src) != vertices_affected.end() || vertices_affected.find(dst) != vertices_affected.end()){
+		return !grammar->isDereference_bidirect(label) && !grammar->isAssign_bidirect(label);
+	}
+
+	return false;
+}
+
+/* delete all the ('a', '-a', 'V', 'M', and other temp labels) edges associated with that within vertices_changed,
+ * and all the ('V', 'M', and other temp labels) edges associated with that within vertices_affected
+ * * */
+void findDeletedEdge(EdgeArray & edgesToDelete, vertexid_t src, std::set<vertexid_t> &vertices_changed, std::set<vertexid_t> &vertices_affected, Grammar *grammar, EdgeArray & deleted) {
+	for (int i = 0; i < edgesToDelete.getSize(); ++i) {
+		vertexid_t dst = edgesToDelete.getEdges()[i];
+		char label = edgesToDelete.getLabels()[i];
+		if(isDeletable(src, dst, label, vertices_changed, vertices_affected, grammar)){
+			deleted.addOneEdge(dst, label);
+		}
+	}
+}
+
 void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices_changed,Grammar *grammar, std::set<vertexid_t> &vertices_affected) {
     // vertices <- must_alias(x); put *x into this set as well
     must_alias(x,out,vertices_changed,grammar,vertices_affected);
@@ -201,7 +225,7 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
      * delete all the incoming and outgoing M or V edges of v induced previously by the deleted a edges from OUT
      */
 //    vertexid_t numVertices = out->getNumVertices();
-    std::unordered_map<int, EdgeArray*> m;
+    std::unordered_map<vertexid_t, EdgeArray> m;
 
     for(auto it = out->getGraph().begin(); it!= out->getGraph().end(); it++){
         int numEdges = out->getNumEdges(it->first);
@@ -210,9 +234,10 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
         for(int j = 0; j <numEdges; j++){
             if(isDirectAssignEdges(it->first,edges[j],labels[j],vertices_changed,grammar)) {
                 // delete the direct incoming and outgoing assign edges
-                if(m.find(it->first)==m.end())
-                    m[it->first] = new EdgeArray;
-                m[it->first]->addOneEdge(edges[j],labels[j]);
+                if(m.find(it->first)==m.end()){
+                    m[it->first] = EdgeArray();
+                }
+                m[it->first].addOneEdge(edges[j],labels[j]);
             }
         }
     }
@@ -222,47 +247,31 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
 
     /* remove edges */
     for(auto it = m.begin(); it!= m.end(); it++){
-        int src = it->first;
-//        m[src]->merge();
+        vertexid_t src = it->first;
 
-        //get all the deleted edges
-        findDeletedEdge(it->second, src, vertices_changed, vertices_affected);
+        /* delete all the ('a', '-a', 'V', 'M', and other temp labels) edges associated with that within vertices_changed, and
+         * all the ('V', 'M', and other temp labels) edges associated with that within vertices_affected
+         * */
+        EdgeArray deletedArray = EdgeArray();
+		findDeletedEdge(it->second, src, vertices_changed, vertices_affected, grammar, deletedArray);
 
-        if(m[src]->getSize()){
+        if(deletedArray.getSize()){
             int n1 = out->getNumEdges(src);
-            int n2 = m[src]->getSize();
+            int n2 = deletedArray.getSize();
             auto *edges = new vertexid_t[n1];
             auto *labels = new label_t[n1];
-            int len = myalgo::minusTwoArray(edges,labels,n1,out->getEdges(src),out->getLabels(src),n2,m[src]->getEdges(),m[src]->getLabels());
-            if(len)
+            int len = myalgo::minusTwoArray(edges, labels, n1, out->getEdges(src), out->getLabels(src), n2, deletedArray.getEdges(), deletedArray.getLabels());
+            if(len){
                 out->setEdgeArray(src,len,edges,labels);
-            else
+            }
+            else{
                 out->clearEdgeArray(src);
+            }
 
-            delete[] edges; delete[] labels;
-            m[src]->clear();
+            delete[] edges;
+            delete[] labels;
         }
     }
-
-//    for(auto it = out->getGraph().begin(); it!= out->getGraph().end(); it++){
-//        int i = it->first;
-//        if (m.find(i)!=m.end()){
-//            m[i]->merge();
-//            //m[i] only store the edges relevanted to vertices set
-//            m[i] = m[i]->findDeletedEdge(i, vertices);
-//            int len = 0; int n1 = out->getNumEdges(i); int n2 = m[i]->getRealNumEdges();
-//            vertexid_t *edges = new vertexid_t[n1];
-//            label_t *labels = new label_t[n1];
-//            myalgo::minusTwoArray(len,edges,labels,n1,out->getEdges(i),out->getLabels(i),n2,m[i]->getEdges(),m[i]->getLabels());
-//            if(len)
-//                out->setEdgeArray(i,len,edges,labels);
-//            else
-//                out->clearEdgeArray(i);
-//
-//            delete[] edges; delete[] labels;
-//            m[i]->clear();
-//        }
-//    }
 }
 
 bool CFGCompute::isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar) {
@@ -282,6 +291,9 @@ void CFGCompute::must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vert
     label_t *labels = out->getLabels(x);
 
     int numOfSingleTon = 0;
+	if(out->isSingleton(x)){
+		++numOfSingleTon;
+	}
     for(int i = 0;i < numEdges;++i) {
         if(grammar->isMemoryAlias(labels[i])){
         	vertices_changed.insert(edges[i]);
@@ -295,10 +307,10 @@ void CFGCompute::must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vert
     if(numOfSingleTon == 0){
     	perror("invalid number of singletons!");
     }
-    else if(numOfSingleTon == 1){
-
-    }
-    else{
+//    else if(numOfSingleTon == 1){
+//
+//    }
+    else if(numOfSingleTon > 1){
     	vertices_changed.clear();
     }
 	vertices_changed.insert(x);
@@ -356,16 +368,13 @@ void CFGCompute::must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vert
 //    }
 //}
 
-void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unordered_map<int, EdgeArray*>& m) {
+void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>& m) {
     // add assgin edge based on stmt, (out,assign edge) -> compset
     ComputationSet *compset = new ComputationSet();
     compset->init_delete(out, m);
 
     // start GEN
-     PEGCompute::startCompute_delete(*compset,grammar, m);
-
-//    // KILL fininshed, compset -> out
-//    vertexid_t numVertices = out->getNumVertices();
+    PEGCompute::startCompute_delete(*compset,grammar, m);
 
     // clean
     delete compset;
@@ -377,16 +386,9 @@ void CFGCompute::peg_compute_add(PEGraph *out,Stmt *stmt,Grammar *grammar) {
     compset->init_add(out,stmt);
 
     // start GEN
-     PEGCompute::startCompute_add(*compset,grammar);
+    PEGCompute::startCompute_add(*compset,grammar);
 
     // GEN finished, compset -> out
-//    vertexid_t numVertices = out->getNumVertices();
-//    for(vertexid_t i = 0;i < numVertices;++i) {
-//        if(compset->getOldsNumEdges(i))
-//            out->setEdgeArray(i,compset->getOldsNumEdges(i),compset->getOldsEdges(i),compset->getOldsLabels(i));
-//        else
-//            out->clearEdgeArray(i);
-//    }
     auto olds = compset->getOlds();
     for(auto it = olds.begin(); it != olds.end(); ++it){
     	vertexid_t id = it->first;
@@ -400,33 +402,6 @@ void CFGCompute::peg_compute_add(PEGraph *out,Stmt *stmt,Grammar *grammar) {
 
     // clean
 	delete compset;
-}
-
-//void CFGCompute::initComputationSet_add(ComputationSet &compset,PEGraph *out,Stmt *stmt) {
-//    compset.init_add(out,stmt);
-//}
-//
-//void CFGCompute::initComputationSet_delete(ComputationSet &compset, PEGraph *out, std::unordered_map<int, EdgesToDelete *> &m) {
-//    compset.init_delete(out, m);
-//}
-
-void CFGCompute::findDeletedEdge(EdgeArray *edgesToDelete, int src, std::set<vertexid_t> &vertices, std::set<vertexid_t> &vertices_affected) {
-    // src is in the vertices set
-    if (vertices.find(src) != vertices.end()) {
-        return ;
-    } else {
-        EdgeArray* _edgesToDelete = new EdgeArray;
-        for (int i = 0; i < edgesToDelete->getSize(); ++i) {
-            if (vertices.find(edgesToDelete->getEdges()[i]) != vertices.end()) {
-                _edgesToDelete->addOneEdge(edgesToDelete->getEdges()[i], edgesToDelete->getLabels()[i]);
-            }
-        }
-//        _edgesToDelete->setRealNumEdges( _edgesToDelete->getSize() ) ;
-//        edgesToDelete->clear();
-        edgesToDelete->set(_edgesToDelete->getSize(), _edgesToDelete->getEdges(), _edgesToDelete->getLabels() );
-//        edgesToDelete->setRealNumEdges(_edgesToDelete->getSize() );
-        _edgesToDelete->clear();
-    }
 }
 
 // 使用tab键分割
