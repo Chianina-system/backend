@@ -14,17 +14,30 @@
 class GraphStore{
 
 public:
-//    GraphStore(){}
+    GraphStore(){}
+
     virtual ~GraphStore(){}
 
     virtual PEGraph* retrieve(PEGraph_Pointer graph_pointer) = 0;
 
     virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
 
+    void addOneSingleton(vertexid_t t) {
+        this->singletonSet.insert(t);
+    }
+
+    inline bool isSingleton(vertexid_t vid) { return singletonSet.find(vid)!= singletonSet.end();}
+
+
+protected:
+
+    std::set<vertexid_t> singletonSet;
+
 
 
 private:
     //	void add();
+
 
 
 };

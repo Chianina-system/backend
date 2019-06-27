@@ -14,6 +14,11 @@
 
 class CFGNode{
 
+	friend std::ostream & operator<<(std::ostream & strm, const CFGNode& cfgNode) {
+		strm << cfgNode.getOutPointer();
+		return strm;
+	}
+
 public:
     CFGNode();
     CFGNode(int _id, Stmt* _stmt) {

@@ -19,68 +19,56 @@ using namespace std;
 class CFGCompute{
 
 public:
-    unsigned int num_threads;
+	static const unsigned int num_threads = 4;
 
-    bool load(Partition* part, CFG* cfg, GraphStore* graphstore);
+    static bool load(Partition* part, CFG* cfg, GraphStore* graphstore);
 
-    bool load(const string& file_cfg, const string& file_stmt, const string& file_singleton, CFG *cfg, GraphStore *graphstore);
+    static bool load(const string& file_cfg, const string& file_stmt, const string& file_singleton, CFG *cfg, GraphStore *graphstore);
 
-    void do_worklist(CFG* cfg, GraphStore* graphstore); //worklist algorithm in parallel
+    static void do_worklist(CFG* cfg, GraphStore* graphstore); //worklist algorithm in parallel
 
 
 
 private:
-//	CFG* cfg;
-//	GraphStore* graphstore;
+    static void compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2);
 
+    static PEGraph* combine(GraphStore* graphstore, std::vector<CFGNode*>& preds);
 
-    void compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2);
-
-
-//	void peg_compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist, CFGNode* cfg_node);
-
-    PEGraph* combine(GraphStore* graphstore, std::vector<CFGNode*>& preds);
-
-    PEGraph* transfer(PEGraph* in, Stmt* stmt,Grammar* grammar){
+    static PEGraph* transfer(PEGraph* in, Stmt* stmt,Grammar* grammar, GraphStore* graphstore){
         switch(stmt->getType()){
             case TYPE::Assign:
-                return transfer_copy(in, stmt, grammar);
+                return transfer_copy(in, stmt, grammar, graphstore);
             case TYPE::Load:
-                return transfer_load(in, stmt, grammar);
+                return transfer_load(in, stmt, grammar, graphstore);
             case TYPE::Store:
-                return transfer_store(in, stmt, grammar);
+                return transfer_store(in, stmt, grammar, graphstore);
             case TYPE::Alloca:
-                return transfer_address(in, stmt, grammar);
+                return transfer_address(in, stmt, grammar, graphstore);
             default:
                 return nullptr;
         }
     }
 
-    PEGraph* transfer_copy(PEGraph* in, Stmt* stmt,Grammar* grammar);
+    static PEGraph* transfer_copy(PEGraph* in, Stmt* stmt,Grammar* grammar, GraphStore* graphstore);
 
-    PEGraph* transfer_load(PEGraph* in, Stmt* stmt,Grammar* grammar);
+    static PEGraph* transfer_load(PEGraph* in, Stmt* stmt,Grammar* grammar, GraphStore* graphstore);
 
-    PEGraph* transfer_store(PEGraph* in, Stmt* stmt,Grammar* grammar);
+    static PEGraph* transfer_store(PEGraph* in, Stmt* stmt,Grammar* grammar, GraphStore* graphstore);
 
-    PEGraph* transfer_address(PEGraph* in, Stmt* stmt,Grammar* grammar);
+    static PEGraph* transfer_address(PEGraph* in, Stmt* stmt,Grammar* grammar, GraphStore* graphstore);
 
-    static bool is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar);
+    static bool is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar, GraphStore* graphstore);
 
-    void strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar,std::set<vertexid_t> &vertices_delete);
+    static void strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar,std::set<vertexid_t> &vertices_delete, GraphStore* graphstore);
 
-    void must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar, std::set<vertexid_t> &vertices_delete);
+    static void must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar, std::set<vertexid_t> &vertices_delete, GraphStore* graphstore);
 
-    bool isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar);
+    static bool isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar);
 
-    void peg_compute_add(PEGraph *out,Stmt* stmt,Grammar* grammar);
+    static void peg_compute_add(PEGraph *out,Stmt* stmt,Grammar* grammar);
 
-    void peg_compute_delete(PEGraph *out,Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>& m);
+    static void peg_compute_delete(PEGraph *out,Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>& m);
 
-//    void initComputationSet_add(ComputationSet &compset,PEGraph *out,Stmt *stmt);
-//
-//    void initComputationSet_delete(ComputationSet &compset,PEGraph *out, std::unordered_map<int, EdgesToDelete*>& m);
-
-//    void findDeletedEdge(EdgeArray & edgesToDelete, vertexid_t src, std::set<vertexid_t> &vertices, std::set<vertexid_t> &vertices_affected, EdgeArray & deletedArray);
 };
 
 

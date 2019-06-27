@@ -138,7 +138,7 @@ Node *ART::findChild(Node *parent, Edge *child) {
 
 PEGraph * ART::convertToPEGraph(vector<Edge *> &v) const {
     PEGraph* peGraph = new PEGraph;
-    std::unordered_map<vertexid_t, EdgeArray> graph;
+    std::unordered_map<vertexid_t, EdgeArray> graph = peGraph->getGraph();
 
     for(auto & edge : v){
         if(graph.find(edge->src)==graph.end()){
@@ -149,7 +149,6 @@ PEGraph * ART::convertToPEGraph(vector<Edge *> &v) const {
 
     // todo what should we do with the singleton?
 
-    peGraph->setGraph(graph);
     return peGraph;
 }
 
@@ -208,9 +207,7 @@ void ART::edgeSort(vector<vector<Edge *>> &edges) {
     }
 }
 
-void ART::addOneSingleton(vertexid_t t) {
-    this->singletonSet.insert(t);
-}
+
 
 
 

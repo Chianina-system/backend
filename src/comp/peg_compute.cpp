@@ -307,6 +307,7 @@ void PEGCompute::mergeToDeletedGraph(vertexid_t i_new, std::unordered_map<vertex
 	}
 	else{
 		(*m)[i_new] = EdgeArray();
+//		m->insert(std::make_pair<vertexid_t, EdgeArray>(i_new, EdgeArray()));
 		m->at(i_new).set(compset.getDeltasNumEdges(i_new), compset.getDeltasEdges(i_new), compset.getDeltasLabels(i_new));
 	}
 }

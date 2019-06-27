@@ -14,16 +14,23 @@ typedef unsigned Partition;
 
 class CFG{
 
+	friend std::ostream & operator<<(std::ostream & strm, const CFG& cfg) {
+		cfg.print(strm);
+		return strm;
+	}
+
 public:
 //    CFG();
 //	CFG(Partition* part);
     virtual ~CFG(){}
 
-
     virtual std::vector<CFGNode*> getPredesessors(const CFGNode* node) const = 0;
     virtual std::vector<CFGNode*> getSuccessors(const CFGNode* node) const = 0;
     virtual std::vector<CFGNode*> getNodes() const = 0;
 
+
+protected:
+    virtual void print(std::ostream& str) const = 0;
 
 
 private:

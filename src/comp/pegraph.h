@@ -23,12 +23,9 @@ public:
 
     bool equals(PEGraph *another);
 
-    const std::unordered_map<vertexid_t, EdgeArray> &getGraph() const;
+    std::unordered_map<vertexid_t, EdgeArray> &getGraph();
 
     inline vertexid_t getNumVertices() { return graph.size(); }
-
-    inline bool isSingleton(vertexid_t vid) { return singletonSet.find(vid)!= singletonSet.end(); }
-
 
     vertexid_t *getEdges(vertexid_t index) { return graph[index].getEdges(); }
 
@@ -40,57 +37,53 @@ public:
 
     void clearEdgeArray(vertexid_t index);
 
-    static PEGraph *merge(PEGraph *graph_1, PEGraph *graph_2) {
-        //merge graph_1 and graph_2 together to generate a new graph
-        PEGraph *peGraph = new PEGraph;
-        std::unordered_map<vertexid_t, EdgeArray> mergeGraph;
+//    static PEGraph * merge(PEGraph *graph_1, PEGraph *graph_2) {
+//        //merge graph_1 and graph_2 together to generate a new graph
+//        PEGraph *peGraph = new PEGraph();
+//        std::unordered_map<vertexid_t, EdgeArray> mergedGraph = peGraph->getGraph();
+//
+//        for (auto it = graph_1->getGraph().begin(); it != graph_1->getGraph().end(); it++) {
+//            if (graph_2->getGraph().find(it->first) != graph_2->getGraph().end()) {
+//                // merge the edgearray with the same src in graph_1 and graph_2
+//                int n1 = it->second.getSize();
+//                int n2 = graph_2->getNumEdges(it->first);
+//
+//                vertexid_t *edges = new vertexid_t[n1 + n2];
+//                char *labels = new char[n1 + n2];
+//                int len = myalgo::unionTwoArray(edges, labels, n1, it->second.getEdges(), it->second.getLabels(), n2,
+//                                      graph_2->getEdges(it->first), graph_2->getLabels(it->first));
+//
+//                mergedGraph[it->first] = EdgeArray();
+//                mergedGraph[it->first].set(len, edges, labels);
+//
+//                delete[] edges;
+//                delete[] labels;
+//
+//                graph_2->getGraph().erase(it->first);
+//            }
+//            else {
+//                mergedGraph[it->first] = it->second;
+//            }
+//        }
+//
+//        for (auto it = graph_2->getGraph().begin(); it != graph_2->getGraph().end(); it++) {
+//            mergedGraph[it->first] = it->second;
+//        }
+//
+////        delete graph_1;
+////        delete graph_2;
+//
+//        return peGraph;
+//    }
 
-        for (auto it = graph_1->getGraph().begin(); it != graph_1->getGraph().end(); it++) {
-            if (graph_2->getGraph().find(it->first) != graph_2->getGraph().end()) {
-                // merge the edgearray with the same src in graph_1 and graph_2
-                int n1 = it->second.getSize();
-                int n2 = graph_2->getNumEdges(it->first);
+    void merge(PEGraph *graph_toMerge);
 
-                vertexid_t *edges = new vertexid_t[n1 + n2];
-                char *labels = new char[n1 + n2];
-                int len = myalgo::unionTwoArray(edges, labels, n1, it->second.getEdges(), it->second.getLabels(), n2,
-                                      graph_2->getEdges(it->first), graph_2->getLabels(it->first));
-                EdgeArray edgeArray;
-                edgeArray.set(len, edges, labels);
-                mergeGraph[it->first] = edgeArray;
-                delete[] edges;
-                delete[] labels;
-            } else {
-                mergeGraph[it->first] = it->second;
-            }
-        }
 
-        for (auto it = graph_2->getGraph().begin(); it != graph_2->getGraph().end(); it++) {
-            if (graph_1->getGraph().find(it->first) == graph_1->getGraph().end()) {
-                mergeGraph[it->first] = it->second;
-            }
-        }
-
-        std::set<vertexid_t> singletonSet;
-        singletonSet.insert(graph_1->getSingletonSet().begin(), graph_1->getSingletonSet().end());
-        singletonSet.insert(graph_2->getSingletonSet().begin(), graph_2->getSingletonSet().end());
-
-        delete graph_1;
-        delete graph_2;
-        peGraph->setGraph(mergeGraph);
-        peGraph->setSingletonSet(singletonSet);
-        return peGraph;
-    }
-
-    const std::set<vertexid_t> &getSingletonSet() const;
-
-    void setSingletonSet(const std::set<vertexid_t> &singletonSet);
-
-    void setGraph(const std::unordered_map<vertexid_t, EdgeArray> &_graph);
+//    void setGraph(std::unordered_map<vertexid_t, EdgeArray> &_graph);
 
 private:
     std::unordered_map<vertexid_t, EdgeArray> graph;
-    std::set<vertexid_t> singletonSet;
+
 };
 
 

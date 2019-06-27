@@ -9,7 +9,8 @@
 #include "cfg_compute.h"
 #include "edgesToDelete.h"
 #include "art.h"
-
+#include "cfg_map.h"
+#include "naive_graphstore.h"
 
 bool CFGCompute::load(Partition* part, CFG* cfg, GraphStore* graphstore){
 	return true;
@@ -28,7 +29,7 @@ void CFGCompute::do_worklist(CFG* cfg, GraphStore* graphstore){
     while(!worklist_1->isEmpty()){
         std::vector<std::thread> comp_threads;
         for (unsigned int i = 0; i < num_threads; i++)
-            comp_threads.push_back(std::thread( [=] {this->compute(cfg, graphstore, worklist_1, worklist_2);}));
+            comp_threads.push_back(std::thread( [=] {compute(cfg, graphstore, worklist_1, worklist_2);}));
 
         for (auto &t : comp_threads)
             t.join();
@@ -43,7 +44,6 @@ void CFGCompute::do_worklist(CFG* cfg, GraphStore* graphstore){
     //clean
     delete(worklist_1);
     delete(worklist_2);
-
 }
 
 
@@ -60,10 +60,7 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<C
         PEGraph* in = combine(graphstore, preds);
 
         //transfer
-        PEGraph* out = transfer(in, cfg_node->getStmt(),grammar);
-
-//        // clean in
-//        delete in;
+        PEGraph* out = transfer(in, cfg_node->getStmt(),grammar, graphstore);
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
@@ -80,6 +77,7 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<C
         }
 
         //clean out
+        delete old_out;
         delete out;
     }
 }
@@ -98,6 +96,7 @@ PEGraph* CFGCompute::combine(GraphStore* graphstore, std::vector<CFGNode*>& pred
         CFGNode* pred = preds[0];
         PEGraph_Pointer out_pointer = pred->getOutPointer();
         PEGraph* out_graph = graphstore->retrieve(out_pointer);
+
         return out_graph;
     }
     else{
@@ -107,22 +106,23 @@ PEGraph* CFGCompute::combine(GraphStore* graphstore, std::vector<CFGNode*>& pred
             CFGNode* pred = *it;
             PEGraph_Pointer out_pointer = pred->getOutPointer();
             PEGraph* out_graph = graphstore->retrieve(out_pointer);
-            out = PEGraph::merge(out, out_graph);
+//            out = PEGraph::merge(out, out_graph);
+            out->merge(out_graph);
+            delete out_graph;
         }
 
         return out;
     }
-
 }
 
-PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar){
+PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar, GraphStore* graphstore){
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
 
     // the KILL set
     std::set<vertexid_t> vertices_changed;
     std::set<vertexid_t> vertices_affected;
-    strong_update(stmt->getDst(),out,vertices_changed,grammar,vertices_affected);
+    strong_update(stmt->getDst(),out,vertices_changed,grammar,vertices_affected, graphstore);
 
     // the GEN set
     peg_compute_add(out,stmt,grammar);
@@ -130,14 +130,14 @@ PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar){
     return out;
 }
 
-PEGraph* CFGCompute::transfer_load(PEGraph* in, Stmt* stmt,Grammar *grammar){
+PEGraph* CFGCompute::transfer_load(PEGraph* in, Stmt* stmt,Grammar *grammar, GraphStore* graphstore){
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
 
     // the KILL set
     std::set<vertexid_t> vertices_changed;
     std::set<vertexid_t> vertices_affected;
-    strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected);
+    strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected, graphstore);
 
     // the GEN set
     peg_compute_add(out,stmt,grammar);
@@ -145,15 +145,15 @@ PEGraph* CFGCompute::transfer_load(PEGraph* in, Stmt* stmt,Grammar *grammar){
     return out;
 }
 
-PEGraph* CFGCompute::transfer_store(PEGraph* in, Stmt* stmt,Grammar *grammar){
+PEGraph* CFGCompute::transfer_store(PEGraph* in, Stmt* stmt,Grammar *grammar, GraphStore* graphstore){
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
 
     // the KILL set
     std::set<vertexid_t> vertices_changed;
     std::set<vertexid_t> vertices_affected;
-    if(is_strong_update(stmt->getDst(),out,grammar)) {
-        strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected);
+    if(is_strong_update(stmt->getDst(),out,grammar, graphstore)) {
+        strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected, graphstore);
     }
     // the GEN set
     peg_compute_add(out,stmt,grammar);
@@ -161,14 +161,14 @@ PEGraph* CFGCompute::transfer_store(PEGraph* in, Stmt* stmt,Grammar *grammar){
     return out;
 }
 
-PEGraph* CFGCompute::transfer_address(PEGraph* in, Stmt* stmt,Grammar *grammar){
+PEGraph* CFGCompute::transfer_address(PEGraph* in, Stmt* stmt,Grammar *grammar, GraphStore* graphstore){
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
 
     // the KILL set
     std::set<vertexid_t> vertices_changed;
     std::set<vertexid_t> vertices_affected;
-    strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected);
+    strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected, graphstore);
 
     // the GEN set
     peg_compute_add(out,stmt,grammar);
@@ -176,7 +176,7 @@ PEGraph* CFGCompute::transfer_address(PEGraph* in, Stmt* stmt,Grammar *grammar){
     return out;
 }
 
-bool CFGCompute::is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar) {
+bool CFGCompute::is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar, GraphStore* graphstore) {
     /* If there exists one and only one variable o,which
      * refers to a singleton memory location,such that x and o are memory alias
      */
@@ -186,7 +186,7 @@ bool CFGCompute::is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar) {
     label_t *labels = out->getLabels(x);
 
     for(int i = 0;i < numEdges;++i) {
-        if(grammar->isMemoryAlias(labels[i]) && out->isSingleton(edges[i]))
+        if(grammar->isMemoryAlias(labels[i]) && graphstore->isSingleton(edges[i]))
             ++numOfSingleTon;
     }
     return (numOfSingleTon == 1);
@@ -216,9 +216,9 @@ void findDeletedEdge(EdgeArray & edgesToDelete, vertexid_t src, std::set<vertexi
 	}
 }
 
-void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices_changed,Grammar *grammar, std::set<vertexid_t> &vertices_affected) {
+void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices_changed,Grammar *grammar, std::set<vertexid_t> &vertices_affected, GraphStore* graphstore) {
     // vertices <- must_alias(x); put *x into this set as well
-    must_alias(x,out,vertices_changed,grammar,vertices_affected);
+    must_alias(x,out,vertices_changed,grammar,vertices_affected, graphstore);
 
     /* foreach v in vertices do
      * delete all the direct incoming and outgoing a edges of v from OUT
@@ -281,7 +281,7 @@ bool CFGCompute::isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label
 }
 
 
-void CFGCompute::must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices_changed,Grammar *grammar, std::set<vertexid_t> &vertices_affected) {
+void CFGCompute::must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices_changed,Grammar *grammar, std::set<vertexid_t> &vertices_affected, GraphStore* graphstore) {
 	/* if there exists one and only one variable o,which
 	 * refers to a singleton memory location,such that x and
 	 * y are both memory aliases of o,then x and y are Must-alias
@@ -291,13 +291,13 @@ void CFGCompute::must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vert
     label_t *labels = out->getLabels(x);
 
     int numOfSingleTon = 0;
-	if(out->isSingleton(x)){
+	if(graphstore->isSingleton(x)){
 		++numOfSingleTon;
 	}
     for(int i = 0;i < numEdges;++i) {
         if(grammar->isMemoryAlias(labels[i])){
         	vertices_changed.insert(edges[i]);
-        	if(out->isSingleton(edges[i])){
+        	if(graphstore->isSingleton(edges[i])){
         		++numOfSingleTon;
         	}
         }
@@ -405,76 +405,96 @@ void CFGCompute::peg_compute_add(PEGraph *out,Stmt *stmt,Grammar *grammar) {
 }
 
 // 使用tab键分割
-bool CFGCompute::load(const string& file_cfg, const string& file_stmt,const string& file_singleton,  CFG *cfg, GraphStore *graphstore) {
-    // handle the stmt file
-    std::ifstream fin;
-    CFG_map* cfgMap = dynamic_cast<CFG_map* > (cfg);
+bool CFGCompute::load(const string& file_cfg, const string& file_stmt, const string& file_singleton, CFG *cfg, GraphStore *graphstore) {
+//    // handle the stmt file
+//    std::ifstream fin;
+//    CFG_map* cfgMap = dynamic_cast<CFG_map* > (cfg);
+////    CFG * cfgMap = cfg;
+//
+//    fin.open(file_stmt);
+//    if(!fin) {
+//        cout << "can't load file_stmt " << endl;
+//        return false;
+//    }
+//
+//    std::map<int, CFGNode*> m;
+//
+//    std::string line;
+//    while (getline(fin, line) && line != "") {
+//    	std::cout << line << "\n";
+//
+//        std::stringstream stream(line);
+//        std::string stmt_id, type, dst, src, added;
+//        stream >> stmt_id >> type >> dst >> src >> added;
+//
+//        std::cout << stmt_id << "," << type << "," << dst << "," << src << "," << added << "\n";
+//
+//        TYPE t;
+//        if(type == "assign"){
+//            t = TYPE::Assign;
+//        }
+//        if(type == "load"){
+//            t = TYPE::Load;
+//        }
+//        if(type == "store"){
+//            t = TYPE ::Store;
+//        }
+//        if(type == "alloca"){
+//            t = TYPE ::Alloca;
+//        }
+//
+//        Stmt* stmt = new Stmt(t, atoi(src.c_str()), atoi(dst.c_str()), atoi(added.c_str()));
+//        CFGNode* cfgNode = new CFGNode(atoi(stmt_id.c_str()), stmt);
+//        m[atoi(stmt_id.c_str())] = cfgNode;
+//
+//        //add cfgnode into cfg
+//        cfgMap->addOneNode(cfgNode);
+//    }
+//    fin.close();
+//
+//
+//    //handle the cfg.txt
+////    std::ifstream fin;
+//    fin.open(file_cfg);
+//    if(!fin) {
+//        cout << "can't load file_cfg: " << file_cfg << endl;
+//        return false;
+//    }
+//
+//    while (getline(fin, line) && line != "") {
+//        std::stringstream stream(line);
+//        std::string pred_id, succ_id;
+//        stream >> pred_id >> succ_id;
+//
+////        cfgMap->addOneNode(m[atoi(pred_id.c_str())]);
+////        cfgMap->addOneNode(m[atoi(succ_id.c_str())]);
+//        cfgMap->addOneSucc(m[atoi(pred_id.c_str())], m[atoi(succ_id.c_str())]);
+//        cfgMap->addOnePred(m[atoi(succ_id.c_str())], m[atoi(pred_id.c_str())]);
+//    }
+//    fin.close();
+//
+//    std::cout << *cfgMap;
 
-    fin.open(file_stmt);
-    if(!fin) {
-        cout << "can't load file_stmt " << endl;
-        return false;
-    }
+	cfg = new CFG_map(file_cfg, file_stmt);
 
-    std::map<int, CFGNode*> m;
+//    //handle the singleton.txt
+//    std::ifstream fin;
+//    fin.open(file_singleton);
+//    if(!fin) {
+//        cout << "can't load file_singleton: " << file_singleton << endl;
+//        return false;
+//    }
+//    ART* art = dynamic_cast<ART* > (graphstore);
+//    std::string line;
+//    while (getline(fin, line) && line != "") {
+//        std::stringstream stream(line);
+//        std::string id;
+//        stream >> id;
+//        art->addOneSingleton(atoi(id.c_str()));
+//    }
+//    fin.close();
+	graphstore = new NaiveGraphStore(file_singleton);
 
-    std::string line;
-    while (getline(fin, line)) {
-        std::stringstream stream(line);
-        std::string stmt_id, type, dst, src, added;
-        stream >> stmt_id >> type >> dst >> src >> added;
-
-        TYPE t;
-        if(type == "assign"){
-            t = TYPE::Assign;
-        }
-        if(type == "load"){
-            t = TYPE::Load;
-        }
-        if(type == "store"){
-            t = TYPE ::Store;
-        }
-        if(type == "alloca"){
-            t = TYPE ::Alloca;
-        }
-
-        Stmt* stmt = new Stmt(t, atoi(src.c_str()), atoi(dst.c_str()), atoi(added.c_str()));
-        CFGNode* cfgNode = new CFGNode(atoi(stmt_id.c_str()), stmt);
-        m[atoi(stmt_id.c_str())] = cfgNode;
-    }
-
-    //handle the cfg.txt
-    fin.open(file_cfg);
-    if(!fin) {
-        cout << "can't load file_cfg: " << file_cfg << endl;
-        return false;
-    }
-
-    while (getline(fin, line)) {
-        std::stringstream stream(line);
-        std::string pred, succ;
-        stream >> pred >> succ;
-
-        cfgMap->addOneNode(m[atoi(pred.c_str())]);
-        cfgMap->addOneNode(m[atoi(succ.c_str())]);
-        cfgMap->addOneSucc(m[atoi(pred.c_str())], m[atoi(succ.c_str())]);
-        cfgMap->addOnePred(m[atoi(succ.c_str())], m[atoi(pred.c_str())]);
-    }
-
-
-    //handle the singleton.txt
-    fin.open(file_singleton);
-    if(!fin) {
-        cout << "can't load file_singleton: " << file_cfg << endl;
-        return false;
-    }
-    ART* art = dynamic_cast<ART* > (graphstore);
-    while (getline(fin, line)) {
-        std::stringstream stream(line);
-        std::string id;
-        stream >> id;
-        art->addOneSingleton(atoi(id.c_str()));
-    }
 
     return true;
 }

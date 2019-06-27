@@ -9,7 +9,6 @@
 #define COMP_ART_H_
 
 #include "graphstore.h"
-//#include <ostream>
 
 using namespace std;
 
@@ -96,6 +95,8 @@ class ART : public GraphStore {
 public:
     ART();
 
+//    ART();
+
     ~ART();
 
     PEGraph *retrieve(PEGraph_Pointer graph_pointer) override;
@@ -120,12 +121,12 @@ public:
 
     vector<Edge *> convertToVector(PEGraph *pegraph);
 
-    void addOneSingleton(vertexid_t t);
+//    void addOneSingleton(vertexid_t t);
 
 private:
     Node *root;
     std::unordered_map<PEGraph_Pointer, Node *> m;
-    std::set<vertexid_t> singletonSet;
+//    std::set<vertexid_t> singletonSet;
 
 };
 
