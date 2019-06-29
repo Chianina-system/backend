@@ -10,8 +10,16 @@
 
 #include "pegraph.h"
 //#include "peGraphPointer.h"
+using namespace std;
 
 class GraphStore{
+
+	friend std::ostream & operator<<(std::ostream & strm, const GraphStore& graphstore) {
+		strm << "\nGraphstore<<<<\n---------------------" << endl;
+		graphstore.print(strm);
+		strm << "---------------------" << endl;
+		return strm;
+	}
 
 public:
     GraphStore(){}
@@ -22,6 +30,8 @@ public:
 
     virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
 
+    virtual void loadGraphStore(const string& file_singleton) = 0;
+
     void addOneSingleton(vertexid_t t) {
         this->singletonSet.insert(t);
     }
@@ -30,9 +40,9 @@ public:
 
 
 protected:
-
     std::set<vertexid_t> singletonSet;
 
+    virtual void print(std::ostream& str) const = 0;
 
 
 private:

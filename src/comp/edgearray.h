@@ -6,12 +6,16 @@
 #define CAPACITY_VALUE 8
 
 class EdgeArray {
-private:
-    vertexid_t *edges;
-    label_t *labels;
-    int size;
-    int capacity;
-//    int realNumEdges; // exclude duplicate edges
+
+	friend std::ostream & operator<<(std::ostream & strm, const EdgeArray& edgeArray) {
+		strm << "{size: " << edgeArray.size << "; ";
+		for(int i = 0; i < edgeArray.size; i++){
+			strm << "(" << edgeArray.edges[i] << "," << edgeArray.labels[i] << ") ";
+		}
+		strm << "}";
+		return strm;
+	}
+
 
 public:
     EdgeArray();
@@ -34,6 +38,17 @@ public:
     void addOneEdge(vertexid_t edge,label_t label);
     void addEdges(int len, vertexid_t* _edges, label_t* _labels);
     void merge();
+
+
+private:
+    vertexid_t *edges;
+    label_t *labels;
+    int size;
+    int capacity;
+//    int realNumEdges; // exclude duplicate edges
+
+
+
 };
 
 #endif

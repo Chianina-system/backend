@@ -30,68 +30,6 @@ public:
 //    }
 
     CFG_map(const string& file_cfg, const string& file_stmt){
-        // handle the stmt file
-        std::ifstream fin;
-        fin.open(file_stmt);
-        if(!fin) {
-            cout << "can't load file_stmt " << endl;
-            exit (EXIT_FAILURE);
-        }
-
-        std::map<int, CFGNode*> m;
-
-        std::string line;
-        while (getline(fin, line) && line != "") {
-        	std::cout << line << "\n";
-
-            std::stringstream stream(line);
-            std::string stmt_id, type, dst, src, added;
-            stream >> stmt_id >> type >> dst >> src >> added;
-
-            std::cout << stmt_id << "," << type << "," << dst << "," << src << "," << added << "\n";
-
-            TYPE t;
-            if(type == "assign"){
-                t = TYPE::Assign;
-            }
-            if(type == "load"){
-                t = TYPE::Load;
-            }
-            if(type == "store"){
-                t = TYPE ::Store;
-            }
-            if(type == "alloca"){
-                t = TYPE ::Alloca;
-            }
-
-            Stmt* stmt = new Stmt(t, atoi(src.c_str()), atoi(dst.c_str()), atoi(added.c_str()));
-            CFGNode* cfgNode = new CFGNode(atoi(stmt_id.c_str()), stmt);
-            m[atoi(stmt_id.c_str())] = cfgNode;
-
-            //add cfgnode into cfg
-           this->addOneNode(cfgNode);
-        }
-        fin.close();
-
-
-        //handle the cfg.txt
-        fin.open(file_cfg);
-        if(!fin) {
-            cout << "can't load file_cfg: " << file_cfg << endl;
-            exit (EXIT_FAILURE);
-        }
-
-        while (getline(fin, line) && line != "") {
-            std::stringstream stream(line);
-            std::string pred_id, succ_id;
-            stream >> pred_id >> succ_id;
-
-    //        cfgMap->addOneNode(m[atoi(pred_id.c_str())]);
-    //        cfgMap->addOneNode(m[atoi(succ_id.c_str())]);
-            this->addOneSucc(m[atoi(pred_id.c_str())], m[atoi(succ_id.c_str())]);
-            this->addOnePred(m[atoi(succ_id.c_str())], m[atoi(pred_id.c_str())]);
-        }
-        fin.close();
 
     }
 
@@ -101,15 +39,84 @@ public:
         }
     }
 
+
+    void loadCFG(const string& file_cfg, const string& file_stmt) override {
+		// handle the stmt file
+		std::ifstream fin;
+		fin.open(file_stmt);
+		if (!fin) {
+			cout << "can't load file_stmt " << endl;
+			exit(EXIT_FAILURE);
+		}
+
+		std::map<int, CFGNode*> m;
+
+		std::string line;
+		while (getline(fin, line) && line != "") {
+			std::cout << line << "\n";
+
+			std::stringstream stream(line);
+			std::string stmt_id, type, dst, src, added;
+			stream >> stmt_id >> type >> dst >> src >> added;
+
+			std::cout << stmt_id << "," << type << "," << dst << "," << src
+					<< "," << added << "\n";
+
+			TYPE t;
+			if (type == "assign") {
+				t = TYPE::Assign;
+			}
+			if (type == "load") {
+				t = TYPE::Load;
+			}
+			if (type == "store") {
+				t = TYPE::Store;
+			}
+			if (type == "alloca") {
+				t = TYPE::Alloca;
+			}
+
+			Stmt* stmt = new Stmt(t, atoi(src.c_str()), atoi(dst.c_str()),
+					atoi(added.c_str()));
+			CFGNode* cfgNode = new CFGNode(atoi(stmt_id.c_str()), stmt);
+			m[atoi(stmt_id.c_str())] = cfgNode;
+
+			//add cfgnode into cfg
+			this->addOneNode(cfgNode);
+		}
+		fin.close();
+
+		//handle the cfg.txt
+		fin.open(file_cfg);
+		if (!fin) {
+			cout << "can't load file_cfg: " << file_cfg << endl;
+			exit(EXIT_FAILURE);
+		}
+
+		while (getline(fin, line) && line != "") {
+			std::stringstream stream(line);
+			std::string pred_id, succ_id;
+			stream >> pred_id >> succ_id;
+
+			//        cfgMap->addOneNode(m[atoi(pred_id.c_str())]);
+			//        cfgMap->addOneNode(m[atoi(succ_id.c_str())]);
+			this->addOneSucc(m[atoi(pred_id.c_str())],
+					m[atoi(succ_id.c_str())]);
+			this->addOnePred(m[atoi(succ_id.c_str())],
+					m[atoi(pred_id.c_str())]);
+		}
+		fin.close();
+    }
+
     std::vector<CFGNode*> getPredesessors(const CFGNode* node) const override{
         auto it = predes.find(node);
         if(it != predes.end()){
             return it->second;
         }
         else{
-            perror("invalid key!");
-//			return nullptr;
-            exit (EXIT_FAILURE);
+        	return std::vector<CFGNode*>();
+//            perror("invalid key!");
+//            exit (EXIT_FAILURE);
         }
     }
 
@@ -119,9 +126,9 @@ public:
             return it->second;
         }
         else{
-            perror("invalid key!");
-//			return nullptr;
-            exit (EXIT_FAILURE);
+        	return std::vector<CFGNode*>();
+//            perror("invalid key!");
+//            exit (EXIT_FAILURE);
         }
     }
 
@@ -154,9 +161,9 @@ public:
     }
 
     void print(std::ostream& str) const override {
-    	str << "The number of nodes in CFG: \t" << nodes.size() << "\n";
+    	str << "The number of nodes in CFG: \t" << this->nodes.size() << "\n";
     	str << "The number of edges in CFG: \t" << this->getNumberEdges() << "\n";
-    	for(auto it = succes.begin(); it != succes.end(); ++it){
+    	for(auto it = this->succes.begin(); it != this->succes.end(); ++it){
     		const CFGNode* node = it->first;
     		for(auto& n: it->second){
     			str << *node << "\t" << *n << "\n";

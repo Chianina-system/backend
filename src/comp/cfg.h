@@ -15,7 +15,9 @@ typedef unsigned Partition;
 class CFG{
 
 	friend std::ostream & operator<<(std::ostream & strm, const CFG& cfg) {
+		strm << "\nCFG<<<<\n---------------------" << endl;
 		cfg.print(strm);
+		strm << "---------------------" << endl;
 		return strm;
 	}
 
@@ -27,6 +29,7 @@ public:
     virtual std::vector<CFGNode*> getPredesessors(const CFGNode* node) const = 0;
     virtual std::vector<CFGNode*> getSuccessors(const CFGNode* node) const = 0;
     virtual std::vector<CFGNode*> getNodes() const = 0;
+    virtual void loadCFG(const string& file_cfg, const string& file_stmt) = 0;
 
 
 protected:

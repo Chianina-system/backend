@@ -61,12 +61,24 @@ void PEGCompute::computeOneIteration(ComputationSet &compset, Grammar *grammar) 
 long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet &compset, Grammar *grammar) {
     bool oldEmpty = compset.oldEmpty(index);
     bool deltaEmpty = compset.deltaEmpty(index);
-    if (oldEmpty && deltaEmpty) return 0; // if this vertex has no edges, no need to merge.
 
-    ContainersToMerge *containers = new myarray::ArraysToMerge(); // use datastrucuture array
-    getEdgesToMerge(index, compset, oldEmpty, deltaEmpty, *containers, grammar); // find new edges to containers
-    containers->merge(); // merge and sort edges,remove duplicate edges.
+    //for debugging
+    cout << "old is empty? " << oldEmpty << ", delta is empty? " << deltaEmpty << endl;
+
+    // if this vertex has no edges, no need to merge.
+    if (oldEmpty && deltaEmpty) return 0;
+
+    // use array
+    ContainersToMerge *containers = new myarray::ArraysToMerge();
+
+    // find new edges to containers
+    getEdgesToMerge(index, compset, oldEmpty, deltaEmpty, *containers, grammar);
+
+    // merge and sort edges,remove duplicate edges.
+    containers->merge();
+
     long newEdgesNum = containers->getNumEdges();
+    cout << "number of new edges: " << newEdgesNum << endl;
     if (newEdgesNum)
         compset.setNews(index, newEdgesNum, containers->getEdgesFirstAddr(), containers->getLabelsFirstAddr());
     else

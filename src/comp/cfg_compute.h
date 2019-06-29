@@ -10,6 +10,7 @@
 
 #include "graphstore.h"
 #include "cfg_map.h"
+#include "naive_graphstore.h"
 #include "concurrent_worklist.h"
 #include "grammar.h"
 #include "peg_compute.h"
@@ -19,7 +20,7 @@ using namespace std;
 class CFGCompute{
 
 public:
-	static const unsigned int num_threads = 4;
+	static const unsigned int num_threads = 1;
 
     static bool load(Partition* part, CFG* cfg, GraphStore* graphstore);
 
@@ -35,6 +36,9 @@ private:
     static PEGraph* combine(GraphStore* graphstore, std::vector<CFGNode*>& preds);
 
     static PEGraph* transfer(PEGraph* in, Stmt* stmt,Grammar* grammar, GraphStore* graphstore){
+    	//for debugging
+    	cout << "stmt type: " << (int)(stmt->getType()) << endl;
+
         switch(stmt->getType()){
             case TYPE::Assign:
                 return transfer_copy(in, stmt, grammar, graphstore);

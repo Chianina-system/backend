@@ -8,6 +8,19 @@
 #include "edgesToDelete.h"
 
 class ComputationSet {
+
+	friend std::ostream & operator<<(std::ostream & strm, const ComputationSet & compset) {
+		strm << "\nComputationSet<<<<\n---------------------" << endl;
+		strm << "Olds:\n";
+		PEGraph::print_graph_map(strm, compset.Olds);
+		strm << "Deltas:\n";
+		PEGraph::print_graph_map(strm, compset.Deltas);
+		strm << "News:\n";
+		PEGraph::print_graph_map(strm, compset.News);
+		strm << "---------------------" << endl;
+		return strm;
+	}
+
 private:
     std::unordered_map<vertexid_t, EdgeArray> Olds;
     std::unordered_map<vertexid_t, EdgeArray> Deltas;

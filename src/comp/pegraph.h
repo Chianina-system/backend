@@ -14,6 +14,10 @@
 
 class PEGraph {
 
+
+
+
+
 public:
     PEGraph();
 
@@ -21,7 +25,13 @@ public:
 
     PEGraph(PEGraph *p);
 
-    bool equals(PEGraph *another);
+	static void print_graph_map(std::ostream & strm, const std::unordered_map<vertexid_t, EdgeArray> graph) {
+		for(auto& it : graph){
+			strm << it.first << " -> " << it.second << endl;
+		}
+	}
+
+	bool equals(PEGraph *another);
 
     std::unordered_map<vertexid_t, EdgeArray> &getGraph();
 
@@ -36,6 +46,11 @@ public:
     void setEdgeArray(vertexid_t index, int numEdges, vertexid_t *edges, label_t *labels);
 
     void clearEdgeArray(vertexid_t index);
+
+    void merge(PEGraph *graph_toMerge);
+
+
+//    void setGraph(std::unordered_map<vertexid_t, EdgeArray> &_graph);
 
 //    static PEGraph * merge(PEGraph *graph_1, PEGraph *graph_2) {
 //        //merge graph_1 and graph_2 together to generate a new graph
@@ -76,13 +91,20 @@ public:
 //        return peGraph;
 //    }
 
-    void merge(PEGraph *graph_toMerge);
-
-
-//    void setGraph(std::unordered_map<vertexid_t, EdgeArray> &_graph);
 
 private:
     std::unordered_map<vertexid_t, EdgeArray> graph;
+
+	friend std::ostream & operator<<(std::ostream & strm, const PEGraph & peGraph) {
+		strm << "\nPEGraph<<<<\n---------------------" << endl;
+//		for(auto& it : peGraph.graph){
+//			strm << it.first << " -> " << it.second << endl;
+//		}
+//		strm << "---------------------" << endl;
+		print_graph_map(strm, peGraph.graph);
+		strm << "---------------------" << endl;
+		return strm;
+	}
 
 };
 

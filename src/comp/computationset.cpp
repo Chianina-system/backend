@@ -36,6 +36,7 @@ void ComputationSet::init_add(PEGraph *out, Stmt *stmt) {
     vertexid_t *stmt_edge = new vertexid_t[1];
     label_t *stmt_label = new label_t[1];
     *stmt_edge = stmt->getDst();
+    cout << "\nsrc:" << stmt->getSrc() << "; dst: " << stmt->getDst() << endl;
     *stmt_label = 'A'; //TODO: this label means "ASSIGN"
 //    Deltas[stmt->getSrc()] = EdgeArray();
 //    Deltas[stmt->getSrc()].set(1, stmt_edge, stmt_label);

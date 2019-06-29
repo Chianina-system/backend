@@ -13,8 +13,24 @@
 template <typename T>
 class Concurrent_Worklist{
 
+//	friend std::ostream & operator<<(std::ostream & strm, const Concurrent_Worklist& worklist) {
+//		strm << "worklist: [";
+//		//TODO:
+//		strm << "]";
+//		return strm;
+//	}
+
+private:
     std::queue<T> queue;
     std::mutex mutex;
+
+//    void print(){
+//		cout << "worklist: [";
+//		for(auto& it: queue){
+//			cout << it << ", ";
+//		}
+//		cout << "]";
+//    }
 
 public:
     Concurrent_Worklist() {}

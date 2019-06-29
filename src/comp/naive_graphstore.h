@@ -17,6 +17,10 @@ public:
 	NaiveGraphStore(){}
 
 	NaiveGraphStore(const string& file_singleton){
+
+	}
+
+	void loadGraphStore(const string& file_singleton) override {
 	    //handle the singleton.txt
 	    std::ifstream fin;
 	    fin.open(file_singleton);
@@ -49,16 +53,37 @@ public:
     	if(map.find(graph_pointer) != map.end()){
     		return new PEGraph(map[graph_pointer]);
     	}
-    	return nullptr;
+    	map[graph_pointer] = new PEGraph();
+    	return new PEGraph();
     }
 
     //deep copy
     void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
-    	assert(map.find(graph_pointer) != map.end());
-    	delete map[graph_pointer];
-    	map[graph_pointer] = new PEGraph(pegraph);
+//    	assert(map.find(graph_pointer) != map.end());
+    	if(map.find(graph_pointer) != map.end()){
+			delete map[graph_pointer];
+    	}
+		map[graph_pointer] = new PEGraph(pegraph);
     }
 
+
+    void print(std::ostream& str) const override {
+    	str << "The singleton set: [" ;
+    	for(auto & id : singletonSet){
+    		str << id << ", ";
+    	}
+    	str << "]\n";
+
+    	str << "The number of graphs is: " << map.size() << "\n";
+    	for(auto it = map.begin(); it != map.end(); ++it){
+    		cout << "======================" << endl;
+    		str << it->first << "--> " << *(it->second) << endl;
+    	}
+//    	for(auto & graphpair: map){
+//    		cout << "======================" << endl;
+//    		str << graphpair.first << "--> " << *(graphpair.second) << endl;
+//    	}
+    }
 
 
 private:

@@ -11,6 +11,8 @@
 #include "art.h"
 #include "cfg_map.h"
 #include "naive_graphstore.h"
+#include "../utility/StaticPrinter.h"
+#include "../utility/Logger.hpp"
 
 bool CFGCompute::load(Partition* part, CFG* cfg, GraphStore* graphstore){
 	return true;
@@ -19,11 +21,24 @@ bool CFGCompute::load(Partition* part, CFG* cfg, GraphStore* graphstore){
 void CFGCompute::do_worklist(CFG* cfg, GraphStore* graphstore){
     Concurrent_Worklist<CFGNode*>* worklist_1 = new Concurrent_Worklist<CFGNode*>();
 
+//    //for debugging
+//    cout << cfg << endl;
+
     //initiate concurrent worklist
     std::vector<CFGNode*> nodes = cfg->getNodes();
+
+//    //for debugging
+//    cout << nodes.size();
+//    StaticPrinter::print_vector(nodes);
+
     for(auto it = nodes.cbegin(); it != nodes.cend(); ++it){
+//    	//for debugging
+//    	cout << **it << endl;
         worklist_1->push(*it);
     }
+
+    //for debugging
+    cout << "size of worklist: " << worklist_1->size() << endl;
 
     Concurrent_Worklist<CFGNode*>* worklist_2 = new Concurrent_Worklist<CFGNode*>();
     while(!worklist_1->isEmpty()){
@@ -52,19 +67,34 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<C
     /* TODO: load grammar from file
      * grammar->loadGrammar(filename);
      */
+    grammar->loadGrammar("/home/zqzuo/Desktop/inlined/rules_pointsto.txt");
 
     CFGNode* cfg_node;
     while(worklist_1->pop_atomic(cfg_node)){
+    	//for debugging
+//    	cout << "\nCFG Node under processing: " << *cfg_node << endl;
+    	Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " under processing...\n");
+
         //merge
     	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
+        //for debugging
+    	StaticPrinter::print_vector(preds);
         PEGraph* in = combine(graphstore, preds);
+
+        //for debugging
+        cout << *in << endl;
 
         //transfer
         PEGraph* out = transfer(in, cfg_node->getStmt(),grammar, graphstore);
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
+        //for debugging
+        cout << *graphstore << endl;
         PEGraph* old_out = graphstore->retrieve(out_pointer);
+        //for debugging
+        cout << *graphstore << endl;
+
         if(!out->equals(old_out)){
             //update out
             graphstore->update(out_pointer, out);
@@ -79,6 +109,10 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<C
         //clean out
         delete old_out;
         delete out;
+
+        //for debugging
+        cout << *graphstore << endl;
+        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n");
     }
 }
 
@@ -116,6 +150,9 @@ PEGraph* CFGCompute::combine(GraphStore* graphstore, std::vector<CFGNode*>& pred
 }
 
 PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar, GraphStore* graphstore){
+	//for debugging
+	Logger::print_thread_info_locked("transfer-copy starting...\n");
+
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
 
@@ -127,10 +164,16 @@ PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar, Gra
     // the GEN set
     peg_compute_add(out,stmt,grammar);
 
+	//for debugging
+	Logger::print_thread_info_locked("transfer-copy finished.\n");
+
     return out;
 }
 
 PEGraph* CFGCompute::transfer_load(PEGraph* in, Stmt* stmt,Grammar *grammar, GraphStore* graphstore){
+	//for debugging
+	Logger::print_thread_info_locked("transfer-load starting...\n");
+
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
 
@@ -142,10 +185,16 @@ PEGraph* CFGCompute::transfer_load(PEGraph* in, Stmt* stmt,Grammar *grammar, Gra
     // the GEN set
     peg_compute_add(out,stmt,grammar);
 
+	//for debugging
+	Logger::print_thread_info_locked("transfer-load finished.\n");
+
     return out;
 }
 
 PEGraph* CFGCompute::transfer_store(PEGraph* in, Stmt* stmt,Grammar *grammar, GraphStore* graphstore){
+	//for debugging
+	Logger::print_thread_info_locked("transfer-store starting...\n");
+
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
 
@@ -158,20 +207,29 @@ PEGraph* CFGCompute::transfer_store(PEGraph* in, Stmt* stmt,Grammar *grammar, Gr
     // the GEN set
     peg_compute_add(out,stmt,grammar);
 
+	//for debugging
+	Logger::print_thread_info_locked("transfer-store finished.\n");
+
     return out;
 }
 
 PEGraph* CFGCompute::transfer_address(PEGraph* in, Stmt* stmt,Grammar *grammar, GraphStore* graphstore){
+	//for debugging
+	Logger::print_thread_info_locked("transfer-alloc starting...\n");
+
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
 
     // the KILL set
     std::set<vertexid_t> vertices_changed;
     std::set<vertexid_t> vertices_affected;
-    strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected, graphstore);
+	strong_update(stmt->getDst(), out, vertices_changed, grammar, vertices_affected, graphstore);
 
     // the GEN set
-    peg_compute_add(out,stmt,grammar);
+    peg_compute_add(out, stmt, grammar);
+
+    //for debugging
+   	Logger::print_thread_info_locked("transfer-alloc finished.\n");
 
     return out;
 }
@@ -216,9 +274,12 @@ void findDeletedEdge(EdgeArray & edgesToDelete, vertexid_t src, std::set<vertexi
 	}
 }
 
-void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices_changed,Grammar *grammar, std::set<vertexid_t> &vertices_affected, GraphStore* graphstore) {
+void CFGCompute::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, GraphStore* graphstore) {
+	//for debugging
+	Logger::print_thread_info_locked("strong-update starting...\n");
+
     // vertices <- must_alias(x); put *x into this set as well
-    must_alias(x,out,vertices_changed,grammar,vertices_affected, graphstore);
+	must_alias(x, out, vertices_changed, grammar, vertices_affected, graphstore);
 
     /* foreach v in vertices do
      * delete all the direct incoming and outgoing a edges of v from OUT
@@ -227,6 +288,8 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
 //    vertexid_t numVertices = out->getNumVertices();
     std::unordered_map<vertexid_t, EdgeArray> m;
 
+    //get all the direct assign edges into m
+    //TODO: can be optimized by checking only the adjacent list of vertex in vertices_changed?
     for(auto it = out->getGraph().begin(); it!= out->getGraph().end(); it++){
         int numEdges = out->getNumEdges(it->first);
         vertexid_t *edges = out->getEdges(it->first);
@@ -272,6 +335,9 @@ void CFGCompute::strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &v
             delete[] labels;
         }
     }
+
+	//for debugging
+	Logger::print_thread_info_locked("strong-update finished.\n");
 }
 
 bool CFGCompute::isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar) {
@@ -281,11 +347,15 @@ bool CFGCompute::isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label
 }
 
 
-void CFGCompute::must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices_changed,Grammar *grammar, std::set<vertexid_t> &vertices_affected, GraphStore* graphstore) {
+void CFGCompute::must_alias(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, GraphStore* graphstore) {
 	/* if there exists one and only one variable o,which
 	 * refers to a singleton memory location,such that x and
 	 * y are both memory aliases of o,then x and y are Must-alias
 	 */
+	if(out->getGraph().find(x) == out->getGraph().end()){
+		return;
+	}
+
     int numEdges = out->getNumEdges(x);
     vertexid_t * edges = out->getEdges(x);
     label_t *labels = out->getLabels(x);
@@ -374,19 +444,27 @@ void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unorder
     compset->init_delete(out, m);
 
     // start GEN
-    PEGCompute::startCompute_delete(*compset,grammar, m);
+    long number_deleted = PEGCompute::startCompute_delete(*compset,grammar, m);
+    cout << "number of edges deleted: " << number_deleted << endl;
 
     // clean
     delete compset;
 }
 
-void CFGCompute::peg_compute_add(PEGraph *out,Stmt *stmt,Grammar *grammar) {
+void CFGCompute::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
+	//for debugging
+	Logger::print_thread_info_locked("peg-compute-add starting...\n");
+
     // add assign edge based on stmt, (out,assign edge) -> compset
     ComputationSet *compset = new ComputationSet();
     compset->init_add(out,stmt);
 
+    //for debugging
+    cout << *compset << endl;
+
     // start GEN
-    PEGCompute::startCompute_add(*compset,grammar);
+    long number_added = PEGCompute::startCompute_add(*compset, grammar);
+//    Logger::print_thread_info_locked("number of edges added: " + to_string(number_added) + "\n");
 
     // GEN finished, compset -> out
     auto olds = compset->getOlds();
@@ -402,99 +480,18 @@ void CFGCompute::peg_compute_add(PEGraph *out,Stmt *stmt,Grammar *grammar) {
 
     // clean
 	delete compset;
+
+	//for debugging
+	Logger::print_thread_info_locked("peg-compute-add finished.\n");
 }
 
 // 使用tab键分割
 bool CFGCompute::load(const string& file_cfg, const string& file_stmt, const string& file_singleton, CFG *cfg, GraphStore *graphstore) {
-//    // handle the stmt file
-//    std::ifstream fin;
-//    CFG_map* cfgMap = dynamic_cast<CFG_map* > (cfg);
-////    CFG * cfgMap = cfg;
-//
-//    fin.open(file_stmt);
-//    if(!fin) {
-//        cout << "can't load file_stmt " << endl;
-//        return false;
-//    }
-//
-//    std::map<int, CFGNode*> m;
-//
-//    std::string line;
-//    while (getline(fin, line) && line != "") {
-//    	std::cout << line << "\n";
-//
-//        std::stringstream stream(line);
-//        std::string stmt_id, type, dst, src, added;
-//        stream >> stmt_id >> type >> dst >> src >> added;
-//
-//        std::cout << stmt_id << "," << type << "," << dst << "," << src << "," << added << "\n";
-//
-//        TYPE t;
-//        if(type == "assign"){
-//            t = TYPE::Assign;
-//        }
-//        if(type == "load"){
-//            t = TYPE::Load;
-//        }
-//        if(type == "store"){
-//            t = TYPE ::Store;
-//        }
-//        if(type == "alloca"){
-//            t = TYPE ::Alloca;
-//        }
-//
-//        Stmt* stmt = new Stmt(t, atoi(src.c_str()), atoi(dst.c_str()), atoi(added.c_str()));
-//        CFGNode* cfgNode = new CFGNode(atoi(stmt_id.c_str()), stmt);
-//        m[atoi(stmt_id.c_str())] = cfgNode;
-//
-//        //add cfgnode into cfg
-//        cfgMap->addOneNode(cfgNode);
-//    }
-//    fin.close();
-//
-//
-//    //handle the cfg.txt
-////    std::ifstream fin;
-//    fin.open(file_cfg);
-//    if(!fin) {
-//        cout << "can't load file_cfg: " << file_cfg << endl;
-//        return false;
-//    }
-//
-//    while (getline(fin, line) && line != "") {
-//        std::stringstream stream(line);
-//        std::string pred_id, succ_id;
-//        stream >> pred_id >> succ_id;
-//
-////        cfgMap->addOneNode(m[atoi(pred_id.c_str())]);
-////        cfgMap->addOneNode(m[atoi(succ_id.c_str())]);
-//        cfgMap->addOneSucc(m[atoi(pred_id.c_str())], m[atoi(succ_id.c_str())]);
-//        cfgMap->addOnePred(m[atoi(succ_id.c_str())], m[atoi(pred_id.c_str())]);
-//    }
-//    fin.close();
-//
-//    std::cout << *cfgMap;
+	cfg->loadCFG(file_cfg, file_stmt);
+	cout << *cfg;
 
-	cfg = new CFG_map(file_cfg, file_stmt);
-
-//    //handle the singleton.txt
-//    std::ifstream fin;
-//    fin.open(file_singleton);
-//    if(!fin) {
-//        cout << "can't load file_singleton: " << file_singleton << endl;
-//        return false;
-//    }
-//    ART* art = dynamic_cast<ART* > (graphstore);
-//    std::string line;
-//    while (getline(fin, line) && line != "") {
-//        std::stringstream stream(line);
-//        std::string id;
-//        stream >> id;
-//        art->addOneSingleton(atoi(id.c_str()));
-//    }
-//    fin.close();
-	graphstore = new NaiveGraphStore(file_singleton);
-
+	graphstore->loadGraphStore(file_singleton);
+	cout << *graphstore << endl;
 
     return true;
 }
