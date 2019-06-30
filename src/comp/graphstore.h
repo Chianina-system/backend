@@ -15,9 +15,9 @@ using namespace std;
 class GraphStore{
 
 	friend std::ostream & operator<<(std::ostream & strm, const GraphStore& graphstore) {
-		strm << "\nGraphstore<<<<\n---------------------" << endl;
+		strm << "Graphstore<<<<\n============================================" << endl;
 		graphstore.print(strm);
-		strm << "---------------------" << endl;
+		strm << "============================================" << endl;
 		return strm;
 	}
 

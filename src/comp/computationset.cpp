@@ -31,13 +31,19 @@
 //    delete[] stmt_label;
 //}
 
-void ComputationSet::init_add(PEGraph *out, Stmt *stmt) {
+void ComputationSet::init_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
+	//for debugging
+	Logger::print_thread_info_locked("init-add starting...\n");
+
     // Deltas <- stmt
     vertexid_t *stmt_edge = new vertexid_t[1];
     label_t *stmt_label = new label_t[1];
     *stmt_edge = stmt->getDst();
-    cout << "\nsrc:" << stmt->getSrc() << "; dst: " << stmt->getDst() << endl;
-    *stmt_label = 'A'; //TODO: this label means "ASSIGN"
+//    cout << "\nsrc:" << stmt->getSrc() << "; dst: " << stmt->getDst() << endl;
+    *stmt_label = grammar->getLabelValue("a"); //TODO: this label means "ASSIGN"
+
+    std::string myString (grammar->getRawLabel(*stmt_label));
+    cout << myString << " <=> " << (int)*stmt_label << endl;
 //    Deltas[stmt->getSrc()] = EdgeArray();
 //    Deltas[stmt->getSrc()].set(1, stmt_edge, stmt_label);
     setDeltas(stmt->getSrc(), 1, stmt_edge, stmt_label);
@@ -50,6 +56,14 @@ void ComputationSet::init_add(PEGraph *out, Stmt *stmt) {
 //        Olds[it->first].set(it->second.getSize(), it->second.getEdges(), it->second.getLabels());
         setOlds(it->first, it->second.getSize(), it->second.getEdges(), it->second.getLabels());
     }
+
+//    //for debugging
+//    cout << "-----------------------------------------------------------------------------\n";
+//    cout << this->getDeltasEdges(2)[0]<< endl;
+//    cout << *this << endl;
+
+	//for debugging
+	Logger::print_thread_info_locked("init-add finished.\n");
 }
 
     // Olds <- out - m, Deltas <- m, News <- empty
@@ -126,9 +140,15 @@ void ComputationSet::setOlds(vertexid_t index, int numEdges, vertexid_t *edges, 
 }
 
 void ComputationSet::setDeltas(vertexid_t index, int numEdges, vertexid_t *edges, char *labels) {
+//	//for debugging
+//	Logger::print_thread_info_locked("set-deltas starting...\n");
+
     if(Deltas.find(index) == Deltas.end())
         Deltas[index] = EdgeArray();
     Deltas[index].set(numEdges,edges,labels);
+
+//	//for debugging
+//	Logger::print_thread_info_locked("set-deltas finished.\n");
 }
 
 void ComputationSet::setNews(vertexid_t index, int numEdges, vertexid_t *edges, char *labels) {

@@ -17,6 +17,11 @@ enum class TYPE {
 };
 
 class Stmt{
+	friend std::ostream & operator<<(std::ostream & strm, const Stmt& stmt) {
+		strm << "\nStmt:\t" << (int)stmt.t << ", " << stmt.getDst() << " <- " << stmt.getSrc() << ", " << stmt.getAdded() << endl;
+		return strm;
+	}
+
 
 public:
 
@@ -38,6 +43,25 @@ public:
     }
 
     Stmt(TYPE t, vertexid_t src, vertexid_t dst, vertexid_t added = -1) : t(t), src(src), dst(dst), added(added) {}
+
+
+    std::string toString(){
+    	std::ostringstream out;
+    	out << getTypeString(t) << ", " << getDst() << " <- " << getSrc() << ", " << getAdded();
+    	return out.str();
+    }
+
+    std::string getTypeString(TYPE t){
+    	switch(t){
+    	case TYPE::Assign: return "Assign";
+    	case TYPE::Load: return "Load";
+    	case TYPE::Store: return "Store";
+    	case TYPE::Alloca: return "Alloca";
+    	default:
+    		return nullptr;
+    	}
+
+    }
 
 private:
 	TYPE t;

@@ -8,9 +8,9 @@
 class EdgeArray {
 
 	friend std::ostream & operator<<(std::ostream & strm, const EdgeArray& edgeArray) {
-		strm << "{size: " << edgeArray.size << "; ";
+		strm << "{size=" << edgeArray.size << "; ";
 		for(int i = 0; i < edgeArray.size; i++){
-			strm << "(" << edgeArray.edges[i] << "," << edgeArray.labels[i] << ") ";
+			strm << "(" << edgeArray.edges[i] << ", " << (int)edgeArray.labels[i] << ") ";
 		}
 		strm << "}";
 		return strm;
@@ -21,8 +21,18 @@ public:
     EdgeArray();
 //    EdgeArray(int size,vertexid_t *edges,label_t *labels);
     ~EdgeArray(){
+//    	cout << "edgearray destructor is called.\n";
     	clear();
     }
+
+
+    //copy constructor
+    EdgeArray(const EdgeArray& array);
+
+    //copy assign operator
+    EdgeArray& operator=(const EdgeArray& array);
+
+
     void clear();
 
 

@@ -36,9 +36,6 @@ private:
     static PEGraph* combine(GraphStore* graphstore, std::vector<CFGNode*>& preds);
 
     static PEGraph* transfer(PEGraph* in, Stmt* stmt,Grammar* grammar, GraphStore* graphstore){
-    	//for debugging
-    	cout << "stmt type: " << (int)(stmt->getType()) << endl;
-
         switch(stmt->getType()){
             case TYPE::Assign:
                 return transfer_copy(in, stmt, grammar, graphstore);

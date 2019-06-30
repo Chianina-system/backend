@@ -6,6 +6,8 @@
 #include "stmt.h"
 #include "myalgorithm.h"
 #include "edgesToDelete.h"
+#include "../utility/Logger.hpp"
+#include "grammar.h"
 
 class ComputationSet {
 
@@ -32,7 +34,7 @@ public:
     ~ComputationSet(){};
 //    void clear();
 
-    void init_add(PEGraph *out,Stmt *stmt);
+    void init_add(PEGraph *out,Stmt *stmt, Grammar *grammar);
 
     void init_delete(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray>& m);
 

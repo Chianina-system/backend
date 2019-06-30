@@ -96,7 +96,7 @@ private:
     std::unordered_map<vertexid_t, EdgeArray> graph;
 
 	friend std::ostream & operator<<(std::ostream & strm, const PEGraph & peGraph) {
-		strm << "\nPEGraph<<<<\n---------------------" << endl;
+		strm << "PEGraph<<<<\n---------------------" << endl;
 //		for(auto& it : peGraph.graph){
 //			strm << it.first << " -> " << it.second << endl;
 //		}

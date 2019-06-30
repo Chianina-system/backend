@@ -76,8 +76,8 @@ public:
 
     	str << "The number of graphs is: " << map.size() << "\n";
     	for(auto it = map.begin(); it != map.end(); ++it){
-    		cout << "======================" << endl;
-    		str << it->first << "--> " << *(it->second) << endl;
+//    		cout << "======================" << endl;
+    		str << it->first << "-->\n" << *(it->second) << endl;
     	}
 //    	for(auto & graphpair: map){
 //    		cout << "======================" << endl;
