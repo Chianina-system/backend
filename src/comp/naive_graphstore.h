@@ -16,11 +16,7 @@ class NaiveGraphStore : public GraphStore {
 public:
 	NaiveGraphStore(){}
 
-	NaiveGraphStore(const string& file_singleton){
-
-	}
-
-	void loadGraphStore(const string& file_singleton) override {
+    void loadGraphStore(const string& file_singleton) override {
 	    //handle the singleton.txt
 	    std::ifstream fin;
 	    fin.open(file_singleton);

@@ -45,9 +45,14 @@ public:
 
     void setEdgeArray(vertexid_t index, int numEdges, vertexid_t *edges, label_t *labels);
 
+    void setGraph(const std::unordered_map<vertexid_t, EdgeArray> &graph) {
+        this->graph = graph;
+    }
+
     void clearEdgeArray(vertexid_t index);
 
     void merge(PEGraph *graph_toMerge);
+
 
 
 //    void setGraph(std::unordered_map<vertexid_t, EdgeArray> &_graph);
