@@ -138,17 +138,17 @@ Node *ART::findChild(Node *parent, Edge *child) {
 
 PEGraph * ART::convertToPEGraph(vector<Edge *> &v) const {
     PEGraph* peGraph = new PEGraph;
-    std::unordered_map<vertexid_t, EdgeArray> graph = peGraph->getGraph();
+    std::unordered_map<vertexid_t, EdgeArray> graph;
 
     for(auto & edge : v){
         if(graph.find(edge->src)==graph.end()){
             graph[edge->src].addOneEdge(edge->des, edge->label);
         }
     }
+
     // todo should we sort the graph?
 
-    // todo what should we do with the singleton?
-
+    peGraph->setGraph(graph);
     return peGraph;
 }
 

@@ -38,6 +38,20 @@ struct Edge {
                label == rhs.label;
     }
 
+    bool operator<(const Edge &rhs) const {
+        if (src < rhs.src)
+            return true;
+        if (rhs.src < src)
+            return false;
+        if (des < rhs.des)
+            return true;
+        if (rhs.des < des)
+            return false;
+        return label < rhs.label;
+    }
+
+
+
     bool operator!=(const Edge &rhs) const {
         return !(rhs == *this);
     }

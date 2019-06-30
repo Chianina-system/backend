@@ -1,5 +1,7 @@
 #ifndef COMP_EDGEARRAY_H
 #define COMP_EDGEARRAY_H
+
+#include <ostream>
 #include "../common/CommonLibs.hpp"
 #include "myalgorithm.h"
 
@@ -15,7 +17,6 @@ class EdgeArray {
 		strm << "}";
 		return strm;
 	}
-
 
 public:
     EdgeArray();
