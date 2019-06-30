@@ -62,9 +62,9 @@ public:
     void setNews(vertexid_t index,int numEdges,vertexid_t *edges,char *labels);
 
 
-    const std::unordered_map<vertexid_t, EdgeArray> &getOlds() const;
-    const std::unordered_map<vertexid_t, EdgeArray> &getDeltas() const;
-    const std::unordered_map<vertexid_t, EdgeArray> &getNews() const;
+    std::unordered_map<vertexid_t, EdgeArray> &getOlds() ;
+    std::unordered_map<vertexid_t, EdgeArray> &getDeltas() ;
+    std::unordered_map<vertexid_t, EdgeArray> &getNews() ;
 
     void clearOlds(vertexid_t index);
     void clearDeltas(vertexid_t index);

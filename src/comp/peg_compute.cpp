@@ -80,6 +80,9 @@ void PEGCompute::computeOneIteration(ComputationSet *compset, Grammar *grammar) 
 
 
 long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Grammar *grammar) {
+	//for debugging
+	Logger::print_thread_info_locked("compute-one-vertex starting...\n");
+
     bool oldEmpty = compset->oldEmpty(index);
     bool deltaEmpty = compset->deltaEmpty(index);
 
@@ -87,7 +90,12 @@ long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Gra
 //    cout << "old is empty? " << oldEmpty << ", delta is empty? " << deltaEmpty << endl;
 
     // if this vertex has no edges, no need to merge.
-    if (oldEmpty && deltaEmpty) return 0;
+    if (oldEmpty && deltaEmpty){
+    	//for debugging
+    	Logger::print_thread_info_locked("compute-one-vertex finished.\n");
+
+    	return 0;
+    }
 
     // use array
     ContainersToMerge *containers = new myarray::ArraysToMerge();
@@ -108,6 +116,10 @@ long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Gra
 
     containers->clear();
     delete containers;
+
+	//for debugging
+	Logger::print_thread_info_locked("compute-one-vertex finished.\n");
+
     return newEdgesNum;
 }
 
@@ -267,8 +279,12 @@ void PEGCompute::genD_RuleEdges_delta(vertexid_t index, ComputationSet *compset,
 //}
 
 void PEGCompute::postProcessOneIteration(ComputationSet *compset, bool isDelete, std::unordered_map<vertexid_t, EdgeArray> *m) {
+	//for debugging
+	Logger::print_thread_info_locked("postProcess-One-Iteration starting...\n");
+
 	// oldsV <- {oldsV,deltasV}
 	for (auto it = compset->getOlds().begin(); it != compset->getOlds().end(); it++) {
+		cout << "here here here" << endl;
 		vertexid_t id_old = it->first;
 		if(compset->getDeltas().find(id_old) != compset->getDeltas().end()){
 			int n1 = compset->getOldsNumEdges(id_old);
@@ -285,14 +301,23 @@ void PEGCompute::postProcessOneIteration(ComputationSet *compset, bool isDelete,
 			compset->clearDeltas(id_old);
 		}
 	}
-	for (auto it = compset->getDeltas().begin(); it != compset->getDeltas().end(); it++) {
+
+    //for debugging
+    cout << *compset << endl;
+    cout << "-----------------------------------------------------------------------------\n";
+
+	for (auto it = compset->getDeltas().begin(); it != compset->getDeltas().end(); ) {
 		vertexid_t id_delta = it->first;
+		cout << id_delta << endl;
 		//the left in deltas doesn't exist in olds
 		assert(compset->getOlds().find(id_delta) == compset->getOlds().end());
 		compset->setOlds(id_delta, compset->getDeltasNumEdges(id_delta), compset->getDeltasEdges(id_delta), compset->getDeltasLabels(id_delta));
 
-		compset->clearDeltas(id_delta);
+//		compset->clearDeltas(id_delta);
+		it = compset->getDeltas().erase(it);
 	}
+//	compset->getDeltas().clear();
+
 	assert(compset->getDeltas().empty());
 
     // deltasV <- newsV - oldsV, newsV <= empty set
@@ -323,6 +348,9 @@ void PEGCompute::postProcessOneIteration(ComputationSet *compset, bool isDelete,
 
 		compset->clearNews(i_new);
 	}
+
+	//for debugging
+	Logger::print_thread_info_locked("postProcess-One-Iteration finished.\n");
 }
 
 void PEGCompute::mergeToDeletedGraph(vertexid_t i_new, std::unordered_map<vertexid_t, EdgeArray>* m, ComputationSet* compset) {

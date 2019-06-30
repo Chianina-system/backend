@@ -186,15 +186,15 @@ std::set<vertexid_t> ComputationSet::getVertices() {
     return vertexSet;
 }
 
-const std::unordered_map<vertexid_t, EdgeArray> &ComputationSet::getOlds() const {
+std::unordered_map<vertexid_t, EdgeArray> &ComputationSet::getOlds()  {
     return Olds;
 }
 
-const std::unordered_map<vertexid_t, EdgeArray> &ComputationSet::getDeltas() const {
+std::unordered_map<vertexid_t, EdgeArray> &ComputationSet::getDeltas()  {
     return Deltas;
 }
 
-const std::unordered_map<vertexid_t, EdgeArray> &ComputationSet::getNews() const {
+std::unordered_map<vertexid_t, EdgeArray> &ComputationSet::getNews()  {
     return News;
 }
 

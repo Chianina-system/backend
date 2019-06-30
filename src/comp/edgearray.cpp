@@ -48,7 +48,7 @@ EdgeArray& EdgeArray::operator=(const EdgeArray& array){
 //    this->capacity = size;
 //}
 
-void EdgeArray::set(int size,vertexid_t *edges,label_t *labels) {
+void EdgeArray::set(int size, vertexid_t *edges, label_t *labels) {
     if(!size)
         return;
 
