@@ -7,6 +7,36 @@ EdgeArray::EdgeArray() {
     size = capacity = 0;
 }
 
+
+//copy constructor
+EdgeArray::EdgeArray(const EdgeArray& array){
+	size = array.size;
+	capacity = array.capacity;
+	if(size){
+		this->edges = new vertexid_t[size];
+		this->labels = new label_t[size];
+        memcpy(this->edges,array.edges,sizeof(vertexid_t)*size);
+        memcpy(this->labels,array.labels,sizeof(label_t)*size);
+	}
+
+}
+
+//copy assign operator
+EdgeArray& EdgeArray::operator=(const EdgeArray& array){
+	size = array.size;
+	capacity = array.capacity;
+	if(size){
+		this->edges = new vertexid_t[size];
+		this->labels = new label_t[size];
+        memcpy(this->edges,array.edges,sizeof(vertexid_t)*size);
+        memcpy(this->labels,array.labels,sizeof(label_t)*size);
+	}
+	return *this;
+
+}
+
+
+
 //EdgeArray::EdgeArray(int size,vertexid_t *edges,label_t *labels) {
 //    this->size = size;
 //    if(size) {

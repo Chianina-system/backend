@@ -67,13 +67,14 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<C
     /* TODO: load grammar from file
      * grammar->loadGrammar(filename);
      */
-    grammar->loadGrammar("/home/zqzuo/Desktop/inlined/rules_pointsto.txt");
+    std::string grammar_file = "/home/zqzuo/Desktop/inlined/rules_pointsto.txt";
+    grammar->loadGrammar(grammar_file.c_str());
 
     CFGNode* cfg_node;
     while(worklist_1->pop_atomic(cfg_node)){
     	//for debugging
 //    	cout << "\nCFG Node under processing: " << *cfg_node << endl;
-    	Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " under processing...\n");
+    	Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " {" + cfg_node->getStmt()->toString() + "} under processing...\n");
 
         //merge
     	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
@@ -82,18 +83,23 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<C
         PEGraph* in = combine(graphstore, preds);
 
         //for debugging
+        cout << "The in-PEG after combination:" << endl;
         cout << *in << endl;
 
         //transfer
-        PEGraph* out = transfer(in, cfg_node->getStmt(),grammar, graphstore);
+        PEGraph* out = transfer(in, cfg_node->getStmt(), grammar, graphstore);
+
+        //for debugging
+        cout << "The out-PEG after transformation:" << endl;
+        cout << *out << endl;
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-        //for debugging
-        cout << *graphstore << endl;
+//        //for debugging
+//        cout << *graphstore << endl;
         PEGraph* old_out = graphstore->retrieve(out_pointer);
-        //for debugging
-        cout << *graphstore << endl;
+//        //for debugging
+//        cout << *graphstore << endl;
 
         if(!out->equals(old_out)){
             //update out
@@ -112,7 +118,7 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<C
 
         //for debugging
         cout << *graphstore << endl;
-        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n");
+        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n\n\n");
     }
 }
 
@@ -204,6 +210,10 @@ PEGraph* CFGCompute::transfer_store(PEGraph* in, Stmt* stmt,Grammar *grammar, Gr
     if(is_strong_update(stmt->getDst(),out,grammar, graphstore)) {
         strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected, graphstore);
     }
+
+    //for debugging
+    cout << *out << endl;
+
     // the GEN set
     peg_compute_add(out,stmt,grammar);
 
@@ -235,9 +245,18 @@ PEGraph* CFGCompute::transfer_address(PEGraph* in, Stmt* stmt,Grammar *grammar, 
 }
 
 bool CFGCompute::is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar, GraphStore* graphstore) {
+	//for debugging
+	Logger::print_thread_info_locked("is-strong-update starting...\n");
+
     /* If there exists one and only one variable o,which
      * refers to a singleton memory location,such that x and o are memory alias
      */
+	if(out->getGraph().find(x) == out->getGraph().end()){
+		//for debugging
+		Logger::print_thread_info_locked("is-strong-update finished.\n");
+		return false;
+	}
+
     int numOfSingleTon = 0;
     int numEdges = out->getNumEdges(x);
     vertexid_t * edges = out->getEdges(x);
@@ -247,6 +266,10 @@ bool CFGCompute::is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar, Gr
         if(grammar->isMemoryAlias(labels[i]) && graphstore->isSingleton(edges[i]))
             ++numOfSingleTon;
     }
+
+	//for debugging
+	Logger::print_thread_info_locked("is-strong-update finished.\n");
+
     return (numOfSingleTon == 1);
 }
 
@@ -444,7 +467,7 @@ void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unorder
     compset->init_delete(out, m);
 
     // start GEN
-    long number_deleted = PEGCompute::startCompute_delete(*compset,grammar, m);
+    long number_deleted = PEGCompute::startCompute_delete(compset,grammar, m);
     cout << "number of edges deleted: " << number_deleted << endl;
 
     // clean
@@ -457,14 +480,17 @@ void CFGCompute::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
 
     // add assign edge based on stmt, (out,assign edge) -> compset
     ComputationSet *compset = new ComputationSet();
-    compset->init_add(out,stmt);
+    compset->init_add(out,stmt, grammar);
 
     //for debugging
     cout << *compset << endl;
 
     // start GEN
-    long number_added = PEGCompute::startCompute_add(*compset, grammar);
+    long number_added = PEGCompute::startCompute_add(compset, grammar);
 //    Logger::print_thread_info_locked("number of edges added: " + to_string(number_added) + "\n");
+
+    //for debugging
+    cout << *compset << endl;
 
     // GEN finished, compset -> out
     auto olds = compset->getOlds();

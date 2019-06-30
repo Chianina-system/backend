@@ -16,7 +16,7 @@ class Grammar {
 		Grammar();
 		// getters and setters
 		int addRawLabel(char *label);
-		char getLabelValue(char *str);
+		char getLabelValue(const char *str);
 		inline char *getRawLabel(char value){return rawLabel[value+128];}
 
 		inline int getNumErules() {return numErules;}
@@ -26,17 +26,22 @@ class Grammar {
 		inline char checkRules(char srcVal,char dstVal) {return rules[changeShort(srcVal,dstVal)+32768];} // find d-rule edges;
 			
 		void myTrim(char *src);
-		bool loadGrammar(char *filename);	// load grammar from file
+		bool loadGrammar(const char *filename);	// load grammar from file
 		inline short changeShort(char a,char b) {return (short)a << 8 | ((short)b & 0xFF);}
 		void test();
 
 		// TODO: modify following methods.
-		inline bool isAssign(char label) {return (label == 'A' || label == 'a');}
-		inline bool isAssign_bidirect(char label){return (label == 'A' || label == 'a' || label == -'A' || label == -'a');}
-		inline bool isMemoryAlias(char label) {return (label == 'M' || label == 'm');}
-		inline bool isDereference(char label) {return (label == 'D' || label == 'd');}
-		inline bool isDereference_reverse(char label) {return (label == -'D' || label == -'d');}
-		inline bool isDereference_bidirect(char label){return (label == 'D' || label == 'd' || label == -'D' || label == -'d');}
+		inline bool isAssign(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "a");}
+
+		inline bool isAssign_bidirect(char label){char* raw = this->getRawLabel(label); return strcmp(raw, "a") || strcmp(raw, "-a");}
+
+		inline bool isMemoryAlias(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "M");}
+
+		inline bool isDereference(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "d");}
+
+		inline bool isDereference_reverse(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "-d");}
+
+		inline bool isDereference_bidirect(char label){char* raw = this->getRawLabel(label); return strcmp(raw, "d") || strcmp(raw, "-d");}
 };
 
 #endif

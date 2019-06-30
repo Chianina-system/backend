@@ -13,7 +13,7 @@ Grammar::Grammar() {
         rules[i] = (char)127;
 }
 
-bool Grammar::loadGrammar(char *filename) {
+bool Grammar::loadGrammar(const char *filename) {
     std::ifstream fin;
     fin.open(filename);
     if(!fin) {
@@ -23,7 +23,8 @@ bool Grammar::loadGrammar(char *filename) {
 
     char str[512];
     char *token;
-    char arg[3][GRAMMAR_STR_LEN]; int index[3];
+    char arg[3][GRAMMAR_STR_LEN];
+    int index[3];
 
     while(fin.getline(str,sizeof(str))) {
         int num = 0;
@@ -110,7 +111,7 @@ void Grammar::test() {
     cout << "==========GRAMMAR TEST END============" << endl;
 }
 
-char Grammar::getLabelValue(char *str) {
+char Grammar::getLabelValue(const char *str) {
     for(int i = 0;i < numRawLabels;++i) {
         if(!strcmp(rawLabel[i],str))
             return (char)(i-128);
