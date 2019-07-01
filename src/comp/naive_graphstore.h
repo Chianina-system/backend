@@ -49,7 +49,7 @@ public:
     	if(map.find(graph_pointer) != map.end()){
     		return new PEGraph(map[graph_pointer]);
     	}
-    	map[graph_pointer] = new PEGraph();
+//    	map[graph_pointer] = new PEGraph();
     	return new PEGraph();
     }
 
@@ -62,7 +62,7 @@ public:
 		map[graph_pointer] = new PEGraph(pegraph);
     }
 
-
+protected:
     void print(std::ostream& str) const override {
     	str << "The singleton set: [" ;
     	for(auto & id : singletonSet){
@@ -72,13 +72,21 @@ public:
 
     	str << "The number of graphs is: " << map.size() << "\n";
     	for(auto it = map.begin(); it != map.end(); ++it){
-//    		cout << "======================" << endl;
-    		str << it->first << "-->\n" << *(it->second) << endl;
+    		str << ">>>>" << it->first << " " << *(it->second) << endl;
     	}
-//    	for(auto & graphpair: map){
-//    		cout << "======================" << endl;
-//    		str << graphpair.first << "--> " << *(graphpair.second) << endl;
-//    	}
+    }
+
+    void toString_sub(std::ostringstream& str) const override {
+    	str << "The singleton set: [" ;
+    	for(auto & id : singletonSet){
+    		str << id << ", ";
+    	}
+    	str << "]\n";
+
+    	str << "The number of graphs is: " << map.size() << "\n";
+    	for(auto it = map.begin(); it != map.end(); ++it){
+    		str << ">>>>" << it->first << " " << *(it->second) << endl;
+    	}
     }
 
 

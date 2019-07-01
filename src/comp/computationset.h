@@ -66,9 +66,9 @@ public:
     std::unordered_map<vertexid_t, EdgeArray> &getDeltas() ;
     std::unordered_map<vertexid_t, EdgeArray> &getNews() ;
 
-    void clearOlds(vertexid_t index);
-    void clearDeltas(vertexid_t index);
-    void clearNews(vertexid_t index);
+//    void clearOlds(vertexid_t index);
+//    void clearDeltas(vertexid_t index);
+//    void clearNews(vertexid_t index);
 
     std::set<vertexid_t > getVertices();
 

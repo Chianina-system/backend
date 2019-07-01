@@ -15,9 +15,6 @@
 class PEGraph {
 
 
-
-
-
 public:
     PEGraph();
 
@@ -97,6 +94,19 @@ public:
 //    }
 
 
+
+    std::string toString(){
+    	std::ostringstream strm;
+    	strm << "PEGraph<<<<\n---------------------" << endl;
+//    	toString_sub(strm);
+		for(auto& it : graph){
+			strm << it.first << " -> " << it.second << endl;
+		}
+    	strm << "---------------------" << endl;
+    	return strm.str();
+    }
+
+
 private:
     std::unordered_map<vertexid_t, EdgeArray> graph;
 
@@ -110,6 +120,12 @@ private:
 		strm << "---------------------" << endl;
 		return strm;
 	}
+
+    void toString_sub(std::ostringstream& strm){
+		for(auto& it : graph){
+			strm << it.first << " -> " << it.second << endl;
+		}
+    }
 
 };
 

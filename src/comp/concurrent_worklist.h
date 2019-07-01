@@ -9,62 +9,49 @@
 #define COMP_CONCURRENT_WORKLIST_H_
 
 #include "../common/CommonLibs.hpp"
+#include "cfg_node.h"
 
-template <typename T>
+//template <typename T>
 class Concurrent_Worklist{
 
-//	friend std::ostream & operator<<(std::ostream & strm, const Concurrent_Worklist& worklist) {
-//		strm << "worklist: [";
-//		//TODO:
-//		strm << "]";
-//		return strm;
-//	}
+	friend std::ostream & operator<<(std::ostream & strm, const Concurrent_Worklist& worklist) {
+		strm << "worklist: [";
+		strm << "size=" << worklist.size() << "; ";
+		worklist.print(strm);
+		strm << "]";
+		return strm;
+	}
 
-private:
-    std::queue<T> queue;
-    std::mutex mutex;
-
-//    void print(){
-//		cout << "worklist: [";
-//		for(auto& it: queue){
-//			cout << it << ", ";
-//		}
-//		cout << "]";
-//    }
 
 public:
     Concurrent_Worklist() {}
 
-//		Concurrent_Worklist(const size_t _capacity) {}
+    virtual ~Concurrent_Worklist(){}
 
-    inline bool isEmpty() {
-        return queue.empty();
+    virtual bool isEmpty() = 0;
+
+    virtual void push_atomic(CFGNode* item) = 0;
+
+    virtual CFGNode* pop_atomic() = 0;
+
+    virtual int size() const = 0;
+
+    std::string toString(){
+    	std::ostringstream strm;
+		strm << "worklist: [";
+		strm << "size=" << size() << "; ";
+		toString_sub(strm);
+		strm << "]";
+    	return strm.str();
     }
 
-    void push(const T & item) {
-        queue.push(item);
-    }
 
-    void push_atomic(const T & item) {
-        std::unique_lock < std::mutex > lock(mutex);
-        queue.push(item);
-    }
+protected:
+    std::mutex mutex;
 
-    bool pop_atomic(T& item) {
-        std::unique_lock < std::mutex > lock(mutex);
-        if (queue.empty()) {
-            return false;
-        } else {
-            item = queue.front();
-            queue.pop();
-            return true;
-        }
-    }
 
-    int size() {
-        return queue.size();
-    }
-
+    virtual void print(std::ostream& str) const = 0;
+    virtual void toString_sub(std::ostringstream& strm) const = 0;
 
 };
 

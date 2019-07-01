@@ -22,6 +22,17 @@ public:
 		cout << "]\n";
 	}
 
+	template <typename T>
+	static std::string toString_vector(std::vector<T*> vector){
+		std::ostringstream strm;
+		strm << "[";
+		for(auto& it: vector){
+			strm << *it << ", ";
+		}
+		strm << "]\n";
+		return strm.str();
+	}
+
 
 };
 

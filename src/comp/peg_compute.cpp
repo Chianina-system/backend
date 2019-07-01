@@ -21,7 +21,7 @@ long PEGCompute::startCompute_delete(ComputationSet *compset, Grammar *grammar, 
 
 long PEGCompute::startCompute_add(ComputationSet *compset, Grammar *grammar) {
 	//for debugging
-	Logger::print_thread_info_locked("start-compute_add starting...\n");
+	Logger::print_thread_info_locked("start-compute_add starting...\n", 0);
 
     long totalAddedEdges = 0;
 
@@ -33,15 +33,15 @@ long PEGCompute::startCompute_add(ComputationSet *compset, Grammar *grammar) {
     while (true) {
         computeOneIteration(compset, grammar);
 
-        //for debugging
-        cout << *compset << endl;
-        cout << "-----------------------------------------------------------------------------\n";
+//        //for debugging
+//        cout << *compset << endl;
+//        cout << "-----------------------------------------------------------------------------\n";
 
         postProcessOneIteration(compset, false);
 
-        //for debugging
-        cout << *compset << endl;
-        cout << "-----------------------------------------------------------------------------\n";
+//        //for debugging
+//        cout << *compset << endl;
+//        cout << "-----------------------------------------------------------------------------\n";
 
         long realAddedEdgesPerIter = compset->getDeltasTotalNumEdges();
         totalAddedEdges += realAddedEdgesPerIter;
@@ -50,7 +50,7 @@ long PEGCompute::startCompute_add(ComputationSet *compset, Grammar *grammar) {
     }
 
 	//for debugging
-	Logger::print_thread_info_locked("start-compute_add finished.\n");
+	Logger::print_thread_info_locked("start-compute_add finished.\n", 0);
 
     return totalAddedEdges;
 }
@@ -81,7 +81,7 @@ void PEGCompute::computeOneIteration(ComputationSet *compset, Grammar *grammar) 
 
 long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Grammar *grammar) {
 	//for debugging
-	Logger::print_thread_info_locked("compute-one-vertex starting...\n");
+	Logger::print_thread_info_locked("compute-one-vertex starting...\n", 0);
 
     bool oldEmpty = compset->oldEmpty(index);
     bool deltaEmpty = compset->deltaEmpty(index);
@@ -92,7 +92,7 @@ long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Gra
     // if this vertex has no edges, no need to merge.
     if (oldEmpty && deltaEmpty){
     	//for debugging
-    	Logger::print_thread_info_locked("compute-one-vertex finished.\n");
+    	Logger::print_thread_info_locked("compute-one-vertex finished.\n", 0);
 
     	return 0;
     }
@@ -108,17 +108,20 @@ long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Gra
 
     long newEdgesNum = containers->getNumEdges();
     //for debugging
-    cout << "number of new edges: " << newEdgesNum << endl;
-    if (newEdgesNum)
+    Logger::print_thread_info_locked("number of new edges: " + std::to_string(newEdgesNum) + "\n", 0);
+    if (newEdgesNum){
         compset->setNews(index, newEdgesNum, containers->getEdgesFirstAddr(), containers->getLabelsFirstAddr());
-    else
-        compset->clearNews(index);
+    }
+    else{
+//        compset->clearNews(index);
+    	compset->getNews().erase(index);
+    }
 
     containers->clear();
     delete containers;
 
 	//for debugging
-	Logger::print_thread_info_locked("compute-one-vertex finished.\n");
+	Logger::print_thread_info_locked("compute-one-vertex finished.\n", 0);
 
     return newEdgesNum;
 }
@@ -280,11 +283,11 @@ void PEGCompute::genD_RuleEdges_delta(vertexid_t index, ComputationSet *compset,
 
 void PEGCompute::postProcessOneIteration(ComputationSet *compset, bool isDelete, std::unordered_map<vertexid_t, EdgeArray> *m) {
 	//for debugging
-	Logger::print_thread_info_locked("postProcess-One-Iteration starting...\n");
+	Logger::print_thread_info_locked("postprocess-one-iteration starting...\n", 0);
 
 	// oldsV <- {oldsV,deltasV}
 	for (auto it = compset->getOlds().begin(); it != compset->getOlds().end(); it++) {
-		cout << "here here here" << endl;
+//		cout << "here here here" << endl;
 		vertexid_t id_old = it->first;
 		if(compset->getDeltas().find(id_old) != compset->getDeltas().end()){
 			int n1 = compset->getOldsNumEdges(id_old);
@@ -298,30 +301,27 @@ void PEGCompute::postProcessOneIteration(ComputationSet *compset, bool isDelete,
 			delete[] edges;
 			delete[] labels;
 
-			compset->clearDeltas(id_old);
+			compset->getDeltas().erase(id_old);
 		}
 	}
 
-    //for debugging
-    cout << *compset << endl;
-    cout << "-----------------------------------------------------------------------------\n";
+//    //for debugging
+//    cout << *compset << endl;
+//    cout << "-----------------------------------------------------------------------------\n";
 
 	for (auto it = compset->getDeltas().begin(); it != compset->getDeltas().end(); ) {
 		vertexid_t id_delta = it->first;
-		cout << id_delta << endl;
+//		cout << id_delta << endl;
 		//the left in deltas doesn't exist in olds
 		assert(compset->getOlds().find(id_delta) == compset->getOlds().end());
 		compset->setOlds(id_delta, compset->getDeltasNumEdges(id_delta), compset->getDeltasEdges(id_delta), compset->getDeltasLabels(id_delta));
 
-//		compset->clearDeltas(id_delta);
 		it = compset->getDeltas().erase(it);
 	}
-//	compset->getDeltas().clear();
-
 	assert(compset->getDeltas().empty());
 
     // deltasV <- newsV - oldsV, newsV <= empty set
-    for (auto it = compset->getNews().begin(); it != compset->getNews().end(); it++) {
+    for (auto it = compset->getNews().begin(); it != compset->getNews().end(); ) {
         vertexid_t i_new = it->first;
         int n1;
         int n2;
@@ -346,11 +346,11 @@ void PEGCompute::postProcessOneIteration(ComputationSet *compset, bool isDelete,
 		delete[] edges;
 		delete[] labels;
 
-		compset->clearNews(i_new);
+		it = compset->getNews().erase(it);
 	}
 
 	//for debugging
-	Logger::print_thread_info_locked("postProcess-One-Iteration finished.\n");
+	Logger::print_thread_info_locked("postprocess-one-iteration finished.\n", 0);
 }
 
 void PEGCompute::mergeToDeletedGraph(vertexid_t i_new, std::unordered_map<vertexid_t, EdgeArray>* m, ComputationSet* compset) {

@@ -54,8 +54,29 @@ std::unordered_map<vertexid_t, EdgeArray> & PEGraph::getGraph() {
 
 bool PEGraph::equals(PEGraph *another) {
 	//TODO:
+	if(!this || !another){
+		return false;
+	}
 
-    return false;
+	if(this == another){
+		return true;
+	}
+
+	if(this->graph.size() != another->graph.size()){
+		return false;
+	}
+
+	for(auto it = this->graph.begin(); it != this->graph.end(); ++it){
+		vertexid_t id = it->first;
+		if(another->graph.find(id) == another->graph.end()){
+			return false;
+		}
+		else if (!it->second.equals(&(another->graph.at(id)))){
+			return false;
+		}
+	}
+
+    return true;
 }
 
 void PEGraph::clearEdgeArray(vertexid_t index) {

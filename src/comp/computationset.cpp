@@ -33,7 +33,7 @@
 
 void ComputationSet::init_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
 	//for debugging
-	Logger::print_thread_info_locked("init-add starting...\n");
+	Logger::print_thread_info_locked("init-add starting...\n", 0);
 
     // Deltas <- stmt
     vertexid_t *stmt_edge = new vertexid_t[1];
@@ -43,7 +43,7 @@ void ComputationSet::init_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
     *stmt_label = grammar->getLabelValue("a"); //TODO: this label means "ASSIGN"
 
     std::string myString (grammar->getRawLabel(*stmt_label));
-    cout << myString << " <=> " << (int)*stmt_label << endl;
+    Logger::print_thread_info_locked(myString + " <=> " + std::to_string(*stmt_label) + "\n", 0);
 //    Deltas[stmt->getSrc()] = EdgeArray();
 //    Deltas[stmt->getSrc()].set(1, stmt_edge, stmt_label);
     setDeltas(stmt->getSrc(), 1, stmt_edge, stmt_label);
@@ -63,7 +63,7 @@ void ComputationSet::init_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
 //    cout << *this << endl;
 
 	//for debugging
-	Logger::print_thread_info_locked("init-add finished.\n");
+	Logger::print_thread_info_locked("init-add finished.\n", 0);
 }
 
     // Olds <- out - m, Deltas <- m, News <- empty
@@ -157,20 +157,20 @@ void ComputationSet::setNews(vertexid_t index, int numEdges, vertexid_t *edges, 
     News[index].set(numEdges,edges,labels);
 }
 
-void ComputationSet::clearOlds(vertexid_t index) {
-	if(Olds.find(index) != Olds.end())
-		Olds.erase(index);
-}
-
-void ComputationSet::clearDeltas(vertexid_t index) {
-	if(Deltas.find(index) != Deltas.end())
-		Deltas.erase(index);
-}
-
-void ComputationSet::clearNews(vertexid_t index) {
-	if(News.find(index) != News.end())
-		News.erase(index);
-}
+//void ComputationSet::clearOlds(vertexid_t index) {
+//	if(Olds.find(index) != Olds.end())
+//		Olds.erase(index);
+//}
+//
+//void ComputationSet::clearDeltas(vertexid_t index) {
+//	if(Deltas.find(index) != Deltas.end())
+//		Deltas.erase(index);
+//}
+//
+//void ComputationSet::clearNews(vertexid_t index) {
+//	if(News.find(index) != News.end())
+//		News.erase(index);
+//}
 
 std::set<vertexid_t> ComputationSet::getVertices() {
     std::set<vertexid_t> vertexSet;
