@@ -35,7 +35,7 @@ FrequentItemsetStore::~FrequentItemsetStore() {
 
 PEGraph *FrequentItemsetStore::retrieve(PEGraph_Pointer graph_pointer) {
 //    retrieve the pegraph set
-    std::set<Edge> *peGraphSet = mapToEdgesSet[graph_pointer];
+    std::set<Edge> peGraphSet = intToEdgeSet[graph_pointer];
 //    convert it to PEGraph*
     PEGraph *peGraph = convertToPeGraph(peGraphSet);
     return nullptr;
@@ -56,10 +56,10 @@ void FrequentItemsetStore::update(PEGraph_Pointer graph_pointer, PEGraph *pegrap
 
 //    std::set<Edge>* graphSet = mapToEdgesSet[graph_pointer];
 
-    mapToEdgesSet.erase(graph_pointer);
+    intToEdgeSet.erase(graph_pointer);
     // todo delete the pointer
     std::set<Edge> edgeSet = convertToEdgeSet(pegraph);
-    mapToEdgesSet[graph_pointer] = &edgeSet;
+    intToEdgeSet[graph_pointer] = &edgeSet;
 }
 
 
@@ -91,7 +91,7 @@ FrequentItemsetStore::FrequentItemsetStore(std::vector<std::set<Edge>> graphs) {
 }
 
 // convert from edgeSet to peGraph*
-PEGraph *FrequentItemsetStore::convertToPeGraph(set<Edge> *edgeSet) {
+PEGraph *FrequentItemsetStore::convertToPeGraph(set<Edge> edgeSet) {
     PEGraph *peGraph = new PEGraph;
     std::unordered_map<vertexid_t, EdgeArray> graph;
     set<Edge> realGraphSet;

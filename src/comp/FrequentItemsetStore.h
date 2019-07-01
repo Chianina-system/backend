@@ -25,12 +25,14 @@ class FrequentItemsetStore : public GraphStore {
     void loadGraphStore(const string &file_singleton) override;
 
 private:
-    std::unordered_map<PEGraph_Pointer, std::set<Edge> *> mapToEdgesSet;
+    std::unordered_map<PEGraph_Pointer, std::set<Edge>> intToEdgeSet;
     std::unordered_map<Edge, set<Edge>> mapToFrequentItemset;
+    std::unordered_map<int, Edge> intToEdge;
+    std::unordered_map<Edge, int> edgeToInt;
     int num_p;
 
 
-    PEGraph *convertToPeGraph(set<Edge> *edgeSet);
+    PEGraph *convertToPeGraph(set<Edge> edgeSet);
 
     set<Edge> convertToEdgeSet(PEGraph *peGraph);
 
