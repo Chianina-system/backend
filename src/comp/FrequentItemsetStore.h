@@ -12,9 +12,12 @@
 
 
 class FrequentItemsetStore : public GraphStore {
+
+public:
+
     FrequentItemsetStore();
 
-    FrequentItemsetStore(vector<set<int>> graphs);
+private:
 
     ~FrequentItemsetStore() override;
 
@@ -29,7 +32,8 @@ private:
     std::unordered_map<int, set<int>> intToFrequentItemset;
     std::unordered_map<int, Edge> intToEdge;
     std::unordered_map<Edge, int> edgeToInt;
-    int num_p;
+    int frequentItemsetNum;
+    int edgeId;
 
 
     PEGraph *convertToPeGraph(set<int> edgeSet);
@@ -39,6 +43,8 @@ private:
     void retrieveSet(set<int> &graphSet, set<int> &realEdgeSet);
 
     set<int> frequentItemsetMining(int min_support, vector<set<int>> &graphs);
+
+
 };
 
 

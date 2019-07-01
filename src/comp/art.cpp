@@ -157,16 +157,16 @@ PEGraph * ART::convertToPEGraph(vector<Edge *> &v) const {
     return peGraph;
 }
 
-vector<Edge *> ART::convertToVector(PEGraph *pegraph) {
+vector<Edge *> ART::convertToVector(PEGraph *peGraph) {
     vector<Edge *> edgeVector;
-    for(auto it = pegraph->getGraph().begin(); it!=pegraph->getGraph().end();it++){
+    for(auto & it : peGraph->getGraph()){
 //        Edge * edge = new Edge()
-        int size = it->second.getSize();
-        vertexid_t* edges = it->second.getEdges();
-        label_t* labels = it->second.getLabels();
+        int size = it.second.getSize();
+        vertexid_t* edges = it.second.getEdges();
+        label_t* labels = it.second.getLabels();
         Edge* edge;
         for (int i = 0; i < size; ++i) {
-            edge = new Edge(it->first, edges[i], labels[i]);
+            edge = new Edge(it.first, edges[i], labels[i]);
             edgeVector.push_back(edge);
             delete edge;
         }

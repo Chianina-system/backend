@@ -133,7 +133,7 @@ public:
 
     PEGraph * convertToPEGraph(vector<Edge *> &v) const;
 
-    vector<Edge *> convertToVector(PEGraph *pegraph);
+    vector<Edge *> convertToVector(PEGraph *peGraph);
 
 //    void addOneSingleton(vertexid_t t);
 
