@@ -141,9 +141,14 @@ PEGraph * ART::convertToPEGraph(vector<Edge *> &v) const {
     std::unordered_map<vertexid_t, EdgeArray> graph;
 
     for(auto & edge : v){
-        if(graph.find(edge->src)==graph.end()){
-            graph[edge->src].addOneEdge(edge->des, edge->label);
+        vertexid_t src = edge->src;
+        vertexid_t dst = edge->des;
+        label_t label = edge->label;
+        if(graph.find(src) == graph.end()){
+            graph[src] = EdgeArray();
         }
+        graph[src].addOneEdge(edge->des, edge->label);
+
     }
 
     // todo should we sort the graph?
@@ -153,7 +158,7 @@ PEGraph * ART::convertToPEGraph(vector<Edge *> &v) const {
 }
 
 vector<Edge *> ART::convertToVector(PEGraph *pegraph) {
-    vector<Edge *> v;
+    vector<Edge *> edgeVector;
     for(auto it = pegraph->getGraph().begin(); it!=pegraph->getGraph().end();it++){
 //        Edge * edge = new Edge()
         int size = it->second.getSize();
@@ -162,11 +167,11 @@ vector<Edge *> ART::convertToVector(PEGraph *pegraph) {
         Edge* edge;
         for (int i = 0; i < size; ++i) {
             edge = new Edge(it->first, edges[i], labels[i]);
-            v.push_back(edge);
+            edgeVector.push_back(edge);
             delete edge;
         }
     }
-    return v;
+    return edgeVector;
 }
 
 void ART::update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
