@@ -16,6 +16,30 @@ ART::~ART() {
 
 }
 
+void ART::loadGraphStore(const string &file_singleton) {
+
+}
+
+void ART::addOneSingleton(vertexid_t t) {
+    GraphStore::addOneSingleton(t);
+}
+
+bool ART::isSingleton(vertexid_t vid) {
+    return GraphStore::isSingleton(vid);
+}
+
+string ART::toString() {
+    return GraphStore::toString();
+}
+
+void ART::print(std::ostream &str) const {
+
+}
+
+void ART::toString_sub(std::ostringstream &strm) const {
+
+}
+
 Node *ART::insert(vector<Edge *> &v) {
     if (v.empty()) return nullptr;
     Node *parent = root;
