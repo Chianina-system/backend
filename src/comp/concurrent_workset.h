@@ -11,12 +11,20 @@
 #include "../common/CommonLibs.hpp"
 #include "concurrent_worklist.h"
 
+struct cfgnode_pointer_compare {
+    bool operator() (const CFGNode* lhs, const CFGNode* rhs) const {
+        return lhs->getCfgNodeId() < rhs->getCfgNodeId();
+    }
+};
+
+
 //template <typename T>
 class Concurrent_Workset : public Concurrent_Worklist {
 
 
 private:
-    std::unordered_set<CFGNode*> set;
+//    std::unordered_set<CFGNode*> set;
+	std::set<CFGNode*, cfgnode_pointer_compare> set;
 
 
 protected:
@@ -27,6 +35,14 @@ protected:
 			str << *it << ", ";
 		}
     }
+
+    void toString_sub(std::ostringstream& strm) const {
+		for(auto& it: set){
+			strm << *it << ", ";
+		}
+    }
+
+
 
 public:
     Concurrent_Workset() {}

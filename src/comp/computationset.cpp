@@ -33,7 +33,7 @@
 
 void ComputationSet::init_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
 	//for debugging
-	Logger::print_thread_info_locked("init-add starting...\n");
+	Logger::print_thread_info_locked("init-add starting...\n", 0);
 
     // Deltas <- stmt
     vertexid_t *stmt_edge = new vertexid_t[1];
@@ -43,7 +43,7 @@ void ComputationSet::init_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
     *stmt_label = grammar->getLabelValue("a"); //TODO: this label means "ASSIGN"
 
     std::string myString (grammar->getRawLabel(*stmt_label));
-    cout << myString << " <=> " << (int)*stmt_label << endl;
+    Logger::print_thread_info_locked(myString + " <=> " + std::to_string(*stmt_label) + "\n", 0);
 //    Deltas[stmt->getSrc()] = EdgeArray();
 //    Deltas[stmt->getSrc()].set(1, stmt_edge, stmt_label);
     setDeltas(stmt->getSrc(), 1, stmt_edge, stmt_label);
@@ -63,7 +63,7 @@ void ComputationSet::init_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
 //    cout << *this << endl;
 
 	//for debugging
-	Logger::print_thread_info_locked("init-add finished.\n");
+	Logger::print_thread_info_locked("init-add finished.\n", 0);
 }
 
     // Olds <- out - m, Deltas <- m, News <- empty

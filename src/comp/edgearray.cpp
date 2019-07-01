@@ -35,8 +35,6 @@ EdgeArray& EdgeArray::operator=(const EdgeArray& array){
 
 }
 
-
-
 //EdgeArray::EdgeArray(int size,vertexid_t *edges,label_t *labels) {
 //    this->size = size;
 //    if(size) {
@@ -164,3 +162,29 @@ void EdgeArray::merge() {
     delete[] _edges;
     delete[] _labels;
 }
+
+bool EdgeArray::equals(EdgeArray* another) const {
+	if(!this || !another){
+		return false;
+	}
+
+	if(this == another){
+		return true;
+	}
+
+	if(this->getSize() != another->getSize()){
+		return false;
+	}
+
+	if(memcmp(this->labels, another->labels, sizeof(label_t)*size)){
+		return false;
+	}
+
+	if(memcmp(this->edges, another->edges, sizeof(vertexid_t)*size)){
+		return false;
+	}
+
+	return true;
+}
+
+

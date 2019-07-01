@@ -38,12 +38,21 @@ public:
 
     inline bool isSingleton(vertexid_t vid) { return singletonSet.find(vid)!= singletonSet.end();}
 
+    std::string toString(){
+    	std::ostringstream strm;
+		strm << "Graphstore<<<<\n============================================" << endl;
+		toString_sub(strm);
+		strm << "============================================" << endl;
+		return strm.str();
+    }
+
 
 protected:
     std::set<vertexid_t> singletonSet;
 
     virtual void print(std::ostream& str) const = 0;
 
+    virtual void toString_sub(std::ostringstream& strm) const = 0;
 
 private:
     //	void add();

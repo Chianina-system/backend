@@ -22,7 +22,11 @@ using namespace std;
 class CFGCompute{
 
 public:
-	static const unsigned int num_threads = 1;
+	static const int level_log = 0;
+
+	static const int level_log_1 = 1;
+
+	static const unsigned int num_threads = 4;
 
     static bool load(Partition* part, CFG* cfg, GraphStore* graphstore);
 

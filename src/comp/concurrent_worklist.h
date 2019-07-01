@@ -17,7 +17,6 @@ class Concurrent_Worklist{
 	friend std::ostream & operator<<(std::ostream & strm, const Concurrent_Worklist& worklist) {
 		strm << "worklist: [";
 		strm << "size=" << worklist.size() << "; ";
-		//TODO:
 		worklist.print(strm);
 		strm << "]";
 		return strm;
@@ -37,12 +36,22 @@ public:
 
     virtual int size() const = 0;
 
+    std::string toString(){
+    	std::ostringstream strm;
+		strm << "worklist: [";
+		strm << "size=" << size() << "; ";
+		toString_sub(strm);
+		strm << "]";
+    	return strm.str();
+    }
+
 
 protected:
     std::mutex mutex;
 
 
     virtual void print(std::ostream& str) const = 0;
+    virtual void toString_sub(std::ostringstream& strm) const = 0;
 
 };
 

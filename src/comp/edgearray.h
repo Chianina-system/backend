@@ -50,6 +50,8 @@ public:
     void addEdges(int len, vertexid_t* _edges, label_t* _labels);
     void merge();
 
+    bool equals(EdgeArray* another) const ;
+
 
 private:
     vertexid_t *edges;

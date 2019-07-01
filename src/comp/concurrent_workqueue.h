@@ -25,6 +25,11 @@ protected:
 //		}
     }
 
+    void toString_sub(std::ostringstream& strm) const {
+
+    }
+
+
 public:
     Concurrent_Workqueue() {}
 
