@@ -11,7 +11,9 @@
 #include "graphstore.h"
 #include "cfg_map.h"
 #include "naive_graphstore.h"
-#include "concurrent_worklist.h"
+//#include "concurrent_worklist.h"
+#include "concurrent_workset.h"
+#include "concurrent_workqueue.h"
 #include "grammar.h"
 #include "peg_compute.h"
 #include "computationset.h"
@@ -24,14 +26,14 @@ public:
 
     static bool load(Partition* part, CFG* cfg, GraphStore* graphstore);
 
-    static bool load(const string& file_cfg, const string& file_stmt, const string& file_singleton, CFG *cfg, GraphStore *graphstore);
+    static bool load(const string& file_cfg, const string& file_stmt, CFG *cfg, const string& file_singleton, GraphStore *graphstore, const string& file_grammar, Grammar * grammar);
 
-    static void do_worklist(CFG* cfg, GraphStore* graphstore); //worklist algorithm in parallel
+    static void do_worklist(CFG* cfg, GraphStore* graphstore, Grammar* grammar); //worklist algorithm in parallel
 
 
 
 private:
-    static void compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2);
+    static void compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* worklist_1, Concurrent_Worklist* worklist_2, Grammar* grammar);
 
     static PEGraph* combine(GraphStore* graphstore, std::vector<CFGNode*>& preds);
 

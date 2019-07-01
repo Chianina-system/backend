@@ -32,11 +32,11 @@ public:
 
     virtual void loadGraphStore(const string& file_singleton) = 0;
 
-    virtual void addOneSingleton(vertexid_t t) {
+    void addOneSingleton(vertexid_t t) {
         this->singletonSet.insert(t);
     }
 
-    virtual inline bool isSingleton(vertexid_t vid) { return singletonSet.find(vid)!= singletonSet.end();}
+    inline bool isSingleton(vertexid_t vid) { return singletonSet.find(vid)!= singletonSet.end();}
 
 
 protected:

@@ -157,20 +157,20 @@ void ComputationSet::setNews(vertexid_t index, int numEdges, vertexid_t *edges, 
     News[index].set(numEdges,edges,labels);
 }
 
-void ComputationSet::clearOlds(vertexid_t index) {
-	if(Olds.find(index) != Olds.end())
-		Olds.erase(index);
-}
-
-void ComputationSet::clearDeltas(vertexid_t index) {
-	if(Deltas.find(index) != Deltas.end())
-		Deltas.erase(index);
-}
-
-void ComputationSet::clearNews(vertexid_t index) {
-	if(News.find(index) != News.end())
-		News.erase(index);
-}
+//void ComputationSet::clearOlds(vertexid_t index) {
+//	if(Olds.find(index) != Olds.end())
+//		Olds.erase(index);
+//}
+//
+//void ComputationSet::clearDeltas(vertexid_t index) {
+//	if(Deltas.find(index) != Deltas.end())
+//		Deltas.erase(index);
+//}
+//
+//void ComputationSet::clearNews(vertexid_t index) {
+//	if(News.find(index) != News.end())
+//		News.erase(index);
+//}
 
 std::set<vertexid_t> ComputationSet::getVertices() {
     std::set<vertexid_t> vertexSet;

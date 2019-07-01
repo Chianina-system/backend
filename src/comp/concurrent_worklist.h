@@ -9,62 +9,40 @@
 #define COMP_CONCURRENT_WORKLIST_H_
 
 #include "../common/CommonLibs.hpp"
+#include "cfg_node.h"
 
-template <typename T>
+//template <typename T>
 class Concurrent_Worklist{
 
-//	friend std::ostream & operator<<(std::ostream & strm, const Concurrent_Worklist& worklist) {
-//		strm << "worklist: [";
-//		//TODO:
-//		strm << "]";
-//		return strm;
-//	}
+	friend std::ostream & operator<<(std::ostream & strm, const Concurrent_Worklist& worklist) {
+		strm << "worklist: [";
+		strm << "size=" << worklist.size() << "; ";
+		//TODO:
+		worklist.print(strm);
+		strm << "]";
+		return strm;
+	}
 
-private:
-    std::queue<T> queue;
-    std::mutex mutex;
-
-//    void print(){
-//		cout << "worklist: [";
-//		for(auto& it: queue){
-//			cout << it << ", ";
-//		}
-//		cout << "]";
-//    }
 
 public:
     Concurrent_Worklist() {}
 
-//		Concurrent_Worklist(const size_t _capacity) {}
+    virtual ~Concurrent_Worklist(){}
 
-    inline bool isEmpty() {
-        return queue.empty();
-    }
+    virtual bool isEmpty() = 0;
 
-    void push(const T & item) {
-        queue.push(item);
-    }
+    virtual void push_atomic(CFGNode* item) = 0;
 
-    void push_atomic(const T & item) {
-        std::unique_lock < std::mutex > lock(mutex);
-        queue.push(item);
-    }
+    virtual CFGNode* pop_atomic() = 0;
 
-    bool pop_atomic(T& item) {
-        std::unique_lock < std::mutex > lock(mutex);
-        if (queue.empty()) {
-            return false;
-        } else {
-            item = queue.front();
-            queue.pop();
-            return true;
-        }
-    }
+    virtual int size() const = 0;
 
-    int size() {
-        return queue.size();
-    }
 
+protected:
+    std::mutex mutex;
+
+
+    virtual void print(std::ostream& str) const = 0;
 
 };
 
