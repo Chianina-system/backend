@@ -78,7 +78,6 @@ void PEGCompute::computeOneIteration(ComputationSet *compset, Grammar *grammar) 
 //    }
 //}
 
-
 long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Grammar *grammar) {
 	//for debugging
 	Logger::print_thread_info_locked("compute-one-vertex starting...\n", 0);

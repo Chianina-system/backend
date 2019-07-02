@@ -11,6 +11,8 @@
 #include "../common/CommonLibs.hpp"
 #include "edgearray.h"
 #include "myalgorithm.h"
+#include "../utility/Logger.hpp"
+//#include "cfg_compute.h"
 
 class PEGraph {
 

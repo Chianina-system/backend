@@ -9,6 +9,9 @@
 #define COMP_NAIVE_GRAPHSTORE_H_
 
 #include "graphstore.h"
+#include "../utility/Logger.hpp"
+//#include "cfg_compute.h"
+
 using namespace std;
 
 class NaiveGraphStore : public GraphStore {
@@ -43,23 +46,44 @@ public:
     }
 
 
+    static const int level_log_function = 1;
+
 
     //deep copy
     PEGraph* retrieve(PEGraph_Pointer graph_pointer) {
+//    	std::unique_lock < std::mutex > lock(mutex);
+
+    	//for debugging
+    	Logger::print_thread_info_locked("retrieve starting...\n", level_log_function);
+
     	if(map.find(graph_pointer) != map.end()){
+        	//for debugging
+        	Logger::print_thread_info_locked("retrieve finished.\n", level_log_function);
+
     		return new PEGraph(map[graph_pointer]);
     	}
-//    	map[graph_pointer] = new PEGraph();
+
+    	//for debugging
+    	Logger::print_thread_info_locked("retrieve finished.\n", level_log_function);
+
     	return new PEGraph();
     }
 
     //deep copy
     void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
+//    	std::unique_lock < std::mutex > lock(mutex);
+
+    	//for debugging
+    	Logger::print_thread_info_locked("update starting...\n", level_log_function);
+
 //    	assert(map.find(graph_pointer) != map.end());
     	if(map.find(graph_pointer) != map.end()){
 			delete map[graph_pointer];
     	}
 		map[graph_pointer] = new PEGraph(pegraph);
+
+    	//for debugging
+    	Logger::print_thread_info_locked("update finished.\n", level_log_function);
     }
 
 protected:
@@ -92,6 +116,8 @@ protected:
 
 private:
 	std::unordered_map<PEGraph_Pointer, PEGraph*> map;
+
+//	std::mutex mutex;
 
 };
 

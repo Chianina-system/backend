@@ -12,9 +12,15 @@ PEGraph::PEGraph() {
 }
 
 PEGraph::PEGraph(PEGraph *p) {
+	//for debugging
+	Logger::print_thread_info_locked("pegraph copy starting...\n", 1);
+
     for (auto it = p->getGraph().begin(); it != p->getGraph().end(); it++){
         graph[it->first] = it->second;
     }
+
+	//for debugging
+	Logger::print_thread_info_locked("pegraph copy finished.\n", 1);
 }
 
 void PEGraph::merge(PEGraph * graph_toMerge){

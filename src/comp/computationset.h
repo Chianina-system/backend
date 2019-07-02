@@ -34,7 +34,7 @@ public:
     ~ComputationSet(){};
 //    void clear();
 
-    void init_add(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray>& m);
+    void init_add(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray>& m, const bool isConservative);
 
     void init_delete(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray>& m);
 

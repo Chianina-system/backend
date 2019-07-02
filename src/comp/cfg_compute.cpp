@@ -19,6 +19,8 @@ bool CFGCompute::load(Partition* part, CFG* cfg, GraphStore* graphstore){
 }
 
 void CFGCompute::do_worklist(CFG* cfg, GraphStore* graphstore, Grammar* grammar){
+	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", level_log_1);
+
     Concurrent_Worklist* worklist_1 = new Concurrent_Workset();
 
 //    //for debugging
@@ -54,12 +56,14 @@ void CFGCompute::do_worklist(CFG* cfg, GraphStore* graphstore, Grammar* grammar)
         assert(worklist_2->isEmpty());
 
         //for debugging
-        Logger::print_thread_info_locked("-------------------------------------------------------------------------------------------------\n\n\n", level_log_1);
+        Logger::print_thread_info_locked("-----------------------------------------------------------------------------------------------------------------------------\n\n\n", level_log_1);
     }
 
     //clean
     delete(worklist_1);
     delete(worklist_2);
+
+    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", level_log_1);
 }
 
 
@@ -70,7 +74,7 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* 
     	Logger::print_thread_info_locked("----------------------- CFG Node "
     			+ to_string(cfg_node->getCfgNodeId())
 				+ " {" + cfg_node->getStmt()->toString()
-				+ "} start processing -----------------------\n", level_log_1);
+				+ "} start processing -----------------------\n", level_log_cfgnode);
 
         //merge
     	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
@@ -79,13 +83,13 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* 
         PEGraph* in = combine(graphstore, preds);
 
         //for debugging
-        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", level_log);
+        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", level_log_peg);
 
         //transfer
         PEGraph* out = transfer(in, cfg_node->getStmt(), grammar, graphstore);
 
         //for debugging
-        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString() + "\n", level_log);
+        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString() + "\n", level_log_peg);
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
@@ -114,11 +118,11 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* 
         delete out;
 
         //for debugging
-        Logger::print_thread_info_locked(graphstore->toString() + "\n", level_log_1);
-        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", level_log_1);
+        Logger::print_thread_info_locked(graphstore->toString() + "\n", level_log_graphstore);
+        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", level_log_cfgnode);
 
         //for debugging
-        Logger::print_thread_info_locked("1-> " + worklist_1->toString() + "\t2-> " + worklist_2->toString() + "\n\n\n", level_log);
+        Logger::print_thread_info_locked("1-> " + worklist_1->toString() + "\t2-> " + worklist_2->toString() + "\n\n\n", level_log_worklist);
     }
 }
 
@@ -154,7 +158,7 @@ PEGraph* CFGCompute::combine(GraphStore* graphstore, std::vector<CFGNode*>& pred
 
 PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar, GraphStore* graphstore){
 	//for debugging
-	Logger::print_thread_info_locked("transfer-copy starting...\n", level_log);
+	Logger::print_thread_info_locked("transfer-copy starting...\n", level_log_function);
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
@@ -168,14 +172,14 @@ PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar, Gra
     peg_compute_add(out,stmt,grammar);
 
 	//for debugging
-	Logger::print_thread_info_locked("transfer-copy finished.\n", level_log);
+	Logger::print_thread_info_locked("transfer-copy finished.\n", level_log_function);
 
     return out;
 }
 
 PEGraph* CFGCompute::transfer_load(PEGraph* in, Stmt* stmt,Grammar *grammar, GraphStore* graphstore){
 	//for debugging
-	Logger::print_thread_info_locked("transfer-load starting...\n", level_log);
+	Logger::print_thread_info_locked("transfer-load starting...\n", level_log_function);
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
@@ -189,14 +193,14 @@ PEGraph* CFGCompute::transfer_load(PEGraph* in, Stmt* stmt,Grammar *grammar, Gra
     peg_compute_add(out,stmt,grammar);
 
 	//for debugging
-	Logger::print_thread_info_locked("transfer-load finished.\n", level_log);
+	Logger::print_thread_info_locked("transfer-load finished.\n", level_log_function);
 
     return out;
 }
 
 PEGraph* CFGCompute::transfer_store(PEGraph* in, Stmt* stmt,Grammar *grammar, GraphStore* graphstore){
 	//for debugging
-	Logger::print_thread_info_locked("transfer-store starting...\n", level_log);
+	Logger::print_thread_info_locked("transfer-store starting...\n", level_log_function);
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
@@ -215,14 +219,14 @@ PEGraph* CFGCompute::transfer_store(PEGraph* in, Stmt* stmt,Grammar *grammar, Gr
     peg_compute_add(out,stmt,grammar);
 
 	//for debugging
-	Logger::print_thread_info_locked("transfer-store finished.\n", level_log);
+	Logger::print_thread_info_locked("transfer-store finished.\n", level_log_function);
 
     return out;
 }
 
 PEGraph* CFGCompute::transfer_address(PEGraph* in, Stmt* stmt,Grammar *grammar, GraphStore* graphstore){
 	//for debugging
-	Logger::print_thread_info_locked("transfer-alloc starting...\n", level_log);
+	Logger::print_thread_info_locked("transfer-alloc starting...\n", level_log_function);
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
@@ -236,21 +240,21 @@ PEGraph* CFGCompute::transfer_address(PEGraph* in, Stmt* stmt,Grammar *grammar, 
     peg_compute_add(out, stmt, grammar);
 
     //for debugging
-   	Logger::print_thread_info_locked("transfer-alloc finished.\n", level_log);
+   	Logger::print_thread_info_locked("transfer-alloc finished.\n", level_log_function);
 
     return out;
 }
 
 bool CFGCompute::is_strong_update(vertexid_t x, PEGraph *out, Grammar *grammar, GraphStore* graphstore) {
 	//for debugging
-	Logger::print_thread_info_locked("is-strong-update starting...\n", level_log);
+	Logger::print_thread_info_locked("is-strong-update starting...\n", level_log_function);
 
     /* If there exists one and only one variable o,which
      * refers to a singleton memory location,such that x and o are memory alias
      */
 	if(out->getGraph().find(x) == out->getGraph().end()){
 		//for debugging
-		Logger::print_thread_info_locked("is-strong-update finished.\n", level_log);
+		Logger::print_thread_info_locked("is-strong-update finished.\n", level_log_function);
 		return false;
 	}
 
@@ -265,7 +269,7 @@ bool CFGCompute::is_strong_update(vertexid_t x, PEGraph *out, Grammar *grammar, 
     }
 
 	//for debugging
-	Logger::print_thread_info_locked("is-strong-update finished.\n", level_log);
+	Logger::print_thread_info_locked("is-strong-update finished.\n", level_log_function);
 
     return (numOfSingleTon == 1);
 }
@@ -325,11 +329,11 @@ void CFGCompute::getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& vertic
 
 void CFGCompute::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, GraphStore* graphstore) {
 	//for debugging
-	Logger::print_thread_info_locked("strong-update starting...\n", level_log);
+	Logger::print_thread_info_locked("strong-update starting...\n", level_log_function);
 
 	if(out->getGraph().find(x) == out->getGraph().end()){
 		//for debugging
-		Logger::print_thread_info_locked("strong-update finished.\n", level_log);
+		Logger::print_thread_info_locked("strong-update finished.\n", level_log_function);
 		return;
 	}
 
@@ -343,7 +347,7 @@ void CFGCompute::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid_t> 
 
 	if(m.empty()){
 		//for debugging
-		Logger::print_thread_info_locked("strong-update finished.\n", level_log);
+		Logger::print_thread_info_locked("strong-update finished.\n", level_log_function);
 		return;
 	}
 
@@ -379,7 +383,7 @@ void CFGCompute::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid_t> 
     }
 
 	//for debugging
-	Logger::print_thread_info_locked("strong-update finished.\n", level_log);
+	Logger::print_thread_info_locked("strong-update finished.\n", level_log_function);
 }
 
 bool CFGCompute::isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar) {
@@ -532,17 +536,19 @@ void CFGCompute::getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar,
 
 void CFGCompute::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
 	//for debugging
-	Logger::print_thread_info_locked("peg-compute-add starting...\n", level_log);
+	Logger::print_thread_info_locked("peg-compute-add starting...\n", level_log_function);
+
+	bool isConservative = false;
 
 	std::unordered_map<vertexid_t, EdgeArray> m;
 	getDirectAddedEdges(out, stmt, grammar, m);
-//	if(m.empty()){// no new edges directly added
-//		return;
-//	}
+	if(m.empty() && !isConservative){// no new edges directly added
+		return;
+	}
 
     // add assign edge based on stmt, (out,assign edge) -> compset
     ComputationSet *compset = new ComputationSet();
-    compset->init_add(out, m);
+    compset->init_add(out, m, isConservative);
 
 //    //for debugging
 //    cout << *compset << endl;
@@ -570,7 +576,7 @@ void CFGCompute::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
 	delete compset;
 
 	//for debugging
-	Logger::print_thread_info_locked("peg-compute-add finished.\n", level_log);
+	Logger::print_thread_info_locked("peg-compute-add finished.\n", level_log_function);
 }
 
 // 使用tab键分割

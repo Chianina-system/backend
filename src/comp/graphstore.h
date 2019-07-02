@@ -10,6 +10,8 @@
 
 #include "pegraph.h"
 //#include "peGraphPointer.h"
+//#include "cfg_compute.h"
+
 using namespace std;
 
 class GraphStore{
