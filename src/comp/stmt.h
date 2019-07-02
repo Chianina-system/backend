@@ -42,6 +42,10 @@ public:
         return added;
     }
 
+    bool isValidAdded() const {
+    	return added != -1;
+    }
+
     Stmt(TYPE t, vertexid_t src, vertexid_t dst, vertexid_t added = -1) : t(t), src(src), dst(dst), added(added) {}
 
 

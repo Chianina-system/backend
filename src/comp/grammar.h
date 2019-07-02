@@ -42,6 +42,15 @@ class Grammar {
 		inline bool isDereference_reverse(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "-d");}
 
 		inline bool isDereference_bidirect(char label){char* raw = this->getRawLabel(label); return strcmp(raw, "d") || strcmp(raw, "-d");}
+
+		inline bool isEruleLabel(char label){
+			for(int i = 0; i < getNumErules(); i++){
+				if(label == getErule(i)){
+					return true;
+				}
+			}
+			return false;
+		}
 };
 
 #endif

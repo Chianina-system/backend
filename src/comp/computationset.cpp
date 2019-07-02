@@ -31,24 +31,14 @@
 //    delete[] stmt_label;
 //}
 
-void ComputationSet::init_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
+void ComputationSet::init_add(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray> &m) {
 	//for debugging
 	Logger::print_thread_info_locked("init-add starting...\n", 0);
 
-    // Deltas <- stmt
-    vertexid_t *stmt_edge = new vertexid_t[1];
-    label_t *stmt_label = new label_t[1];
-    *stmt_edge = stmt->getDst();
-//    cout << "\nsrc:" << stmt->getSrc() << "; dst: " << stmt->getDst() << endl;
-    *stmt_label = grammar->getLabelValue("a"); //TODO: this label means "ASSIGN"
-
-    std::string myString (grammar->getRawLabel(*stmt_label));
-    Logger::print_thread_info_locked(myString + " <=> " + std::to_string(*stmt_label) + "\n", 0);
-//    Deltas[stmt->getSrc()] = EdgeArray();
-//    Deltas[stmt->getSrc()].set(1, stmt_edge, stmt_label);
-    setDeltas(stmt->getSrc(), 1, stmt_edge, stmt_label);
-    delete[] stmt_edge;
-    delete[] stmt_label;
+    // Deltas <- m
+    for(auto & it : m){
+    	setDeltas(it.first, it.second.getSize(), it.second.getEdges(), it.second.getLabels());
+    }
 
     //OldsV <- out
     for(auto it = out->getGraph().begin(); it != out->getGraph().end(); it++){
@@ -70,8 +60,6 @@ void ComputationSet::init_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
 void ComputationSet::init_delete(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray> &m) {
 	// Deltas <- m
     for(auto & it : m){
-//    	Deltas[it.first] = EdgeArray();
-//        Deltas[it.first].set(it.second->getSize(), it.second->getEdges(), it.second->getLabels());
     	setDeltas(it.first, it.second.getSize(), it.second.getEdges(), it.second.getLabels());
     }
 
