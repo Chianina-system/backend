@@ -34,13 +34,13 @@ public:
 
     virtual void loadGraphStore(const string& file_singleton) = 0;
 
-    void addOneSingleton(vertexid_t t) {
+    virtual void addOneSingleton(vertexid_t t) {
         this->singletonSet.insert(t);
     }
 
-    inline bool isSingleton(vertexid_t vid) { return singletonSet.find(vid)!= singletonSet.end();}
+    virtual inline bool isSingleton(vertexid_t vid) { return singletonSet.find(vid)!= singletonSet.end();}
 
-    std::string toString(){
+    virtual std::string toString(){
     	std::ostringstream strm;
 		strm << "Graphstore<<<<\n============================================" << endl;
 		toString_sub(strm);

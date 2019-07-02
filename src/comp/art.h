@@ -109,8 +109,6 @@ class ART : public GraphStore {
 public:
     ART();
 
-//    ART();
-
     ~ART();
 
     PEGraph *retrieve(PEGraph_Pointer graph_pointer) override;
@@ -133,12 +131,25 @@ public:
 
     PEGraph * convertToPEGraph(vector<Edge *> &v) const;
 
-    vector<Edge *> convertToVector(PEGraph *pegraph);
+    vector<Edge *> convertToVector(PEGraph *peGraph);
+
+    void loadGraphStore(const string &file_singleton) override;
+
+    void addOneSingleton(vertexid_t t) override;
+
+    bool isSingleton(vertexid_t vid) override;
+
+    string toString() override;
+
+protected:
+    void print(std::ostream &str) const override;
+
+    void toString_sub(std::ostringstream &strm) const override;
 
 //    void addOneSingleton(vertexid_t t);
 
 private:
-    Node *root;
+    Node *root = new Node();
     std::unordered_map<PEGraph_Pointer, Node *> m;
 //    std::set<vertexid_t> singletonSet;
 

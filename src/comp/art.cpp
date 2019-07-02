@@ -16,6 +16,30 @@ ART::~ART() {
 
 }
 
+void ART::loadGraphStore(const string &file_singleton) {
+
+}
+
+void ART::addOneSingleton(vertexid_t t) {
+    GraphStore::addOneSingleton(t);
+}
+
+bool ART::isSingleton(vertexid_t vid) {
+    return GraphStore::isSingleton(vid);
+}
+
+string ART::toString() {
+    return GraphStore::toString();
+}
+
+void ART::print(std::ostream &str) const {
+
+}
+
+void ART::toString_sub(std::ostringstream &strm) const {
+
+}
+
 Node *ART::insert(vector<Edge *> &v) {
     if (v.empty()) return nullptr;
     Node *parent = root;
@@ -141,9 +165,14 @@ PEGraph * ART::convertToPEGraph(vector<Edge *> &v) const {
     std::unordered_map<vertexid_t, EdgeArray> graph;
 
     for(auto & edge : v){
-        if(graph.find(edge->src)==graph.end()){
-            graph[edge->src].addOneEdge(edge->des, edge->label);
+        vertexid_t src = edge->src;
+        vertexid_t dst = edge->des;
+        label_t label = edge->label;
+        if(graph.find(src) == graph.end()){
+            graph[src] = EdgeArray();
         }
+        graph[src].addOneEdge(edge->des, edge->label);
+
     }
 
     // todo should we sort the graph?
@@ -152,21 +181,21 @@ PEGraph * ART::convertToPEGraph(vector<Edge *> &v) const {
     return peGraph;
 }
 
-vector<Edge *> ART::convertToVector(PEGraph *pegraph) {
-    vector<Edge *> v;
-    for(auto it = pegraph->getGraph().begin(); it!=pegraph->getGraph().end();it++){
+vector<Edge *> ART::convertToVector(PEGraph *peGraph) {
+    vector<Edge *> edgeVector;
+    for(auto & it : peGraph->getGraph()){
 //        Edge * edge = new Edge()
-        int size = it->second.getSize();
-        vertexid_t* edges = it->second.getEdges();
-        label_t* labels = it->second.getLabels();
+        int size = it.second.getSize();
+        vertexid_t* edges = it.second.getEdges();
+        label_t* labels = it.second.getLabels();
         Edge* edge;
         for (int i = 0; i < size; ++i) {
-            edge = new Edge(it->first, edges[i], labels[i]);
-            v.push_back(edge);
+            edge = new Edge(it.first, edges[i], labels[i]);
+            edgeVector.push_back(edge);
             delete edge;
         }
     }
-    return v;
+    return edgeVector;
 }
 
 void ART::update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
