@@ -24,7 +24,7 @@ EdgeArray::EdgeArray(const EdgeArray& array){
 //copy assign operator
 EdgeArray& EdgeArray::operator=(const EdgeArray& array){
 	//for debugging
-	Logger::print_thread_info_locked("edgearray copy starting...\n", 1);
+	Logger::print_thread_info_locked("edgearray copy starting...\n", LEVEL_LOG_FUNCTION);
 
 	size = array.size;
 	capacity = array.capacity;
@@ -36,7 +36,7 @@ EdgeArray& EdgeArray::operator=(const EdgeArray& array){
 	}
 
 	//for debugging
-	Logger::print_thread_info_locked("edgearray copy finished.\n", 1);
+	Logger::print_thread_info_locked("edgearray copy finished.\n", LEVEL_LOG_FUNCTION);
 
 	return *this;
 }

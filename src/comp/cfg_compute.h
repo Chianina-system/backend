@@ -23,13 +23,13 @@ using namespace std;
 class CFGCompute {
 
 public:
-	static const int level_log = 0;
-	static const int level_log_function = 0;
-	static const int level_log_peg = 0;
-	static const int level_log_graphstore = 1;
-	static const int level_log_cfgnode = 1;
-	static const int level_log_worklist = 1;
-	static const int level_log_main = 1;
+//	static const int level_log = 0;
+//	static const int level_log_function = 0;
+//	static const int level_log_peg = 0;
+//	static const int level_log_graphstore = 0;
+//	static const int level_log_cfgnode = 1;
+//	static const int level_log_worklist = 1;
+//	static const int level_log_main = 1;
 
 
 	static const unsigned int num_threads = 4;

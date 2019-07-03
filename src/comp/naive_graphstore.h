@@ -46,19 +46,18 @@ public:
     }
 
 
-    static const int level_log_function = 1;
-
 
     //deep copy
     PEGraph* retrieve(PEGraph_Pointer graph_pointer) {
 //    	std::unique_lock < std::mutex > lock(mutex);
 
     	//for debugging
-    	Logger::print_thread_info_locked("retrieve starting...\n", level_log_function);
+    	Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
 
     	PEGraph* out;
 
     	if(map.find(graph_pointer) != map.end()){
+    		Logger::print_thread_info_locked("retrieving +++++++++++++++++++++++ " +  to_string((long) map[graph_pointer]) + " +++++++++++++++++++++++\n", LEVEL_LOG_GRAPHSTORE) ;
     		out = new PEGraph(map[graph_pointer]);
     	}
     	else{
@@ -66,7 +65,7 @@ public:
     	}
 
     	//for debugging
-    	Logger::print_thread_info_locked("retrieve finished.\n", level_log_function);
+    	Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
 
     	return out;
     }
@@ -76,16 +75,17 @@ public:
 //    	std::unique_lock < std::mutex > lock(mutex);
 
     	//for debugging
-    	Logger::print_thread_info_locked("update starting...\n", level_log_function);
+    	Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
 
 //    	assert(map.find(graph_pointer) != map.end());
     	if(map.find(graph_pointer) != map.end()){
-//			delete map[graph_pointer];
+			delete map[graph_pointer];
+    		Logger::print_thread_info_locked("deleting +++++++++++++++++++++++ " +  to_string((long) map[graph_pointer]) + " +++++++++++++++++++++++\n", LEVEL_LOG_GRAPHSTORE) ;
     	}
 		map[graph_pointer] = new PEGraph(pegraph);
 
     	//for debugging
-    	Logger::print_thread_info_locked("update finished.\n", level_log_function);
+    	Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
     }
 
 protected:

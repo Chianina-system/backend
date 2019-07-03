@@ -21,7 +21,7 @@ long PEGCompute::startCompute_delete(ComputationSet *compset, Grammar *grammar, 
 
 long PEGCompute::startCompute_add(ComputationSet *compset, Grammar *grammar) {
 	//for debugging
-	Logger::print_thread_info_locked("start-compute_add starting...\n", 0);
+	Logger::print_thread_info_locked("start-compute_add starting...\n", LEVEL_LOG_FUNCTION);
 
     long totalAddedEdges = 0;
 
@@ -50,7 +50,7 @@ long PEGCompute::startCompute_add(ComputationSet *compset, Grammar *grammar) {
     }
 
 	//for debugging
-	Logger::print_thread_info_locked("start-compute_add finished.\n", 0);
+	Logger::print_thread_info_locked("start-compute_add finished.\n", LEVEL_LOG_FUNCTION);
 
     return totalAddedEdges;
 }
@@ -80,7 +80,7 @@ void PEGCompute::computeOneIteration(ComputationSet *compset, Grammar *grammar) 
 
 long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Grammar *grammar) {
 	//for debugging
-	Logger::print_thread_info_locked("compute-one-vertex starting...\n", 0);
+	Logger::print_thread_info_locked("compute-one-vertex starting...\n", LEVEL_LOG_FUNCTION);
 
     bool oldEmpty = compset->oldEmpty(index);
     bool deltaEmpty = compset->deltaEmpty(index);
@@ -91,7 +91,7 @@ long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Gra
     // if this vertex has no edges, no need to merge.
     if (oldEmpty && deltaEmpty){
     	//for debugging
-    	Logger::print_thread_info_locked("compute-one-vertex finished.\n", 0);
+    	Logger::print_thread_info_locked("compute-one-vertex finished.\n", LEVEL_LOG_FUNCTION);
 
     	return 0;
     }
@@ -107,7 +107,7 @@ long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Gra
 
     long newEdgesNum = containers->getNumEdges();
     //for debugging
-    Logger::print_thread_info_locked("number of new edges: " + std::to_string(newEdgesNum) + "\n", 0);
+    Logger::print_thread_info_locked("number of new edges: " + std::to_string(newEdgesNum) + "\n", LEVEL_LOG_FUNCTION);
     if (newEdgesNum){
         compset->setNews(index, newEdgesNum, containers->getEdgesFirstAddr(), containers->getLabelsFirstAddr());
     }
@@ -120,7 +120,7 @@ long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Gra
     delete containers;
 
 	//for debugging
-	Logger::print_thread_info_locked("compute-one-vertex finished.\n", 0);
+	Logger::print_thread_info_locked("compute-one-vertex finished.\n", LEVEL_LOG_FUNCTION);
 
     return newEdgesNum;
 }
@@ -282,7 +282,7 @@ void PEGCompute::genD_RuleEdges_delta(vertexid_t index, ComputationSet *compset,
 
 void PEGCompute::postProcessOneIteration(ComputationSet *compset, bool isDelete, std::unordered_map<vertexid_t, EdgeArray> *m) {
 	//for debugging
-	Logger::print_thread_info_locked("postprocess-one-iteration starting...\n", 0);
+	Logger::print_thread_info_locked("postprocess-one-iteration starting...\n", LEVEL_LOG_FUNCTION);
 
 	// oldsV <- {oldsV,deltasV}
 	for (auto it = compset->getOlds().begin(); it != compset->getOlds().end(); it++) {
@@ -349,7 +349,7 @@ void PEGCompute::postProcessOneIteration(ComputationSet *compset, bool isDelete,
 	}
 
 	//for debugging
-	Logger::print_thread_info_locked("postprocess-one-iteration finished.\n", 0);
+	Logger::print_thread_info_locked("postprocess-one-iteration finished.\n", LEVEL_LOG_FUNCTION);
 }
 
 void PEGCompute::mergeToDeletedGraph(vertexid_t i_new, std::unordered_map<vertexid_t, EdgeArray>* m, ComputationSet* compset) {
