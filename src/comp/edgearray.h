@@ -4,6 +4,7 @@
 #include <ostream>
 #include "../common/CommonLibs.hpp"
 #include "myalgorithm.h"
+#include "../utility/Logger.hpp"
 
 #define CAPACITY_VALUE 8
 

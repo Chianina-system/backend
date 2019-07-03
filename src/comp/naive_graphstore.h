@@ -56,17 +56,19 @@ public:
     	//for debugging
     	Logger::print_thread_info_locked("retrieve starting...\n", level_log_function);
 
-    	if(map.find(graph_pointer) != map.end()){
-        	//for debugging
-        	Logger::print_thread_info_locked("retrieve finished.\n", level_log_function);
+    	PEGraph* out;
 
-    		return new PEGraph(map[graph_pointer]);
+    	if(map.find(graph_pointer) != map.end()){
+    		out = new PEGraph(map[graph_pointer]);
+    	}
+    	else{
+    		out = new PEGraph();
     	}
 
     	//for debugging
     	Logger::print_thread_info_locked("retrieve finished.\n", level_log_function);
 
-    	return new PEGraph();
+    	return out;
     }
 
     //deep copy

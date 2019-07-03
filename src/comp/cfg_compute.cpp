@@ -129,19 +129,22 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* 
 
 
 PEGraph* CFGCompute::combine(GraphStore* graphstore, std::vector<CFGNode*>& preds){
+	//for debugging
+	Logger::print_thread_info_locked("combine starting...\n", level_log_function);
+
+	PEGraph* out;
+
     if(preds.size() == 0){//entry node
         //return an empty graph
-        return new PEGraph();
+        out = new PEGraph();
     }
     else if(preds.size() == 1){
         CFGNode* pred = preds[0];
         PEGraph_Pointer out_pointer = pred->getOutPointer();
-        PEGraph* out_graph = graphstore->retrieve(out_pointer);
-
-        return out_graph;
+        out = graphstore->retrieve(out_pointer);
     }
     else{
-        PEGraph* out = new PEGraph();
+        out = new PEGraph();
 
         for(auto it = preds.cbegin(); it != preds.cend(); it++){
             CFGNode* pred = *it;
@@ -151,9 +154,12 @@ PEGraph* CFGCompute::combine(GraphStore* graphstore, std::vector<CFGNode*>& pred
             out->merge(out_graph);
             delete out_graph;
         }
-
-        return out;
     }
+
+	//for debugging
+	Logger::print_thread_info_locked("combine finished.\n", level_log_function);
+
+	return out;
 }
 
 PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar, GraphStore* graphstore){
@@ -387,6 +393,7 @@ void CFGCompute::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid_t> 
 }
 
 bool CFGCompute::isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar) {
+//	if(!grammar->isAssign(label))
     if(!grammar->isAssign_bidirect(label))
         return false;
     return ( (vertices.find(src) != vertices.end()) || (vertices.find(dst) != vertices.end()) );
@@ -489,35 +496,35 @@ void CFGCompute::getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar,
 
     //'a', '-a'
     edges_src.addOneEdge(dst, grammar->getLabelValue("a"));
-    edges_dst.addOneEdge(src, grammar->getLabelValue("-a"));
+//    edges_dst.addOneEdge(src, grammar->getLabelValue("-a"));
 
-    //'d', '-d'
-    switch(stmt->getType()){
-    case TYPE::Alloca:
-    	edges_src.addOneEdge(added, grammar->getLabelValue("d"));
-    	edges_added.addOneEdge(src, grammar->getLabelValue("-d"));
-    	break;
-    case TYPE::Store:
-    	edges_added.addOneEdge(dst, grammar->getLabelValue("d"));
-    	edges_dst.addOneEdge(added, grammar->getLabelValue("-d"));
-    	break;
-    case TYPE::Load:
-    	edges_added.addOneEdge(src, grammar->getLabelValue("d"));
-    	edges_src.addOneEdge(added, grammar->getLabelValue("-d"));
-    	break;
-    default:
-    	break;
-    }
-
-    //self-loop edges
-    for(int i = 0; i < grammar->getNumErules(); ++i){
-        char label = grammar->getErule(i);
-    	edges_src.addOneEdge(src, label);
-    	edges_dst.addOneEdge(dst, label);
-    	if(stmt->isValidAdded()){
-    		edges_added.addOneEdge(added, label);
-    	}
-    }
+//    //'d', '-d'
+//    switch(stmt->getType()){
+//    case TYPE::Alloca:
+//    	edges_src.addOneEdge(added, grammar->getLabelValue("d"));
+//    	edges_added.addOneEdge(src, grammar->getLabelValue("-d"));
+//    	break;
+//    case TYPE::Store:
+//    	edges_added.addOneEdge(dst, grammar->getLabelValue("d"));
+//    	edges_dst.addOneEdge(added, grammar->getLabelValue("-d"));
+//    	break;
+//    case TYPE::Load:
+//    	edges_added.addOneEdge(src, grammar->getLabelValue("d"));
+//    	edges_src.addOneEdge(added, grammar->getLabelValue("-d"));
+//    	break;
+//    default:
+//    	break;
+//    }
+//
+//    //self-loop edges
+//    for(int i = 0; i < grammar->getNumErules(); ++i){
+//        char label = grammar->getErule(i);
+//    	edges_src.addOneEdge(src, label);
+//    	edges_dst.addOneEdge(dst, label);
+//    	if(stmt->isValidAdded()){
+//    		edges_added.addOneEdge(added, label);
+//    	}
+//    }
 
     //merge and sort
     edges_src.merge();

@@ -23,6 +23,9 @@ EdgeArray::EdgeArray(const EdgeArray& array){
 
 //copy assign operator
 EdgeArray& EdgeArray::operator=(const EdgeArray& array){
+	//for debugging
+	Logger::print_thread_info_locked("edgearray copy starting...\n", 1);
+
 	size = array.size;
 	capacity = array.capacity;
 	if(size){
@@ -31,8 +34,11 @@ EdgeArray& EdgeArray::operator=(const EdgeArray& array){
         memcpy(this->edges,array.edges,sizeof(vertexid_t)*size);
         memcpy(this->labels,array.labels,sizeof(label_t)*size);
 	}
-	return *this;
 
+	//for debugging
+	Logger::print_thread_info_locked("edgearray copy finished.\n", 1);
+
+	return *this;
 }
 
 //EdgeArray::EdgeArray(int size,vertexid_t *edges,label_t *labels) {
