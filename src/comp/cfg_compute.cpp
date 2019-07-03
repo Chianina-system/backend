@@ -19,7 +19,7 @@ bool CFGCompute::load(Partition* part, CFG* cfg, GraphStore* graphstore){
 }
 
 void CFGCompute::do_worklist(CFG* cfg, GraphStore* graphstore, Grammar* grammar){
-	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", level_log_1);
+	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", level_log_main);
 
     Concurrent_Worklist* worklist_1 = new Concurrent_Workset();
 
@@ -42,6 +42,9 @@ void CFGCompute::do_worklist(CFG* cfg, GraphStore* graphstore, Grammar* grammar)
 
     Concurrent_Worklist* worklist_2 = new Concurrent_Workset();
     while(!worklist_1->isEmpty()){
+        //for debugging
+        Logger::print_thread_info_locked("--------------------------------------------------------------- superstep starting ---------------------------------------------------------------\n\n", level_log_main);
+
         std::vector<std::thread> comp_threads;
         for (unsigned int i = 0; i < num_threads; i++)
             comp_threads.push_back(std::thread( [=] {compute(cfg, graphstore, worklist_1, worklist_2, grammar);}));
@@ -56,14 +59,14 @@ void CFGCompute::do_worklist(CFG* cfg, GraphStore* graphstore, Grammar* grammar)
         assert(worklist_2->isEmpty());
 
         //for debugging
-        Logger::print_thread_info_locked("-----------------------------------------------------------------------------------------------------------------------------\n\n\n", level_log_1);
+        Logger::print_thread_info_locked("--------------------------------------------------------------- superstep finished ---------------------------------------------------------------\n\n", level_log_main);
     }
 
     //clean
     delete(worklist_1);
     delete(worklist_2);
 
-    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", level_log_1);
+    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", level_log_main);
 }
 
 
@@ -496,35 +499,35 @@ void CFGCompute::getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar,
 
     //'a', '-a'
     edges_src.addOneEdge(dst, grammar->getLabelValue("a"));
-//    edges_dst.addOneEdge(src, grammar->getLabelValue("-a"));
+    edges_dst.addOneEdge(src, grammar->getLabelValue("-a"));
 
-//    //'d', '-d'
-//    switch(stmt->getType()){
-//    case TYPE::Alloca:
-//    	edges_src.addOneEdge(added, grammar->getLabelValue("d"));
-//    	edges_added.addOneEdge(src, grammar->getLabelValue("-d"));
-//    	break;
-//    case TYPE::Store:
-//    	edges_added.addOneEdge(dst, grammar->getLabelValue("d"));
-//    	edges_dst.addOneEdge(added, grammar->getLabelValue("-d"));
-//    	break;
-//    case TYPE::Load:
-//    	edges_added.addOneEdge(src, grammar->getLabelValue("d"));
-//    	edges_src.addOneEdge(added, grammar->getLabelValue("-d"));
-//    	break;
-//    default:
-//    	break;
-//    }
-//
-//    //self-loop edges
-//    for(int i = 0; i < grammar->getNumErules(); ++i){
-//        char label = grammar->getErule(i);
-//    	edges_src.addOneEdge(src, label);
-//    	edges_dst.addOneEdge(dst, label);
-//    	if(stmt->isValidAdded()){
-//    		edges_added.addOneEdge(added, label);
-//    	}
-//    }
+    //'d', '-d'
+    switch(stmt->getType()){
+    case TYPE::Alloca:
+    	edges_src.addOneEdge(added, grammar->getLabelValue("d"));
+    	edges_added.addOneEdge(src, grammar->getLabelValue("-d"));
+    	break;
+    case TYPE::Store:
+    	edges_added.addOneEdge(dst, grammar->getLabelValue("d"));
+    	edges_dst.addOneEdge(added, grammar->getLabelValue("-d"));
+    	break;
+    case TYPE::Load:
+    	edges_added.addOneEdge(src, grammar->getLabelValue("d"));
+    	edges_src.addOneEdge(added, grammar->getLabelValue("-d"));
+    	break;
+    default:
+    	break;
+    }
+
+    //self-loop edges
+    for(int i = 0; i < grammar->getNumErules(); ++i){
+        char label = grammar->getErule(i);
+    	edges_src.addOneEdge(src, label);
+    	edges_dst.addOneEdge(dst, label);
+    	if(stmt->isValidAdded()){
+    		edges_added.addOneEdge(added, label);
+    	}
+    }
 
     //merge and sort
     edges_src.merge();
@@ -545,7 +548,7 @@ void CFGCompute::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
 	//for debugging
 	Logger::print_thread_info_locked("peg-compute-add starting...\n", level_log_function);
 
-	bool isConservative = false;
+	bool isConservative = true;
 
 	std::unordered_map<vertexid_t, EdgeArray> m;
 	getDirectAddedEdges(out, stmt, grammar, m);

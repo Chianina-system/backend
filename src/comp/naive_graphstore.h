@@ -80,7 +80,7 @@ public:
 
 //    	assert(map.find(graph_pointer) != map.end());
     	if(map.find(graph_pointer) != map.end()){
-			delete map[graph_pointer];
+//			delete map[graph_pointer];
     	}
 		map[graph_pointer] = new PEGraph(pegraph);
 
