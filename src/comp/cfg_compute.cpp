@@ -18,27 +18,24 @@ bool CFGCompute::load(Partition* part, CFG* cfg, GraphStore* graphstore){
 	return true;
 }
 
-void CFGCompute::do_worklist(CFG* cfg, GraphStore* graphstore, Grammar* grammar){
+void CFGCompute::do_worklist_synchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar){
 	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
     Concurrent_Worklist* worklist_1 = new Concurrent_Workset();
 
-//    //for debugging
-//    cout << cfg << endl;
-
     //initiate concurrent worklist
     std::vector<CFGNode*> nodes = cfg->getNodes();
+//    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
 
 //    //for debugging
-//    cout << nodes.size();
 //    StaticPrinter::print_vector(nodes);
 
     for(auto it = nodes.cbegin(); it != nodes.cend(); ++it){
-//    	//for debugging
-//    	cout << **it << endl;
         worklist_1->push_atomic(*it);
     }
 
+    //initiate a temp graphstore to maintain all the updated graphs
+    GraphStore* tmp_graphstore = new NaiveGraphStore();
 
     Concurrent_Worklist* worklist_2 = new Concurrent_Workset();
     while(!worklist_1->isEmpty()){
@@ -47,11 +44,16 @@ void CFGCompute::do_worklist(CFG* cfg, GraphStore* graphstore, Grammar* grammar)
 
         std::vector<std::thread> comp_threads;
         for (unsigned int i = 0; i < num_threads; i++)
-            comp_threads.push_back(std::thread( [=] {compute(cfg, graphstore, worklist_1, worklist_2, grammar);}));
+            comp_threads.push_back(std::thread( [=] {compute_synchronous(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore);}));
 
         for (auto &t : comp_threads)
             t.join();
 
+        //synchronize and communicate
+        update_GraphStore(graphstore, tmp_graphstore);
+        tmp_graphstore->clear();
+
+        //update worklists
         assert(worklist_1->isEmpty());
         Concurrent_Worklist* worklist_tmp = worklist_1;
         worklist_1 = worklist_2;
@@ -59,19 +61,116 @@ void CFGCompute::do_worklist(CFG* cfg, GraphStore* graphstore, Grammar* grammar)
         assert(worklist_2->isEmpty());
 
         //for debugging
-        Logger::print_thread_info_locked("--------------------------------------------------------------- superstep finished ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
+        Logger::print_thread_info_locked("--------------------------------------------------------------- finished ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
     }
 
     //clean
     delete(worklist_1);
     delete(worklist_2);
 
+    delete(tmp_graphstore);
+
+    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
+}
+
+void CFGCompute::update_GraphStore(GraphStore* graphstore, GraphStore* tmp_graphstore){
+	graphstore->update_graphs(tmp_graphstore);
+}
+
+
+void CFGCompute::do_worklist_asynchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar){
+	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
+
+    Concurrent_Worklist* worklist = new Concurrent_Workset();
+
+    //initiate concurrent worklist
+//    std::vector<CFGNode*> nodes = cfg->getNodes();
+    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
+
+//    //for debugging
+//    StaticPrinter::print_vector(nodes);
+
+    for(auto it = nodes.cbegin(); it != nodes.cend(); ++it){
+        worklist->push_atomic(*it);
+    }
+
+	std::vector<std::thread> comp_threads;
+	for (unsigned int i = 0; i < num_threads; i++)
+		comp_threads.push_back(std::thread([=] {compute_asynchronous(cfg, graphstore, worklist, grammar);}));
+
+	for (auto &t : comp_threads)
+		t.join();
+
+    //clean
+    delete(worklist);
+
     Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 }
 
 
-void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* worklist_1, Concurrent_Worklist* worklist_2, Grammar* grammar){
+void CFGCompute::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* worklist_1, Concurrent_Worklist* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore){
     while(CFGNode* cfg_node = worklist_1->pop_atomic()){
+//    	//for debugging
+//    	cout << "\nCFG Node under processing: " << *cfg_node << endl;
+    	Logger::print_thread_info_locked("----------------------- CFG Node "
+    			+ to_string(cfg_node->getCfgNodeId())
+				+ " {" + cfg_node->getStmt()->toString()
+				+ "} start processing -----------------------\n", LEVEL_LOG_CFGNODE);
+    	Logger::print_thread_info_locked(to_string((long)graphstore) + "\n", LEVEL_LOG_CFGNODE);
+
+        //merge
+    	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
+//        //for debugging
+//    	StaticPrinter::print_vector(preds);
+        PEGraph* in = combine(graphstore, preds);
+
+        //for debugging
+        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", LEVEL_LOG_PEG);
+
+        //transfer
+        PEGraph* out = transfer(in, cfg_node->getStmt(), grammar, graphstore);
+
+        //for debugging
+        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString() + "\n", LEVEL_LOG_PEG);
+
+        //update and propagate
+        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
+        PEGraph* old_out = graphstore->retrieve(out_pointer);
+        bool isEqual = out->equals(old_out);
+        //for debugging
+        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", LEVEL_LOG_INFO);
+        if(!isEqual){
+//            //update out
+//            graphstore->update(out_pointer, out);
+
+            //propagate
+            std::vector<CFGNode*> successors = cfg->getSuccessors(cfg_node);
+            for(auto it = successors.cbegin(); it != successors.cend(); ++it){
+                worklist_2->push_atomic(*it);
+            }
+
+            //store the new graph into tmp_graphstore
+            tmp_graphstore->addOneGraph(out_pointer, out);
+        }
+        else{
+			delete out;
+        }
+
+        //clean out
+        delete old_out;
+
+        //for debugging
+        Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
+        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
+
+        //for debugging
+        Logger::print_thread_info_locked("1-> " + worklist_1->toString() + "\t2-> " + worklist_2->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);
+    }
+}
+
+
+void CFGCompute::compute_asynchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* worklist, Grammar* grammar){
+    while(CFGNode* cfg_node = worklist->pop_atomic()){
     	//for debugging
 //    	cout << "\nCFG Node under processing: " << *cfg_node << endl;
     	Logger::print_thread_info_locked("----------------------- CFG Node "
@@ -97,12 +196,7 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* 
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-//        //for debugging
-//        cout << *graphstore << endl;
         PEGraph* old_out = graphstore->retrieve(out_pointer);
-//        //for debugging
-//        cout << *graphstore << endl;
-
         bool isEqual = out->equals(old_out);
         //for debugging
         Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", LEVEL_LOG_INFO);
@@ -113,7 +207,7 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* 
             //propagate
             std::vector<CFGNode*> successors = cfg->getSuccessors(cfg_node);
             for(auto it = successors.cbegin(); it != successors.cend(); ++it){
-                worklist_2->push_atomic(*it);
+                worklist->push_atomic(*it);
             }
         }
 
@@ -126,7 +220,7 @@ void CFGCompute::compute(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* 
         Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
 
         //for debugging
-        Logger::print_thread_info_locked("1-> " + worklist_1->toString() + "\t2-> " + worklist_2->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);
+        Logger::print_thread_info_locked("1-> " + worklist->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);
     }
 }
 

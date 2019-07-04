@@ -34,6 +34,14 @@ public:
 
     virtual void loadGraphStore(const string& file_singleton) = 0;
 
+    virtual void addOneGraph(PEGraph_Pointer pointer, PEGraph* graph) = 0;
+
+    virtual void update_graphs(GraphStore* another) = 0;
+
+    virtual void clearEntryOnly() = 0;
+
+    virtual void clear() = 0;
+
     virtual void addOneSingleton(vertexid_t t) {
         this->singletonSet.insert(t);
     }

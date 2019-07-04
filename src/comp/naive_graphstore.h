@@ -40,15 +40,15 @@ public:
 
 
     ~NaiveGraphStore(){
-    	for(auto & it : map){
-    		delete it.second;
-    	}
+//    	for(auto & it : map){
+//    		delete it.second;
+//    	}
+    	clear();
     }
 
 
-
     //deep copy
-    PEGraph* retrieve(PEGraph_Pointer graph_pointer) {
+    PEGraph* retrieve(PEGraph_Pointer graph_pointer){
 //    	std::unique_lock < std::mutex > lock(mutex);
 
     	//for debugging
@@ -86,6 +86,28 @@ public:
 
     	//for debugging
     	Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
+    }
+
+    void addOneGraph(PEGraph_Pointer pointer, PEGraph* graph){
+    	this->map[pointer] = graph;
+    }
+
+    void update_graphs(GraphStore* another){
+    	NaiveGraphStore* another_graphstore = dynamic_cast<NaiveGraphStore*>(another);
+    	for(auto& it: another_graphstore->map){
+    		update(it.first, it.second);
+    	}
+    }
+
+    void clearEntryOnly(){
+    	this->map.clear();
+    }
+
+    void clear(){
+    	for(auto it = map.begin(); it != map.end(); ){
+    		delete it->second;
+    		it = map.erase(it);
+    	}
     }
 
 protected:

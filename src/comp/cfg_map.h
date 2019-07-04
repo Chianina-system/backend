@@ -83,6 +83,11 @@ public:
 
 			//add cfgnode into cfg
 			this->addOneNode(cfgNode);
+
+			//add entry node
+			if(cfgNode->getCfgNodeId() == 0){
+				this->nodes_entry.push_back(cfgNode);
+			}
 		}
 		fin.close();
 
@@ -136,6 +141,11 @@ public:
         return nodes;
     }
 
+    std::vector<CFGNode*> getEntryNodes() const override {
+    	return nodes_entry;
+    }
+
+
     void addOneNode(CFGNode *Node)  {
         nodes.push_back(Node);
     }
@@ -175,6 +185,8 @@ public:
 private:
 
     std::vector<CFGNode*> nodes;
+
+    std::vector<CFGNode*> nodes_entry;
 
     vertexid_t number_edges = 0;
 
