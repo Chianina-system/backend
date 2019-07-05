@@ -137,11 +137,7 @@ public:
 
     vector<Edge *> convertToVector(PEGraph *peGraph);
 
-    void loadGraphStore(const string &file_singleton) override;
-
-    void addOneSingleton(vertexid_t t) override;
-
-    bool isSingleton(vertexid_t vid) override;
+    void loadGraphStore(const string &file) override;
 
     string toString() override;
 

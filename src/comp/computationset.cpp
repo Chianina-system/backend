@@ -67,8 +67,6 @@ void ComputationSet::init_add(PEGraph *out, std::unordered_map<vertexid_t, EdgeA
 
 			it = m.erase(it);
 		}
-
-
 	}
 	else{
 		// Deltas <- m

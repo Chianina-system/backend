@@ -20,14 +20,6 @@ void ART::loadGraphStore(const string &file_singleton) {
 
 }
 
-void ART::addOneSingleton(vertexid_t t) {
-    GraphStore::addOneSingleton(t);
-}
-
-bool ART::isSingleton(vertexid_t vid) {
-    return GraphStore::isSingleton(vid);
-}
-
 string ART::toString() {
     return GraphStore::toString();
 }

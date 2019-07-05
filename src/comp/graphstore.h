@@ -36,7 +36,7 @@ public:
 
     virtual void update_synchronous(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
 
-    virtual void loadGraphStore(const string& file_singleton) = 0;
+    virtual void loadGraphStore(const string& file) = 0;
 
     virtual void addOneGraph(PEGraph_Pointer pointer, PEGraph* graph) = 0;
 
@@ -46,11 +46,7 @@ public:
 
     virtual void clear() = 0;
 
-    virtual void addOneSingleton(vertexid_t t) {
-        this->singletonSet.insert(t);
-    }
 
-    virtual inline bool isSingleton(vertexid_t vid) { return singletonSet.find(vid)!= singletonSet.end();}
 
     virtual std::string toString(){
     	std::ostringstream strm;
@@ -62,7 +58,6 @@ public:
 
 
 protected:
-    std::set<vertexid_t> singletonSet;
 
     virtual void print(std::ostream& str) = 0;
 

@@ -5,23 +5,7 @@
 #include "FrequentItemsetStore.h"
 
 void FrequentItemsetStore::loadGraphStore(const string &file_singleton) {
-    //handle the singleton.txt
-    std::ifstream fin;
-    fin.open(file_singleton);
-    if (!fin) {
-        cout << "can't load file_singleton: " << file_singleton << endl;
-        exit(EXIT_FAILURE);
-    }
 
-    std::string line;
-    while (getline(fin, line) && line != "") {
-        std::stringstream stream(line);
-        std::string id;
-        stream >> id;
-        addOneSingleton(atoi(id.c_str()));
-//        this->addOneSingleton(atoi(id.c_str()));
-    }
-    fin.close();
 }
 
 

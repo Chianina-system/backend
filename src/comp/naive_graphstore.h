@@ -19,23 +19,8 @@ class NaiveGraphStore : public GraphStore {
 public:
 	NaiveGraphStore(){}
 
-    void loadGraphStore(const string& file_singleton) override {
-	    //handle the singleton.txt
-	    std::ifstream fin;
-	    fin.open(file_singleton);
-	    if(!fin) {
-	        cout << "can't load file_singleton: " << file_singleton << endl;
-	        exit (EXIT_FAILURE);
-	    }
+    void loadGraphStore(const string& file) override {
 
-	    std::string line;
-	    while (getline(fin, line) && line != "") {
-	        std::stringstream stream(line);
-	        std::string id;
-	        stream >> id;
-	        this->addOneSingleton(atoi(id.c_str()));
-	    }
-	    fin.close();
 	}
 
 
@@ -123,11 +108,11 @@ public:
 protected:
     void print(std::ostream& str) {
     	std::lock_guard<std::mutex> lockGuard(mutex);
-    	str << "The singleton set: [" ;
-    	for(auto & id : singletonSet){
-    		str << id << ", ";
-    	}
-    	str << "]\n";
+//    	str << "The singleton set: [" ;
+//    	for(auto & id : singletonSet){
+//    		str << id << ", ";
+//    	}
+//    	str << "]\n";
 
     	str << "The number of graphs is: " << map.size() << "\n";
     	for(auto it = map.begin(); it != map.end(); ++it){
@@ -137,11 +122,11 @@ protected:
 
     void toString_sub(std::ostringstream& str) {
     	std::lock_guard<std::mutex> lockGuard(mutex);
-    	str << "The singleton set: [" ;
-    	for(auto & id : singletonSet){
-    		str << id << ", ";
-    	}
-    	str << "]\n";
+//    	str << "The singleton set: [" ;
+//    	for(auto & id : singletonSet){
+//    		str << id << ", ";
+//    	}
+//    	str << "]\n";
 
     	str << "The number of graphs is: " << map.size() << "\n";
     	for(auto it = map.begin(); it != map.end(); ++it){

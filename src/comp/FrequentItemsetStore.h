@@ -29,9 +29,7 @@ private:
 
     void update_asynchronous(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
 
-//    PEGraph *retrieve(PEGraph_Pointer graph_pointer) override;
-
-    void loadGraphStore(const string &file_singleton) override;
+    void loadGraphStore(const string &file) override;
 
 private:
     std::unordered_map<PEGraph_Pointer, std::set<int>> intToEdgeSet;
