@@ -111,9 +111,13 @@ public:
 
     ~ART();
 
-    PEGraph *retrieve(PEGraph_Pointer graph_pointer) override;
+    PEGraph *retrieve_synchronous(PEGraph_Pointer graph_pointer) override;
 
-    void update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
+    PEGraph *retrieve_asynchronous(PEGraph_Pointer graph_pointer) override;
+
+    void update_synchronous(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
+
+    void update_asynchronous(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
 
     Node *insert(vector<Edge *> &v);
 
@@ -142,9 +146,9 @@ public:
     string toString() override;
 
 protected:
-    void print(std::ostream &str) const override;
+    void print(std::ostream &str) override;
 
-    void toString_sub(std::ostringstream &strm) const override;
+    void toString_sub(std::ostringstream &strm) override;
 
 //    void addOneSingleton(vertexid_t t);
 

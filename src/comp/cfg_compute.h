@@ -23,17 +23,6 @@ using namespace std;
 class CFGCompute {
 
 public:
-//	static const int level_log = 0;
-//	static const int level_log_function = 0;
-//	static const int level_log_peg = 0;
-//	static const int level_log_graphstore = 0;
-//	static const int level_log_cfgnode = 1;
-//	static const int level_log_worklist = 1;
-//	static const int level_log_main = 1;
-
-
-	static const unsigned int num_threads = 4;
-
     static bool load(Partition* part, CFG* cfg, GraphStore* graphstore);
 
     static bool load(const string& file_cfg, const string& file_stmt, CFG *cfg, const string& file_singleton, GraphStore *graphstore, const string& file_grammar, Grammar * grammar);
@@ -51,7 +40,9 @@ private:
 
     static void update_GraphStore(GraphStore* graphstore, GraphStore* tmp_graphstore);
 
-    static PEGraph* combine(GraphStore* graphstore, std::vector<CFGNode*>& preds);
+    static PEGraph* combine_asynchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds);
+
+    static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds);
 
     static PEGraph* transfer(PEGraph* in, Stmt* stmt,Grammar* grammar, GraphStore* graphstore){
         switch(stmt->getType()){

@@ -40,6 +40,7 @@ public:
 
 
     ~NaiveGraphStore(){
+//    	std::lock_guard<std::mutex> lockGuard(mutex);
 //    	for(auto & it : map){
 //    		delete it.second;
 //    	}
@@ -48,16 +49,20 @@ public:
 
 
     //deep copy
-    PEGraph* retrieve(PEGraph_Pointer graph_pointer){
-//    	std::unique_lock < std::mutex > lock(mutex);
+    PEGraph* retrieve_asynchronous(PEGraph_Pointer graph_pointer){
+    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	return retrieve_synchronous(graph_pointer);
+    }
 
-    	//for debugging
-    	Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
+    //deep copy
+    PEGraph* retrieve_synchronous(PEGraph_Pointer graph_pointer){
+//    	//for debugging
+//    	Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
 
     	PEGraph* out;
 
     	if(map.find(graph_pointer) != map.end()){
-    		Logger::print_thread_info_locked("retrieving +++++++++++++++++++++++ " +  to_string((long) map[graph_pointer]) + " +++++++++++++++++++++++\n", LEVEL_LOG_GRAPHSTORE) ;
+//    		Logger::print_thread_info_locked("retrieving +++++++++++++++++++++++ " +  to_string((long) map[graph_pointer]) + " +++++++++++++++++++++++\n", LEVEL_LOG_GRAPHSTORE) ;
     		out = new PEGraph(map[graph_pointer]);
     	}
     	else{
@@ -65,28 +70,33 @@ public:
     	}
 
     	//for debugging
-    	Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
+//    	Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
 
     	return out;
     }
 
     //deep copy
-    void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
-//    	std::unique_lock < std::mutex > lock(mutex);
+    void update_asynchronous(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
+    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	update_synchronous(graph_pointer, pegraph);
+    }
 
-    	//for debugging
-    	Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
+    //deep copy
+    void update_synchronous(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
+//    	//for debugging
+//    	Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
 
 //    	assert(map.find(graph_pointer) != map.end());
     	if(map.find(graph_pointer) != map.end()){
+//    		Logger::print_thread_info_locked("deleting +++++++++++++++++++++++ " +  to_string((long) map[graph_pointer]) + " +++++++++++++++++++++++\n", LEVEL_LOG_GRAPHSTORE) ;
 			delete map[graph_pointer];
-    		Logger::print_thread_info_locked("deleting +++++++++++++++++++++++ " +  to_string((long) map[graph_pointer]) + " +++++++++++++++++++++++\n", LEVEL_LOG_GRAPHSTORE) ;
     	}
 		map[graph_pointer] = new PEGraph(pegraph);
 
     	//for debugging
-    	Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
+//    	Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
     }
+
 
     void addOneGraph(PEGraph_Pointer pointer, PEGraph* graph){
     	this->map[pointer] = graph;
@@ -95,7 +105,7 @@ public:
     void update_graphs(GraphStore* another){
     	NaiveGraphStore* another_graphstore = dynamic_cast<NaiveGraphStore*>(another);
     	for(auto& it: another_graphstore->map){
-    		update(it.first, it.second);
+    		update_synchronous(it.first, it.second);
     	}
     }
 
@@ -111,7 +121,8 @@ public:
     }
 
 protected:
-    void print(std::ostream& str) const override {
+    void print(std::ostream& str) {
+    	std::lock_guard<std::mutex> lockGuard(mutex);
     	str << "The singleton set: [" ;
     	for(auto & id : singletonSet){
     		str << id << ", ";
@@ -124,7 +135,8 @@ protected:
     	}
     }
 
-    void toString_sub(std::ostringstream& str) const override {
+    void toString_sub(std::ostringstream& str) {
+    	std::lock_guard<std::mutex> lockGuard(mutex);
     	str << "The singleton set: [" ;
     	for(auto & id : singletonSet){
     		str << id << ", ";
@@ -141,7 +153,7 @@ protected:
 private:
 	std::unordered_map<PEGraph_Pointer, PEGraph*> map;
 
-//	std::mutex mutex;
+
 
 };
 

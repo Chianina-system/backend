@@ -89,10 +89,12 @@ typedef int PEGraph_Pointer;
 
 #define GRAMMAR_STR_LEN 36
 
+#define num_threads 4
+
 #define LEVEL_LOG_INFO 0
 #define LEVEL_LOG_FUNCTION 0
 #define LEVEL_LOG_PEG 0
-#define LEVEL_LOG_GRAPHSTORE 1
+#define LEVEL_LOG_GRAPHSTORE 0
 #define LEVEL_LOG_CFGNODE 1
 #define LEVEL_LOG_WORKLIST 1
 #define LEVEL_LOG_MAIN 1

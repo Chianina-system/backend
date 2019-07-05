@@ -16,7 +16,7 @@ using namespace std;
 
 class GraphStore{
 
-	friend std::ostream & operator<<(std::ostream & strm, const GraphStore& graphstore) {
+	friend std::ostream & operator<<(std::ostream & strm, GraphStore& graphstore) {
 		strm << "Graphstore<<<<\n============================================" << endl;
 		graphstore.print(strm);
 		strm << "============================================" << endl;
@@ -28,9 +28,13 @@ public:
 
     virtual ~GraphStore(){}
 
-    virtual PEGraph* retrieve(PEGraph_Pointer graph_pointer) = 0;
+    virtual PEGraph* retrieve_asynchronous(PEGraph_Pointer graph_pointer) = 0;
 
-    virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
+    virtual PEGraph* retrieve_synchronous(PEGraph_Pointer graph_pointer) = 0;
+
+    virtual void update_asynchronous(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
+
+    virtual void update_synchronous(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
 
     virtual void loadGraphStore(const string& file_singleton) = 0;
 
@@ -60,9 +64,12 @@ public:
 protected:
     std::set<vertexid_t> singletonSet;
 
-    virtual void print(std::ostream& str) const = 0;
+    virtual void print(std::ostream& str) = 0;
 
-    virtual void toString_sub(std::ostringstream& strm) const = 0;
+    virtual void toString_sub(std::ostringstream& strm) = 0;
+
+
+    std::mutex mutex;
 
 private:
     //	void add();

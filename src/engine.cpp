@@ -22,7 +22,7 @@ int main() {
 
 	CFGCompute::load("/home/zqzuo/Desktop/inlined/final", "/home/zqzuo/Desktop/inlined/id_stmt_info.txt", cfg,
 			"/home/zqzuo/Desktop/inlined/var_singleton_info.txt", graphstore, "/home/zqzuo/Desktop/inlined/rules_pointsto.txt", grammar);
-	CFGCompute::do_worklist_synchronous(cfg, graphstore, grammar);
+	CFGCompute::do_worklist_asynchronous(cfg, graphstore, grammar);
 
 	delete cfg;
 	delete graphstore;

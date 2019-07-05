@@ -21,9 +21,15 @@ private:
 
     ~FrequentItemsetStore() override;
 
-    PEGraph *retrieve(PEGraph_Pointer graph_pointer) override;
+    PEGraph *retrieve_synchronous(PEGraph_Pointer graph_pointer) override;
 
-    void update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
+    PEGraph *retrieve_asynchronous(PEGraph_Pointer graph_pointer) override;
+
+    void update_synchronous(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
+
+    void update_asynchronous(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
+
+//    PEGraph *retrieve(PEGraph_Pointer graph_pointer) override;
 
     void loadGraphStore(const string &file_singleton) override;
 

@@ -32,11 +32,11 @@ string ART::toString() {
     return GraphStore::toString();
 }
 
-void ART::print(std::ostream &str) const {
+void ART::print(std::ostream &str) {
 
 }
 
-void ART::toString_sub(std::ostringstream &strm) const {
+void ART::toString_sub(std::ostringstream &strm) {
 
 }
 
@@ -198,7 +198,10 @@ vector<Edge *> ART::convertToVector(PEGraph *peGraph) {
     return edgeVector;
 }
 
-void ART::update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
+void ART::update_synchronous(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
+
+}
+void ART::update_asynchronous(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
     Node *node = m[graph_pointer];
     del(node);
     vector<Edge *> v = convertToVector(pegraph);
@@ -207,8 +210,11 @@ void ART::update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
     m[graph_pointer] = leaf;
 }
 
+PEGraph * ART::retrieve_synchronous(PEGraph_Pointer graph_pointer) {
 
-PEGraph * ART::retrieve(PEGraph_Pointer graph_pointer) {
+}
+
+PEGraph * ART::retrieve_asynchronous(PEGraph_Pointer graph_pointer) {
     if (m.find(graph_pointer)!= m.end()){
         Node* node = m[graph_pointer];
         vector<Edge *> v = retrieveFromLeaf(node);
