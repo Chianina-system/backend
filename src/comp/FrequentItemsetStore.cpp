@@ -13,11 +13,11 @@ FrequentItemsetStore::~FrequentItemsetStore() {
 
 }
 
-PEGraph *FrequentItemsetStore::retrieve_synchronous(PEGraph_Pointer graph_pointer) {
+PEGraph *FrequentItemsetStore::retrieve_locked(PEGraph_Pointer graph_pointer) {
 
 }
 
-PEGraph *FrequentItemsetStore::retrieve_asynchronous(PEGraph_Pointer graph_pointer) {
+PEGraph *FrequentItemsetStore::retrieve(PEGraph_Pointer graph_pointer) {
 //    retrieve the pegraph set
     std::set<int> edgeSet = intToEdgeSet[graph_pointer];
 //    convert it to PEGraph*
@@ -31,7 +31,7 @@ PEGraph *FrequentItemsetStore::retrieve_asynchronous(PEGraph_Pointer graph_point
 //    return new PEGraph();
 }
 
-void FrequentItemsetStore::update_synchronous(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
+void FrequentItemsetStore::update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
 //    if (mapToPEG.find(graph_pointer) != mapToPEG.end()) {
 //        delete mapToPEG[graph_pointer];
 //    }
@@ -46,7 +46,7 @@ void FrequentItemsetStore::update_synchronous(PEGraph_Pointer graph_pointer, PEG
     intToEdgeSet[graph_pointer] = edgeSet;
 }
 
-void FrequentItemsetStore::update_asynchronous(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
+void FrequentItemsetStore::update_locked(PEGraph_Pointer graph_pointer, PEGraph *pegraph) {
 
 }
 

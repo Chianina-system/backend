@@ -7,12 +7,6 @@
 
 
 #include "cfg_compute.h"
-#include "edgesToDelete.h"
-#include "art.h"
-#include "cfg_map.h"
-#include "naive_graphstore.h"
-#include "../utility/StaticPrinter.h"
-#include "../utility/Logger.hpp"
 
 bool CFGCompute::load(Partition* part, CFG* cfg, GraphStore* graphstore){
 	return true;
@@ -43,14 +37,15 @@ void CFGCompute::do_worklist_synchronous(CFG* cfg, GraphStore* graphstore, Gramm
         Logger::print_thread_info_locked("--------------------------------------------------------------- superstep starting ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
 
         std::vector<std::thread> comp_threads;
-        for (unsigned int i = 0; i < num_threads; i++)
+        for (unsigned int i = 0; i < NUM_THREADS_CFGCOMPUTE; i++)
             comp_threads.push_back(std::thread( [=] {compute_synchronous(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore, singletons);}));
 
         for (auto &t : comp_threads)
             t.join();
 
         //synchronize and communicate
-        update_GraphStore(graphstore, tmp_graphstore);
+//        update_GraphStore(graphstore, tmp_graphstore);
+        graphstore->update_graphs(tmp_graphstore);
         tmp_graphstore->clear();
 
         //update worklists
@@ -71,41 +66,12 @@ void CFGCompute::do_worklist_synchronous(CFG* cfg, GraphStore* graphstore, Gramm
     delete(tmp_graphstore);
 
     Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
+    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
 }
 
-void CFGCompute::update_GraphStore(GraphStore* graphstore, GraphStore* tmp_graphstore){
-	graphstore->update_graphs(tmp_graphstore);
-}
-
-
-void CFGCompute::do_worklist_asynchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons) {
-	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
-
-    Concurrent_Worklist* worklist = new Concurrent_Workset();
-
-    //initiate concurrent worklist
-    std::vector<CFGNode*> nodes = cfg->getNodes();
-//    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
-
-//    //for debugging
-//    StaticPrinter::print_vector(nodes);
-
-    for(auto it = nodes.cbegin(); it != nodes.cend(); ++it){
-        worklist->push_atomic(*it);
-    }
-
-	std::vector<std::thread> comp_threads;
-	for (unsigned int i = 0; i < num_threads; i++)
-		comp_threads.push_back(std::thread([=] {compute_asynchronous(cfg, graphstore, worklist, grammar, singletons);}));
-
-	for (auto &t : comp_threads)
-		t.join();
-
-    //clean
-    delete(worklist);
-
-    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
-}
+//void CFGCompute::update_GraphStore(GraphStore* graphstore, GraphStore* tmp_graphstore){
+//	graphstore->update_graphs(tmp_graphstore);
+//}
 
 
 void CFGCompute::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* worklist_1, Concurrent_Worklist* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons){
@@ -135,7 +101,7 @@ void CFGCompute::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurren
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-        PEGraph* old_out = graphstore->retrieve_synchronous(out_pointer);
+        PEGraph* old_out = graphstore->retrieve(out_pointer);
         bool isEqual = out->equals(old_out);
         //for debugging
         Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", LEVEL_LOG_INFO);
@@ -157,7 +123,7 @@ void CFGCompute::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurren
         delete old_out;
 
         //for debugging
-        Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
+//        Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
         Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
 
         //for debugging
@@ -165,61 +131,6 @@ void CFGCompute::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurren
     }
 }
 
-
-void CFGCompute::compute_asynchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* worklist, Grammar* grammar, Singletons* singletons){
-    while(CFGNode* cfg_node = worklist->pop_atomic()){
-    	//for debugging
-//    	cout << "\nCFG Node under processing: " << *cfg_node << endl;
-    	Logger::print_thread_info_locked("----------------------- CFG Node "
-    			+ to_string(cfg_node->getCfgNodeId())
-				+ " {" + cfg_node->getStmt()->toString()
-				+ "} start processing -----------------------\n", LEVEL_LOG_CFGNODE);
-    	Logger::print_thread_info_locked(to_string((long)graphstore) + "\n", LEVEL_LOG_CFGNODE);
-
-        //merge
-    	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
-//        //for debugging
-//    	StaticPrinter::print_vector(preds);
-        PEGraph* in = combine_asynchronous(graphstore, preds);
-
-        //for debugging
-        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", LEVEL_LOG_PEG);
-
-        //transfer
-        PEGraph* out = transfer(in, cfg_node->getStmt(), grammar, singletons);
-
-        //for debugging
-        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString() + "\n", LEVEL_LOG_PEG);
-
-        //update and propagate
-        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-        PEGraph* old_out = graphstore->retrieve_asynchronous(out_pointer);
-        bool isEqual = out->equals(old_out);
-        //for debugging
-        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", LEVEL_LOG_INFO);
-        if(!isEqual){
-            //update out
-            graphstore->update_asynchronous(out_pointer, out);
-
-            //propagate
-            std::vector<CFGNode*> successors = cfg->getSuccessors(cfg_node);
-            for(auto it = successors.cbegin(); it != successors.cend(); ++it){
-                worklist->push_atomic(*it);
-            }
-        }
-
-        //clean out
-        delete old_out;
-        delete out;
-
-        //for debugging
-        Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
-        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
-
-        //for debugging
-        Logger::print_thread_info_locked("1-> " + worklist->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);
-    }
-}
 
 PEGraph* CFGCompute::combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds){
 	//for debugging
@@ -234,7 +145,7 @@ PEGraph* CFGCompute::combine_synchronous(GraphStore* graphstore, std::vector<CFG
     else if(preds.size() == 1){
         CFGNode* pred = preds[0];
         PEGraph_Pointer out_pointer = pred->getOutPointer();
-        out = graphstore->retrieve_synchronous(out_pointer);
+        out = graphstore->retrieve(out_pointer);
     }
     else{
         out = new PEGraph();
@@ -242,7 +153,7 @@ PEGraph* CFGCompute::combine_synchronous(GraphStore* graphstore, std::vector<CFG
         for(auto it = preds.cbegin(); it != preds.cend(); it++){
             CFGNode* pred = *it;
             PEGraph_Pointer out_pointer = pred->getOutPointer();
-            PEGraph* out_graph = graphstore->retrieve_synchronous(out_pointer);
+            PEGraph* out_graph = graphstore->retrieve(out_pointer);
             out->merge(out_graph);
             delete out_graph;
         }
@@ -254,39 +165,6 @@ PEGraph* CFGCompute::combine_synchronous(GraphStore* graphstore, std::vector<CFG
 	return out;
 }
 
-
-PEGraph* CFGCompute::combine_asynchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds){
-	//for debugging
-	Logger::print_thread_info_locked("combine starting...\n", LEVEL_LOG_FUNCTION);
-
-	PEGraph* out;
-
-    if(preds.size() == 0){//entry node
-        //return an empty graph
-        out = new PEGraph();
-    }
-    else if(preds.size() == 1){
-        CFGNode* pred = preds[0];
-        PEGraph_Pointer out_pointer = pred->getOutPointer();
-        out = graphstore->retrieve_asynchronous(out_pointer);
-    }
-    else{
-        out = new PEGraph();
-
-        for(auto it = preds.cbegin(); it != preds.cend(); it++){
-            CFGNode* pred = *it;
-            PEGraph_Pointer out_pointer = pred->getOutPointer();
-            PEGraph* out_graph = graphstore->retrieve_asynchronous(out_pointer);
-            out->merge(out_graph);
-            delete out_graph;
-        }
-    }
-
-	//for debugging
-	Logger::print_thread_info_locked("combine finished.\n", LEVEL_LOG_FUNCTION);
-
-	return out;
-}
 
 PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar, Singletons* singletons){
 	//for debugging
@@ -586,7 +464,13 @@ void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unorder
     compset->init_delete(out, m);
 
     // start GEN
-    long number_deleted = PEGCompute::startCompute_delete(compset,grammar, m);
+    long number_deleted = 0;
+    if(IS_PEGCOMPUTE_PARALLEL){
+		number_deleted = PEGCompute_parallel::startCompute_delete(compset, grammar, m);
+    }
+    else{
+    	number_deleted = PEGCompute::startCompute_delete(compset, grammar, m);
+    }
     Logger::print_thread_info_locked("number of edges deleted: " + std::to_string(number_deleted) + "\n", LEVEL_LOG_INFO);
 
     // clean
@@ -687,7 +571,12 @@ void CFGCompute::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
 //    cout << *compset << endl;
 
     // start GEN
-    PEGCompute::startCompute_add(compset, grammar);
+    if(IS_PEGCOMPUTE_PARALLEL){
+		PEGCompute_parallel::startCompute_add(compset, grammar);
+    }
+    else{
+	    PEGCompute::startCompute_add(compset, grammar);
+    }
 //    Logger::print_thread_info_locked("number of edges added: " + to_string(number_added) + "\n");
 
 //    //for debugging

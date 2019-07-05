@@ -28,13 +28,13 @@ public:
 
     virtual ~GraphStore(){}
 
-    virtual PEGraph* retrieve_asynchronous(PEGraph_Pointer graph_pointer) = 0;
+    virtual PEGraph* retrieve_locked(PEGraph_Pointer graph_pointer) = 0;
 
-    virtual PEGraph* retrieve_synchronous(PEGraph_Pointer graph_pointer) = 0;
+    virtual PEGraph* retrieve(PEGraph_Pointer graph_pointer) = 0;
 
-    virtual void update_asynchronous(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
+    virtual void update_locked(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
 
-    virtual void update_synchronous(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
+    virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
 
     virtual void loadGraphStore(const string& file) = 0;
 

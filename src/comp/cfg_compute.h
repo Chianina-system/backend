@@ -11,13 +11,15 @@
 #include "graphstore.h"
 #include "cfg_map.h"
 #include "naive_graphstore.h"
-//#include "concurrent_worklist.h"
 #include "concurrent_workset.h"
 #include "concurrent_workqueue.h"
 #include "grammar.h"
-#include "peg_compute.h"
 #include "computationset.h"
 #include "singletons.h"
+#include "../utility/StaticPrinter.h"
+#include "../utility/Logger.hpp"
+#include "peg_compute.h"
+#include "peg_compute_parallel.h"
 
 using namespace std;
 
@@ -29,21 +31,6 @@ public:
     static bool load(const string& file_cfg, const string& file_stmt, CFG *cfg, const string& file_singleton, Singletons* singletons, GraphStore *graphstore, const string& file_grammar, Grammar * grammar);
 
     static void do_worklist_synchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons); //worklist algorithm in parallel
-
-    static void do_worklist_asynchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons); //worklist algorithm in parallel
-
-
-
-private:
-    static void compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* worklist_1, Concurrent_Worklist* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons);
-
-    static void compute_asynchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* worklist_1, Grammar* grammar, Singletons* singletons);
-
-    static void update_GraphStore(GraphStore* graphstore, GraphStore* tmp_graphstore);
-
-    static PEGraph* combine_asynchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds);
-
-    static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds);
 
     static PEGraph* transfer(PEGraph* in, Stmt* stmt, Grammar* grammar, Singletons* singletons){
         switch(stmt->getType()){
@@ -59,6 +46,15 @@ private:
                 return nullptr;
         }
     }
+
+
+private:
+    static void compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* worklist_1, Concurrent_Worklist* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons);
+
+//    static void update_GraphStore(GraphStore* graphstore, GraphStore* tmp_graphstore);
+
+    static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds);
+
 
     static PEGraph* transfer_copy(PEGraph* in, Stmt* stmt,Grammar* grammar, Singletons* singletons);
 

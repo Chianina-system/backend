@@ -25,22 +25,18 @@ public:
 
 
     ~NaiveGraphStore(){
-//    	std::lock_guard<std::mutex> lockGuard(mutex);
-//    	for(auto & it : map){
-//    		delete it.second;
-//    	}
     	clear();
     }
 
 
-    //deep copy
-    PEGraph* retrieve_asynchronous(PEGraph_Pointer graph_pointer){
+    //deep copy; locked version for asynchronous mode
+    PEGraph* retrieve_locked(PEGraph_Pointer graph_pointer){
     	std::lock_guard<std::mutex> lockGuard(mutex);
-    	return retrieve_synchronous(graph_pointer);
+    	return retrieve(graph_pointer);
     }
 
     //deep copy
-    PEGraph* retrieve_synchronous(PEGraph_Pointer graph_pointer){
+    PEGraph* retrieve(PEGraph_Pointer graph_pointer){
 //    	//for debugging
 //    	Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -60,14 +56,14 @@ public:
     	return out;
     }
 
-    //deep copy
-    void update_asynchronous(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
+    //deep copy; locked version for asynchronous mode
+    void update_locked(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
     	std::lock_guard<std::mutex> lockGuard(mutex);
-    	update_synchronous(graph_pointer, pegraph);
+    	update(graph_pointer, pegraph);
     }
 
     //deep copy
-    void update_synchronous(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
+    void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
 //    	//for debugging
 //    	Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -90,7 +86,7 @@ public:
     void update_graphs(GraphStore* another){
     	NaiveGraphStore* another_graphstore = dynamic_cast<NaiveGraphStore*>(another);
     	for(auto& it: another_graphstore->map){
-    		update_synchronous(it.first, it.second);
+    		update(it.first, it.second);
     	}
     }
 
@@ -108,12 +104,6 @@ public:
 protected:
     void print(std::ostream& str) {
     	std::lock_guard<std::mutex> lockGuard(mutex);
-//    	str << "The singleton set: [" ;
-//    	for(auto & id : singletonSet){
-//    		str << id << ", ";
-//    	}
-//    	str << "]\n";
-
     	str << "The number of graphs is: " << map.size() << "\n";
     	for(auto it = map.begin(); it != map.end(); ++it){
     		str << ">>>>" << it->first << " " << *(it->second) << endl;
@@ -122,12 +112,6 @@ protected:
 
     void toString_sub(std::ostringstream& str) {
     	std::lock_guard<std::mutex> lockGuard(mutex);
-//    	str << "The singleton set: [" ;
-//    	for(auto & id : singletonSet){
-//    		str << id << ", ";
-//    	}
-//    	str << "]\n";
-
     	str << "The number of graphs is: " << map.size() << "\n";
     	for(auto it = map.begin(); it != map.end(); ++it){
     		str << ">>>>" << it->first << " " << *(it->second) << endl;

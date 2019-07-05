@@ -25,9 +25,13 @@ public:
     PEGraph(PEGraph *p);
 
 	static void print_graph_map(std::ostream & strm, const std::unordered_map<vertexid_t, EdgeArray> graph) {
+		int size = 0;
 		for(auto& it : graph){
 			strm << it.first << " -> " << it.second << endl;
+			size += it.second.getSize();
 		}
+		strm << "------------------" << endl;
+		strm << "size=" << size << endl;
 	}
 
 	bool equals(PEGraph *another);
@@ -101,9 +105,13 @@ public:
     	std::ostringstream strm;
     	strm << "PEGraph<<<<\n---------------------" << endl;
 //    	toString_sub(strm);
+    	int size = 0;
 		for(auto& it : graph){
 			strm << it.first << " -> " << it.second << endl;
+			size += it.second.getSize();
 		}
+    	strm << "------------------" << endl;
+    	strm << "size=" << size << endl;
     	strm << "---------------------" << endl;
     	return strm.str();
     }
