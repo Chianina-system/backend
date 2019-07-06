@@ -31,7 +31,7 @@
 //    delete[] stmt_label;
 //}
 
-void ComputationSet::init_add(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray> &m, const bool isConservative) {
+void ComputationSet::init_add(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray> *m, const bool isConservative) {
 	//for debugging
 	Logger::print_thread_info_locked("init-add starting...\n", 0);
 
@@ -40,40 +40,40 @@ void ComputationSet::init_add(PEGraph *out, std::unordered_map<vertexid_t, EdgeA
 		// Deltas <- {m, out}
 		for (auto it = out->getGraph().begin(); it != out->getGraph().end(); it++) {
 			vertexid_t id_old = it->first;
-			if(m.find(id_old) != m.end()){
+			if(m->find(id_old) != m->end()){
 				int n1 = out->getNumEdges(id_old);
-				int n2 = m[id_old].getSize();
+				int n2 = (*m)[id_old].getSize();
 				vertexid_t *edges = new vertexid_t[n1 + n2];
 				char *labels = new char[n1 + n2];
 
 				int len = myalgo::unionTwoArray(edges, labels, n1,
 						out->getEdges(id_old), out->getLabels(id_old), n2,
-						m[id_old].getEdges(), m[id_old].getLabels());
+						(*m)[id_old].getEdges(), (*m)[id_old].getLabels());
 
 				setDeltas(id_old, len, edges, labels);
 
 				delete[] edges;
 				delete[] labels;
 
-				m.erase(id_old);
+				m->erase(id_old);
 			}
 			else{
 				setDeltas(it->first, it->second.getSize(), it->second.getEdges(), it->second.getLabels());
 			}
 		}
 
-		for (auto it = m.begin(); it != m.end(); ) {
+		for (auto it = m->begin(); it != m->end(); ) {
 			setDeltas(it->first, it->second.getSize(), it->second.getEdges(), it->second.getLabels());
 
-			it = m.erase(it);
+			it = m->erase(it);
 		}
 	}
 	else{
 		// Deltas <- m
-		for(auto & it : m){
+		for(auto & it : *m){
 			setDeltas(it.first, it.second.getSize(), it.second.getEdges(), it.second.getLabels());
 		}
-		m.clear();
+		m->clear();
 
 		//OldsV <- out
 		for(auto it = out->getGraph().begin(); it != out->getGraph().end(); it++){
@@ -93,15 +93,15 @@ void ComputationSet::init_add(PEGraph *out, std::unordered_map<vertexid_t, EdgeA
 }
 
     // Olds <- out - m, Deltas <- m, News <- empty
-void ComputationSet::init_delete(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray> &m) {
+void ComputationSet::init_delete(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray> *m) {
 	// Deltas <- m
-    for(auto & it : m){
+    for(auto & it : *m){
     	setDeltas(it.first, it.second.getSize(), it.second.getEdges(), it.second.getLabels());
     }
 
     //Olds <- out - m
     for(auto it = out->getGraph().begin(); it != out->getGraph().end(); it++){
-    	if(m.find(it->first) != m.end()){
+    	if(m->find(it->first) != m->end()){
             int n1 = it->second.getSize();
             int n2 = Deltas[it->first].getSize();
             auto *edges = new vertexid_t[n1];
@@ -196,8 +196,8 @@ void ComputationSet::setNews(vertexid_t index, int numEdges, vertexid_t *edges, 
 //		News.erase(index);
 //}
 
-std::set<vertexid_t> ComputationSet::getVertices() {
-    std::set<vertexid_t> vertexSet;
+std::unordered_set<vertexid_t> ComputationSet::getVertices() {
+    std::unordered_set<vertexid_t> vertexSet;
     for(auto it = this->getOlds().begin(); it!= this->getOlds().end(); it++){
         vertexSet.insert(it->first);
     }

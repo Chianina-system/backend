@@ -11,35 +11,35 @@
 #include "../common/CommonLibs.hpp"
 #include "concurrent_worklist.h"
 
+template <typename T>
 struct cfgnode_pointer_compare {
-    bool operator() (const CFGNode* lhs, const CFGNode* rhs) const {
-        return lhs->getCfgNodeId() < rhs->getCfgNodeId();
+    bool operator() (const T& lhs, const T& rhs) const {
+        return lhs < rhs;
     }
 };
 
 
-//template <typename T>
-class Concurrent_Workset : public Concurrent_Worklist {
+template <typename T>
+class Concurrent_Workset : public Concurrent_Worklist<T> {
 
 
 private:
-//    std::unordered_set<CFGNode*> set;
-	std::set<CFGNode*, cfgnode_pointer_compare> set;
+	std::set<T, cfgnode_pointer_compare<T>> set;
 
 
 protected:
 
     void print(std::ostream& str) const {
 //    	str << "size=" << this->size() << "; ";
-		for(auto& it: set){
-			str << *it << ", ";
-		}
+//		for(auto& it: set){
+//			str << *it << ", ";
+//		}
     }
 
     void toString_sub(std::ostringstream& strm) const {
-		for(auto& it: set){
-			strm << *it << ", ";
-		}
+//		for(auto& it: set){
+//			strm << *it << ", ";
+//		}
     }
 
 
@@ -53,19 +53,17 @@ public:
         return set.empty();
     }
 
-    void push_atomic(CFGNode* item) {
-        std::unique_lock < std::mutex > lock(mutex);
+    void push(T item) {
         set.insert(item);
     }
 
-    CFGNode* pop_atomic() {
-        std::unique_lock < std::mutex > lock(mutex);
+    bool pop(T& item) {
         if (set.empty()) {
-            return nullptr;
+            return false;
         } else {
-        	CFGNode* item = *(set.begin());
+        	item = *(set.begin());
         	set.erase(item);
-            return item;
+            return true;
         }
     }
 

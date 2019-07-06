@@ -11,10 +11,10 @@
 #include "../common/CommonLibs.hpp"
 #include "cfg_node.h"
 
-//template <typename T>
+template <typename T>
 class Concurrent_Worklist{
 
-	friend std::ostream & operator<<(std::ostream & strm, const Concurrent_Worklist& worklist) {
+	friend std::ostream & operator<<(std::ostream & strm, const Concurrent_Worklist<T>& worklist) {
 		strm << "worklist: [";
 		strm << "size=" << worklist.size() << "; ";
 		worklist.print(strm);
@@ -30,9 +30,15 @@ public:
 
     virtual bool isEmpty() = 0;
 
-    virtual void push_atomic(CFGNode* item) = 0;
+    void push_atomic(T item) {
+    	std::unique_lock < std::mutex > lock(mutex);
+    	push(item);
+    }
 
-    virtual CFGNode* pop_atomic() = 0;
+    bool pop_atomic(T & item){
+    	std::unique_lock < std::mutex > lock(mutex);
+    	return pop(item);
+    }
 
     virtual int size() const = 0;
 
@@ -45,6 +51,8 @@ public:
     	return strm.str();
     }
 
+    virtual void push(T item) = 0;
+    virtual bool pop(T & item) = 0;
 
 protected:
     std::mutex mutex;

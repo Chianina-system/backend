@@ -3,13 +3,13 @@
 
 //PEGCompute::PEGCompute() = default;
 
-long PEGCompute::startCompute_delete(ComputationSet *compset, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray> &m) {
+long PEGCompute::startCompute_delete(ComputationSet *compset, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray> *m) {
     long totalAddedEdges = 0;
 
     while (true) {
         computeOneIteration(compset, grammar);
 
-        postProcessOneIteration(compset, true, &m);
+        postProcessOneIteration(compset, true, m);
 
         long realAddedEdgesPerIter = compset->getDeltasTotalNumEdges();
         totalAddedEdges += realAddedEdgesPerIter;
@@ -82,8 +82,8 @@ long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Gra
 	//for debugging
 	Logger::print_thread_info_locked("compute-one-vertex starting...\n", LEVEL_LOG_FUNCTION);
 
-    bool oldEmpty = compset->oldEmpty(index);
-    bool deltaEmpty = compset->deltaEmpty(index);
+    bool oldEmpty = compset->oldEmpty(index) || compset->getOlds()[index].isEmpty();
+    bool deltaEmpty = compset->deltaEmpty(index) || compset->getDeltas()[index].isEmpty();
 
 //    //for debugging
 //    cout << "old is empty? " << oldEmpty << ", delta is empty? " << deltaEmpty << endl;
@@ -111,10 +111,10 @@ long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Gra
     if (newEdgesNum){
         compset->setNews(index, newEdgesNum, containers->getEdgesFirstAddr(), containers->getLabelsFirstAddr());
     }
-    else{
-//        compset->clearNews(index);
-    	compset->getNews().erase(index);
-    }
+//    else{
+////        compset->clearNews(index);
+//    	compset->getNews().erase(index);
+//    }
 
     containers->clear();
     delete containers;

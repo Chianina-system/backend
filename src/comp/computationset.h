@@ -34,9 +34,9 @@ public:
     ~ComputationSet(){};
 //    void clear();
 
-    void init_add(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray>& m, const bool isConservative);
+    void init_add(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray>* m, const bool isConservative);
 
-    void init_delete(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray>& m);
+    void init_delete(PEGraph *out, std::unordered_map<vertexid_t, EdgeArray>* m);
 
     // getters and setters
     inline bool oldEmpty(vertexid_t index) {return Olds.find(index)==Olds.end();}
@@ -70,7 +70,7 @@ public:
 //    void clearDeltas(vertexid_t index);
 //    void clearNews(vertexid_t index);
 
-    std::set<vertexid_t > getVertices();
+    std::unordered_set<vertexid_t > getVertices();
 
 };
 #endif

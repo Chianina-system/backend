@@ -24,8 +24,8 @@ int main() {
 
 	CFGCompute::load("/home/zqzuo/Desktop/inlined/final", "/home/zqzuo/Desktop/inlined/id_stmt_info.txt", cfg,
 			"/home/zqzuo/Desktop/inlined/var_singleton_info.txt", singletons, graphstore, "/home/zqzuo/Desktop/inlined/rules_pointsto.txt", grammar);
-//	CFGCompute::do_worklist_synchronous(cfg, graphstore, grammar, singletons);
-	CFGCompute_asyn::do_worklist_asynchronous(cfg, graphstore, grammar, singletons);
+	CFGCompute::do_worklist_synchronous(cfg, graphstore, grammar, singletons);
+//	CFGCompute_asyn::do_worklist_asynchronous(cfg, graphstore, grammar, singletons);
 
 	delete cfg;
 	delete graphstore;

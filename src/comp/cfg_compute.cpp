@@ -15,7 +15,7 @@ bool CFGCompute::load(Partition* part, CFG* cfg, GraphStore* graphstore){
 void CFGCompute::do_worklist_synchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons){
 	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
-    Concurrent_Worklist* worklist_1 = new Concurrent_Workset();
+    Concurrent_Worklist<CFGNode*>* worklist_1 = new Concurrent_Workset<CFGNode*>();
 
     //initiate concurrent worklist
     std::vector<CFGNode*> nodes = cfg->getNodes();
@@ -31,7 +31,7 @@ void CFGCompute::do_worklist_synchronous(CFG* cfg, GraphStore* graphstore, Gramm
     //initiate a temp graphstore to maintain all the updated graphs
     GraphStore* tmp_graphstore = new NaiveGraphStore();
 
-    Concurrent_Worklist* worklist_2 = new Concurrent_Workset();
+    Concurrent_Worklist<CFGNode*>* worklist_2 = new Concurrent_Workset<CFGNode*>();
     while(!worklist_1->isEmpty()){
         //for debugging
         Logger::print_thread_info_locked("--------------------------------------------------------------- superstep starting ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
@@ -50,7 +50,7 @@ void CFGCompute::do_worklist_synchronous(CFG* cfg, GraphStore* graphstore, Gramm
 
         //update worklists
         assert(worklist_1->isEmpty());
-        Concurrent_Worklist* worklist_tmp = worklist_1;
+        Concurrent_Worklist<CFGNode*>* worklist_tmp = worklist_1;
         worklist_1 = worklist_2;
         worklist_2 = worklist_tmp;
         assert(worklist_2->isEmpty());
@@ -74,8 +74,9 @@ void CFGCompute::do_worklist_synchronous(CFG* cfg, GraphStore* graphstore, Gramm
 //}
 
 
-void CFGCompute::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* worklist_1, Concurrent_Worklist* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons){
-    while(CFGNode* cfg_node = worklist_1->pop_atomic()){
+void CFGCompute::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons){
+    CFGNode* cfg_node;
+	while(worklist_1->pop_atomic(cfg_node)){
 //    	//for debugging
 //    	cout << "\nCFG Node under processing: " << *cfg_node << endl;
     	Logger::print_thread_info_locked("----------------------- CFG Node "
@@ -316,7 +317,7 @@ void findDeletedEdges(EdgeArray & edgesToDelete, vertexid_t src, std::set<vertex
 	}
 }
 
-void CFGCompute::getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& vertices_changed, Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>& m) {
+void CFGCompute::getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& vertices_changed, Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* m) {
 	//get all the direct assign-bidirection edges into m
 	//TODO: can be optimized by checking only the adjacent list of vertex in vertices_changed?
 	for (auto it = out->getGraph().begin(); it != out->getGraph().end(); it++) {
@@ -326,10 +327,10 @@ void CFGCompute::getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& vertic
 		for (int j = 0; j < numEdges; j++) {
 			if (isDirectAssignEdges(it->first, edges[j], labels[j], vertices_changed, grammar)) {
 				// delete the direct incoming and outgoing assign edges
-				if (m.find(it->first) == m.end()) {
-					m[it->first] = EdgeArray();
+				if (m->find(it->first) == m->end()) {
+					(*m)[it->first] = EdgeArray();
 				}
-				m[it->first].addOneEdge(edges[j], labels[j]);
+				(*m)[it->first].addOneEdge(edges[j], labels[j]);
 			}
 		}
 	}
@@ -353,7 +354,7 @@ void CFGCompute::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid_t> 
     //get all the direct assign edges into m
     //TODO: can be optimized by checking only the adjacent list of vertex in vertices_changed?
     std::unordered_map<vertexid_t, EdgeArray> m;
-	getDirectAssignEdges(out, vertices_changed, grammar, m);
+	getDirectAssignEdges(out, vertices_changed, grammar, &m);
 
 	if(m.empty()){
 		//for debugging
@@ -362,10 +363,10 @@ void CFGCompute::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid_t> 
 	}
 
     // execute the edge addition operation. the oldsSet is out - m, the deltasSet is m
-    peg_compute_delete(out, grammar, m);
+    peg_compute_delete(out, grammar, &m);
 
     /* remove edges */
-    for(auto it = m.begin(); it!= m.end(); it++){
+    for(auto it = m.begin(); it!= m.end() && !(it->second.isEmpty()); it++){
         vertexid_t src = it->first;
 
         /* delete all the ('a', '-a', 'V', 'M', and other temp labels) edges associated with a vertex within vertices_changed, and
@@ -458,7 +459,7 @@ void CFGCompute::must_alias(vertexid_t x, PEGraph *out, std::set<vertexid_t> &ve
 	}
 }
 
-void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>& m) {
+void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m) {
     // add assgin edge based on stmt, (out,assign edge) -> compset
     ComputationSet *compset = new ComputationSet();
     compset->init_delete(out, m);
@@ -477,7 +478,7 @@ void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unorder
     delete compset;
 }
 
-void CFGCompute::removeExistingEdges(const EdgeArray& edges_src, vertexid_t src, PEGraph* out, std::unordered_map<vertexid_t, EdgeArray>& m) {
+void CFGCompute::removeExistingEdges(const EdgeArray& edges_src, vertexid_t src, PEGraph* out, std::unordered_map<vertexid_t, EdgeArray>* m) {
 	//remove the existing edges
 	int n1 = edges_src.getSize();
 	auto* edges = new vertexid_t[n1];
@@ -486,14 +487,14 @@ void CFGCompute::removeExistingEdges(const EdgeArray& edges_src, vertexid_t src,
 			edges_src.getEdges(), edges_src.getLabels(), out->getNumEdges(src),
 			out->getEdges(src), out->getLabels(src));
 	if (len) {
-		m[src] = EdgeArray();
-		m[src].set(len, edges, labels);
+		(*m)[src] = EdgeArray();
+		(*m)[src].set(len, edges, labels);
 	}
 	delete[] edges;
 	delete[] labels;
 }
 
-void CFGCompute::getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>& m){
+void CFGCompute::getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m){
     //'a', '-a', 'd', '-d', and self-loop edges
     vertexid_t src = stmt->getSrc();
     EdgeArray edges_src = EdgeArray();
@@ -558,14 +559,14 @@ void CFGCompute::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
 	bool isConservative = true;
 
 	std::unordered_map<vertexid_t, EdgeArray> m;
-	getDirectAddedEdges(out, stmt, grammar, m);
+	getDirectAddedEdges(out, stmt, grammar, &m);
 	if(m.empty() && !isConservative){// no new edges directly added
 		return;
 	}
 
     // add assign edge based on stmt, (out,assign edge) -> compset
     ComputationSet *compset = new ComputationSet();
-    compset->init_add(out, m, isConservative);
+    compset->init_add(out, &m, isConservative);
 
 //    //for debugging
 //    cout << *compset << endl;

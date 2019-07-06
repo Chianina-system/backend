@@ -10,7 +10,7 @@
 void CFGCompute_asyn::do_worklist_asynchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons) {
 	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
-    Concurrent_Worklist* worklist = new Concurrent_Workset();
+    Concurrent_Worklist<CFGNode*>* worklist = new Concurrent_Workset<CFGNode*>();
 
     //initiate concurrent worklist
     std::vector<CFGNode*> nodes = cfg->getNodes();
@@ -38,8 +38,9 @@ void CFGCompute_asyn::do_worklist_asynchronous(CFG* cfg, GraphStore* graphstore,
 }
 
 
-void CFGCompute_asyn::compute_asynchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist* worklist, Grammar* grammar, Singletons* singletons){
-    while(CFGNode* cfg_node = worklist->pop_atomic()){
+void CFGCompute_asyn::compute_asynchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist, Grammar* grammar, Singletons* singletons){
+	CFGNode* cfg_node;
+    while(worklist->pop_atomic(cfg_node)){
     	//for debugging
 //    	cout << "\nCFG Node under processing: " << *cfg_node << endl;
     	Logger::print_thread_info_locked("----------------------- CFG Node "

@@ -11,18 +11,16 @@
 #include "../common/CommonLibs.hpp"
 #include "concurrent_worklist.h"
 
-//template <typename T>
-class Concurrent_Workqueue: public Concurrent_Worklist {
+template <typename T>
+class Concurrent_Workqueue: public Concurrent_Worklist<T> {
 
 private:
-    std::queue<CFGNode*> queue;
+    std::queue<T> queue;
 
 
 protected:
     void print(std::ostream& str) const {
-//		for(auto& it: queue){
-//			cout << it << ", ";
-//		}
+
     }
 
     void toString_sub(std::ostringstream& strm) const {
@@ -39,19 +37,17 @@ public:
         return queue.empty();
     }
 
-    void push_atomic(CFGNode* item) {
-        std::unique_lock < std::mutex > lock(mutex);
+    void push(T item) {
         queue.push(item);
     }
 
-    CFGNode* pop_atomic() {
-        std::unique_lock < std::mutex > lock(mutex);
+    bool pop(T & item) {
         if (queue.empty()) {
-            return nullptr;
+            return false;
         } else {
-        	CFGNode* item = queue.front();
+        	item = queue.front();
             queue.pop();
-            return item;
+            return true;
         }
     }
 

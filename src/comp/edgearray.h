@@ -41,6 +41,7 @@ public:
     inline vertexid_t *getEdges() const{return edges;}
     inline label_t* getLabels() const{return labels;}
     inline int getSize() const{return size;}
+    inline bool isEmpty(){ return size == 0;}
 
     void set(int size,vertexid_t *edges,label_t *labels);
 
