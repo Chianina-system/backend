@@ -8,6 +8,8 @@
 
 static const char *const filePath = "../lib/file/intSets.txt";
 
+static const int support = 2;
+
 #include "graphstore.h"
 #include "art.h"
 
@@ -50,12 +52,14 @@ private:
 
     void retrieveSet(set<int> &graphSet, set<int> &realEdgeSet);
 
-    set<int> frequentItemsetMining(int min_support, vector<set<int>> &graphs);
+    set<int> frequentItemsetMining_closed(int min_support, vector<set<int>> &graphs);
+
+    set<int> frequentItemsetMining_minimum(int min_support, vector<set<int>> &graphs);
 
 
     void writeToFile(vector<set<int>> &graphs);
 
-    vector<set<int>> readFromFile();
+    set<int> readFromFile();
 
 
 };

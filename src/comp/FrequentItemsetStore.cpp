@@ -101,17 +101,29 @@ void FrequentItemsetStore::retrieveSet(set<int> &graphSet, set<int> &realEdgeSet
 
 
 // still under coding
-set<int> FrequentItemsetStore::frequentItemsetMining(int min_support, vector<set<int>> &graphs) {
+set<int> FrequentItemsetStore::frequentItemsetMining_closed(int min_support, vector<set<int>> &graphs) {
     writeToFile(graphs);
 
-    vector<set<int>> v = readFromFile();
-    return set<int>();
+    system("../lib/eclat -tc ../lib/file/test ../lib/file/out");            // should we stop for a while?
+
+    set<int> v = readFromFile();            // only read the first line
+    return v;
 }
+
+set<int> FrequentItemsetStore::frequentItemsetMining_minimum(int min_support, vector<set<int>> &graphs) {
+    writeToFile(graphs);
+
+    system("../lib/eclat -tm ../lib/file/test ../lib/file/out");            // should we stop for a while?
+
+    set<int> v = readFromFile();            // only read the first line
+    return v;
+}
+
 
 FrequentItemsetStore::FrequentItemsetStore() : frequentItemsetNum(0), edgeId(0) {}
 
 FrequentItemsetStore::FrequentItemsetStore(vector<set<int>> graphs) {
-    set<int> frequentItemset = frequentItemsetMining(2, graphs);       //compute the frequent itemset
+    set<int> frequentItemset = frequentItemsetMining_closed(support, graphs);       //compute the frequent itemset
     while (!frequentItemset.empty()) {
         for (auto &graph: graphs) {
             bool flag = true;           //check if the graphSet need to update
@@ -134,7 +146,7 @@ FrequentItemsetStore::FrequentItemsetStore(vector<set<int>> graphs) {
                 graph.insert(newEdge);
             }
         }
-        frequentItemset = frequentItemsetMining(2, graphs);
+        frequentItemset = frequentItemsetMining_closed(support, graphs);
     }
 }
 
@@ -151,7 +163,7 @@ void FrequentItemsetStore::writeToFile(vector<set<int>> &graphs) {
     output.close();
 }
 
-vector<set<int>> FrequentItemsetStore::readFromFile() {
+set<int> FrequentItemsetStore::readFromFile() {
     vector<set<int>> graphs;
 
     ifstream fin;
@@ -171,5 +183,6 @@ vector<set<int>> FrequentItemsetStore::readFromFile() {
     }
     fin.close();
 }
+
 
 
