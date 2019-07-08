@@ -47,14 +47,12 @@ public:
         }
     }
 
+    static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds);
 
 private:
     static void compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons);
 
 //    static void update_GraphStore(GraphStore* graphstore, GraphStore* tmp_graphstore);
-
-    static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds);
-
 
     static PEGraph* transfer_copy(PEGraph* in, Stmt* stmt,Grammar* grammar, Singletons* singletons);
 
