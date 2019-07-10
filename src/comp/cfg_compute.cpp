@@ -602,24 +602,24 @@ void CFGCompute::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar) {
 	Logger::print_thread_info_locked("peg-compute-add finished.\n", LEVEL_LOG_FUNCTION);
 }
 
-// 使用tab键分割
-bool CFGCompute::load(const string& file_cfg, const string& file_stmt, CFG *cfg, const string& file_singleton, Singletons* singletons, GraphStore *graphstore, const string& file_grammar, Grammar * grammar) {
-	cfg->loadCFG(file_cfg, file_stmt);
-	cout << *cfg;
-
-	graphstore->loadGraphStore(file_singleton);
-	cout << *graphstore << endl;
-
-	singletons->loadSingletonSet(file_singleton);
-	cout << *singletons << endl;
-
-    /* TODO: load grammar from file
-     * grammar->loadGrammar(filename);
-     */
-    grammar->loadGrammar(file_grammar.c_str());
-
-    return true;
-}
+//// 使用tab键分割
+//bool CFGCompute::load(const string& file_cfg, const string& file_stmt, CFG *cfg, const string& file_singleton, Singletons* singletons, GraphStore *graphstore, const string& file_grammar, Grammar * grammar) {
+//	cfg->loadCFG(file_cfg, file_stmt);
+//	cout << *cfg;
+//
+//	graphstore->loadGraphStore(file_singleton);
+//	cout << *graphstore << endl;
+//
+//	singletons->loadSingletonSet(file_singleton);
+//	cout << *singletons << endl;
+//
+//    /* TODO: load grammar from file
+//     * grammar->loadGrammar(filename);
+//     */
+//    grammar->loadGrammar(file_grammar.c_str());
+//
+//    return true;
+//}
 
 
 

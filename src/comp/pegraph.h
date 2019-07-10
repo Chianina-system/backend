@@ -116,6 +116,14 @@ public:
     	return strm.str();
     }
 
+    void write_readable(std::ofstream& os){
+    	os << graph.size() << "\t";
+    	for(auto& it: graph){
+    		os << it.first << "\t";
+    		it.second.write_readable(os);
+    	}
+    }
+
 
 private:
     std::unordered_map<vertexid_t, EdgeArray> graph;

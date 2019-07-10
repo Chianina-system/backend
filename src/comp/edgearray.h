@@ -55,6 +55,16 @@ public:
     bool equals(EdgeArray* another) const ;
 
 
+    void write_readable(std::ofstream& os){
+    	os << size << "\t";
+    	os << capacity << "\t";
+    	for(int i = 0; i < size; i++){
+    		os << edges[i] << "\t";
+    		os << labels[i] << "\t";
+    	}
+    }
+
+
 private:
     vertexid_t *edges;
     label_t *labels;

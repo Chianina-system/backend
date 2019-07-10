@@ -10,7 +10,7 @@
 
 #include "cfg_node.h"
 
-typedef unsigned Partition;
+
 
 class CFG{
 
@@ -31,8 +31,7 @@ public:
     virtual std::vector<CFGNode*> getNodes() const = 0;
     virtual std::vector<CFGNode*> getEntryNodes() const = 0;
     virtual void loadCFG(const string& file_cfg, const string& file_stmt) = 0;
-
-
+//    virtual void loadCFG(const string& file_cfg, const string& file_stmt, const string& file_mirrors_in, const string& file_mirrors_out) = 0;
 
 
 protected:

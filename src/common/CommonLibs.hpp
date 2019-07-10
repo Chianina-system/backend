@@ -56,6 +56,8 @@
 #include <sys/resource.h>
 
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 using std::cout;
 using std::endl;
@@ -86,8 +88,11 @@ typedef int vertexid_t;
 typedef char label_t;
 
 typedef int PEGraph_Pointer;
+typedef unsigned Partition;
 
 #define GRAMMAR_STR_LEN 36
+
+#define readable 1
 
 
 #define IS_PEGCOMPUTE_PARALLEL 1

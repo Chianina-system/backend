@@ -19,13 +19,33 @@ class NaiveGraphStore : public GraphStore {
 public:
 	NaiveGraphStore(){}
 
-    void loadGraphStore(const string& file) override {
-
-	}
 
 
     ~NaiveGraphStore(){
     	clear();
+    }
+
+
+    void loadGraphStore(const string& file, const string& folder_in) {
+    	//graphstore file
+    	this->deserialize(file);
+
+    	//updated graphstore
+        DIR* dirp = opendir(folder_in.c_str());
+        struct dirent * dp;
+        while ((dp = readdir(dirp)) != NULL) {
+        	this->deserialize(dp->d_name);
+        }
+        closedir(dirp);
+    }
+
+
+    void serialize(const string& file){
+
+    }
+
+    void deserialize(const string& file){
+
     }
 
 

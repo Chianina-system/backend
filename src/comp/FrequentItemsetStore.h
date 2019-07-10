@@ -29,7 +29,8 @@ private:
 
     void update_locked(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
 
-    void loadGraphStore(const string &file) override;
+//    void loadGraphStore(const string &file) override;
+    void loadGraphStore(const string& file, const string& folder_in) override;
 
 private:
     std::unordered_map<PEGraph_Pointer, std::set<int>> intToEdgeSet;

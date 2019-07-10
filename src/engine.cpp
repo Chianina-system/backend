@@ -5,22 +5,68 @@
  *      Author: zqzuo
  */
 
-#include <iostream>
+//#include <iostream>
 #include "comp/cfg_compute_asyn.h"
-
-
+#include "comp/cfg_compute_ooc.h"
+//#include "../preproc/preprocess.h"
 using namespace std;
 
+/* function declaration */
+void preprocess();
+Partition schedule();
+void compute(Partition partition, Grammar* grammar);
+void compute_inmemory();
 
 
 int main() {
+
+	return 0;
+}
+
+
+
+void compute(Partition partition, Grammar* grammar){
+	CFG *cfg = new CFG_map_outcore();
+	GraphStore *graphstore = new NaiveGraphStore();
+	Singletons * singletons = new Singletons();
+    Concurrent_Worklist<CFGNode*>* actives = new Concurrent_Workset<CFGNode*>();
+
+    CFGCompute_ooc::load(partition, cfg, singletons, graphstore);
+    CFGCompute_ooc::do_worklist_ooc(cfg, graphstore, grammar, singletons, actives);
+	CFGCompute_ooc::pass(partition, cfg, graphstore, actives);
+
+	delete cfg;
+	delete graphstore;
+	delete actives;
+	delete singletons;
+
+}
+
+void run(){
+	/* TODO: load grammar from file grammar->loadGrammar(filename) */
+	Grammar* grammar = new Grammar();
+	grammar->loadGrammar("");
+
+	//preprocessing
+	preprocess();
+
+	//iterative computation
+	while(true){
+		Partition partition = schedule();
+
+		compute(partition, grammar);
+	}
+
+	delete grammar;
+}
+
+
+
+void compute_inmemory(){
 	CFG *cfg = new CFG_map();
 	GraphStore *graphstore = new NaiveGraphStore();
 	Singletons * singletons = new Singletons();
     Grammar *grammar = new Grammar();
-
-//	Partition *partition = nullptr;
-//	cout << cfg << endl;
 
 	CFGCompute::load("/home/zqzuo/Desktop/inlined/final", "/home/zqzuo/Desktop/inlined/id_stmt_info.txt", cfg,
 			"/home/zqzuo/Desktop/inlined/var_singleton_info.txt", singletons, graphstore, "/home/zqzuo/Desktop/inlined/rules_pointsto.txt", grammar);
@@ -31,11 +77,13 @@ int main() {
 	delete graphstore;
 	delete grammar;
 
-//	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
+}
+
+void preprocess(){
+
+}
+
+Partition schedule(){
 	return 0;
 }
 
-
-void run(){
-
-}

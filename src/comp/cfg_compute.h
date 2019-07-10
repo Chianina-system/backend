@@ -10,6 +10,7 @@
 
 #include "graphstore.h"
 #include "cfg_map.h"
+#include "cfg_map_outcore.h"
 #include "naive_graphstore.h"
 #include "concurrent_workset.h"
 #include "concurrent_workqueue.h"
@@ -28,7 +29,25 @@ class CFGCompute {
 public:
     static bool load(Partition* part, CFG* cfg, GraphStore* graphstore);
 
-    static bool load(const string& file_cfg, const string& file_stmt, CFG *cfg, const string& file_singleton, Singletons* singletons, GraphStore *graphstore, const string& file_grammar, Grammar * grammar);
+    static bool load(const string& file_cfg, const string& file_stmt, CFG *cfg,
+    		const string& file_singleton, Singletons* singletons, GraphStore *graphstore, const string& file_grammar, Grammar * grammar){
+    	cfg->loadCFG(file_cfg, file_stmt);
+    	cout << *cfg;
+
+//    	graphstore->loadGraphStore(file_singleton);
+//    	cout << *graphstore << endl;
+
+    	singletons->loadSingletonSet(file_singleton);
+    	cout << *singletons << endl;
+
+        /* TODO: load grammar from file
+         * grammar->loadGrammar(filename);
+         */
+        grammar->loadGrammar(file_grammar.c_str());
+
+        return true;
+    }
+
 
     static void do_worklist_synchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons); //worklist algorithm in parallel
 

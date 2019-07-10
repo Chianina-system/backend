@@ -4,7 +4,7 @@
 
 #include "FrequentItemsetStore.h"
 
-void FrequentItemsetStore::loadGraphStore(const string &file_singleton) {
+void FrequentItemsetStore::loadGraphStore(const string& file, const string& file_in) {
 
 }
 

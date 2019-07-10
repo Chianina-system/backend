@@ -16,7 +16,7 @@ ART::~ART() {
 
 }
 
-void ART::loadGraphStore(const string &file_singleton) {
+void ART::loadGraphStore(const string& file, const string& file_in) {
 
 }
 

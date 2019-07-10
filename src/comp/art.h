@@ -137,7 +137,8 @@ public:
 
     vector<Edge *> convertToVector(PEGraph *peGraph);
 
-    void loadGraphStore(const string &file) override;
+//    void loadGraphStore(const string &file) override;
+    void loadGraphStore(const string& file, const string& folder_in) override;
 
     string toString() override;
 

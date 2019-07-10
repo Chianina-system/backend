@@ -36,7 +36,7 @@ public:
 
     virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
 
-    virtual void loadGraphStore(const string& file) = 0;
+    virtual void loadGraphStore(const string& file, const string& file_in) = 0;
 
     virtual void addOneGraph(PEGraph_Pointer pointer, PEGraph* graph) = 0;
 
@@ -46,6 +46,9 @@ public:
 
     virtual void clear() = 0;
 
+//    virtual void deserialize(const string& file) = 0;
+//
+//    virtual void serialize(const string& file) = 0;
 
 
     virtual std::string toString(){

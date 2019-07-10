@@ -40,7 +40,7 @@ public:
     }
 
 
-    void loadCFG(const string& file_cfg, const string& file_stmt) override {
+    void loadCFG(const string& file_cfg, const string& file_stmt) {
 		// handle the stmt file
 		std::ifstream fin;
 		fin.open(file_stmt);
@@ -113,6 +113,12 @@ public:
 		fin.close();
     }
 
+//    void loadCFG(const string& file_cfg, const string& file_stmt, const string& file_mirrors_in, const string& file_mirrors_out) {
+//    	cout << "invalid function call!" << endl;
+//    	exit(EXIT_FAILURE);
+//    }
+
+
     std::vector<CFGNode*> getPredesessors(const CFGNode* node) const override{
         auto it = predes.find(node);
         if(it != predes.end()){
@@ -179,10 +185,10 @@ public:
     			str << *node << "\t" << *n << "\n";
     		}
     	}
-
     }
 
-private:
+
+protected:
 
     std::vector<CFGNode*> nodes;
 
