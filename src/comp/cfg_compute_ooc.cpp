@@ -32,6 +32,7 @@ bool CFGCompute_ooc::load(Partition partition, CFG *cfg_, Singletons* singletons
 	return true;
 }
 
+//append the activated nodes into the corresponding file
 void store_actives(const string& file_actives, std::unordered_set<CFGNode*>& set){
 	if(readable){
 		ofstream myfile;
@@ -48,11 +49,16 @@ void store_actives(const string& file_actives, std::unordered_set<CFGNode*>& set
 	}
 }
 
+void write_readable(ofstream& myfile, PEGraph_Pointer pointer, PEGraph* graph) {
+	myfile << pointer << "\t";
+	graph->write_readable(myfile);
+}
+
 //append the updated in_mirrors into the corresponding file
-void store_graphs_in(const string& folder_graphs_in, CFG* cfg, GraphStore* graphstore, std::unordered_set<CFGNode*>& set){
+void store_graphs_in(const string& file_graphs_in, CFG* cfg, GraphStore* graphstore, std::unordered_set<CFGNode*>& set){
 	if(readable){
 		ofstream myfile;
-		myfile.open(folder_graphs_in, std::ofstream::out | std::ofstream::app);
+		myfile.open(file_graphs_in, std::ofstream::out | std::ofstream::app);
 		if (myfile.is_open()){
 			for(auto& it: set){
 				CFGNode* node_dst = it;
@@ -60,7 +66,8 @@ void store_graphs_in(const string& folder_graphs_in, CFG* cfg, GraphStore* graph
 				for(auto& n: nodes){
 					auto pointer = n->getOutPointer();
 					PEGraph* graph = graphstore->retrieve(pointer);
-					graph->write_readable(myfile);
+					//write a pegraph into file
+					write_readable(myfile, pointer, graph);
 				}
 			}
 
@@ -96,8 +103,8 @@ void CFGCompute_ooc::pass(Partition partition, CFG* cfg, GraphStore* graphstore,
 		Partition part = it->first;
 		const string& file_actives = "actives_" + part;
 		store_actives(file_actives, it->second);
-		const string& folder_graphs_in = "graphstore_in_" + std::to_string(part) + "/" + std::to_string(partition);
-		store_graphs_in(folder_graphs_in, cfg, graphstore, it->second);
+		const string& file_graphs_in = "graphstore_in_" + std::to_string(part) + "/" + std::to_string(partition);
+		store_graphs_in(file_graphs_in, cfg, graphstore, it->second);
 	}
 
 }

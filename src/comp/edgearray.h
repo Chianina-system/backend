@@ -7,6 +7,7 @@
 #include "../utility/Logger.hpp"
 
 #define CAPACITY_VALUE 8
+//using namespace std;
 
 class EdgeArray {
 
@@ -61,6 +62,22 @@ public:
     	for(int i = 0; i < size; i++){
     		os << edges[i] << "\t";
     		os << labels[i] << "\t";
+    	}
+    }
+
+    void load_readable(std::stringstream& stream){
+    	std::string item;
+    	stream >> item;
+    	this->size = atoi(item.c_str());
+    	stream >> item;
+    	this->capacity = atoi(item.c_str());
+    	this->edges = new vertexid_t[size];
+    	this->labels = new label_t[size];
+    	for(int i = 0; i < size; i++){
+        	stream >> item;
+        	this->edges[i] = atoi(item.c_str());
+        	stream >> item;
+        	this->labels[i] = (char) atoi(item.c_str());
     	}
     }
 

@@ -20,9 +20,45 @@ public:
 	NaiveGraphStore(){}
 
 
-
     ~NaiveGraphStore(){
     	clear();
+    }
+
+
+    void load_readable(const string& file){
+	    std::ifstream fin;
+	    fin.open(file);
+	    if(!fin) {
+	        cout << "can't load file_singleton: " << file << endl;
+	        exit (EXIT_FAILURE);
+	    }
+
+	    std::string line;
+	    while (getline(fin, line) && line != "") {
+	        std::stringstream stream(line);
+	        std::string id;
+	        while(true){
+				stream >> id;
+				PEGraph_Pointer graph_pointer = atoi(id.c_str());
+				PEGraph* pegraph = new PEGraph();
+				stream >> id;
+				int size = atoi(id.c_str());
+				for(int i = 0; i < size; ++i){
+					stream >> id;
+					vertexid_t src = atoi(id.c_str());
+					//load an edgearray
+					EdgeArray edges = EdgeArray();
+					edges.load_readable(stream);
+					pegraph->graph[src] = edges;
+				}
+				if(map.find(graph_pointer) != map.end()){
+		//    		Logger::print_thread_info_locked("deleting +++++++++++++++++++++++ " +  to_string((long) map[graph_pointer]) + " +++++++++++++++++++++++\n", LEVEL_LOG_GRAPHSTORE) ;
+					delete map[graph_pointer];
+				}
+				map[graph_pointer] = pegraph;
+	        }
+	    }
+	    fin.close();
     }
 
 
@@ -34,7 +70,8 @@ public:
         DIR* dirp = opendir(folder_in.c_str());
         struct dirent * dp;
         while ((dp = readdir(dirp)) != NULL) {
-        	this->deserialize(dp->d_name);
+//        	this->deserialize(dp->d_name);
+        	this->load_readable(dp->d_name);
         }
         closedir(dirp);
     }
