@@ -104,12 +104,14 @@ struct Node {
     }
 };
 
-class ART : public GraphStore {
+
+
+class ART_LinkList : public GraphStore {
 
 public:
-    ART();
+    ART_LinkList();
 
-    ~ART();
+    ~ART_LinkList();
 
     PEGraph *retrieve(PEGraph_Pointer graph_pointer) override;
 
@@ -118,6 +120,14 @@ public:
     void update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
 
     void update_locked(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
+
+    void addOneGraph(PEGraph_Pointer pointer, PEGraph *graph) override;
+
+    void update_graphs(GraphStore *another) override;
+
+    void clearEntryOnly() override;
+
+    void clear() override;
 
     Node *insert(vector<Edge *> &v);
 
@@ -150,7 +160,7 @@ protected:
 
 private:
     Node *root = new Node();
-    std::unordered_map<PEGraph_Pointer, Node *> m;
+    std::unordered_map<PEGraph_Pointer, Node *> mapToLeafNode;
 //    std::set<vertexid_t> singletonSet;
 
 };

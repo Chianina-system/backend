@@ -11,7 +11,7 @@ static const char *const filePath = "../lib/file/intSets.txt";
 static const int support = 2;
 
 #include "graphstore.h"
-#include "art.h"
+#include "art_linklist.h"
 
 
 
