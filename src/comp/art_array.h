@@ -48,8 +48,6 @@ struct Edge {
         return label < rhs.label;
     }
 
-
-
     bool operator!=(const Edge &rhs) const {
         return !(rhs == *this);
     }
@@ -74,21 +72,18 @@ namespace std {
                    ^ (hash<char>()(e.label) << 1);
         }
     };
-
 }
 
 struct Node {
     Node();
 
     ~Node(){
-        delete data;        // not sure
+        delete data;
      }
 
     Edge *data;
     Node *parent;
     vector<Node*> children;
-
-    Node(Edge *data, Node *parent, vector<Node *> children) : data(data), parent(parent), children(std::move(children)) {}
 
     bool equal(Node *other) {
         if (!other)return false;
@@ -99,25 +94,29 @@ struct Node {
         if (!other)return false;
         return this->data->equal(other);
     }
+
+    void insert_binarySearch(Node *child) {
+        this->children.insert(lower_bound(this->children.begin(), this->children.end(), child), child);
+    }
 };
 
-class art_array : public GraphStore{
+class ART_array : public GraphStore{
 public:
     PEGraph *retrieve_locked(PEGraph_Pointer graph_pointer) override;
 
-    art_array();
+    ART_array();
 
-    virtual ~art_array();
+    virtual ~ART_array();
 
     PEGraph *retrieve(PEGraph_Pointer graph_pointer) override;
 
-    void update_locked(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
+    void update_locked(PEGraph_Pointer graph_pointer, PEGraph *peGraph) override;
 
-    void update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
+    void update(PEGraph_Pointer graph_pointer, PEGraph *peGraph) override;
 
     void loadGraphStore(const string &file) override;
 
-    void addOneGraph(PEGraph_Pointer pointer, PEGraph *graph) override;
+    void addOneGraph(PEGraph_Pointer pointer, PEGraph *peGraph) override;
 
     void update_graphs(GraphStore *another) override;
 
@@ -134,8 +133,9 @@ protected:
 
 private:
     Node *root;
-    std::unordered_map<PEGraph_Pointer ,Node *> mapToLeafNode;
-    std::unordered_map<Node*, int> mapToLeafNum;
+    unordered_map<PEGraph_Pointer ,Node *> mapToLeafNode;
+    unordered_map<Node*, int> mapToLeafNum;
+    unordered_map<Edge, int> sortBase;
 
     void del(Node *leaf);
 
@@ -152,6 +152,8 @@ private:
     static PEGraph *convertToPEGraph(vector<Edge *> &v);
 
     static void postOrderDelete_iteration(Node *root);
+
+    void edgeSort(vector<vector<Edge *>> &graphs);
 };
 
 

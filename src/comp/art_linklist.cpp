@@ -132,15 +132,20 @@ void ART_LinkList::del(Node *leaf) {
     }
 }
 
-// 卧槽,我忘记当时怎么实现的了
-void ART_LinkList::DFS(Node *node) {
-
+// TODO
+void ART_LinkList::DFS(Node *node, Node *head) {
     if (node->children) {
-        DFS(node->children);
+        head = node->children;
+        DFS(node->children, head);
     }
     if (node->next) {
-        DFS(node->next);
+        DFS(node->next, head);
     }
+    //node上移一层
+    node = node->parent;
+    //析构从head开始的一整个链表
+    deleteLinkList(head);
+    if(node == root) delete root;
 
 }
 
@@ -252,7 +257,20 @@ void ART_LinkList::clearEntryOnly() {
 }
 
 void ART_LinkList::clear() {
-    DFS(root);
+
+
+    DFS(root, nullptr);
+
+}
+
+void ART_LinkList::deleteLinkList(Node *head) {
+    Node *temp;
+    while(head->next != nullptr){
+        temp=head->next;
+        delete head;
+        head = temp;
+    }
+    delete head;
 }
 
 

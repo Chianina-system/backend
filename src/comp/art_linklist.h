@@ -89,6 +89,10 @@ struct Node {
 
     Node() : parent(nullptr), children(nullptr), data(nullptr), next(nullptr), leafNum(0) {};
 
+    ~Node(){
+        delete data;
+    }
+
     bool equal(Node *other) {
         if (!other)return false;
         return this->data->equal(other->data);
@@ -102,7 +106,10 @@ struct Node {
     void toString() {
         cout << this->data->src << " " << this->data->label << " " << this->data->des << endl;
     }
+
 };
+
+
 
 
 
@@ -137,7 +144,7 @@ public:
 
     static void del(Node *leaf);
 
-    void DFS(Node *node);
+    void DFS(Node *node, Node *head);
 
     void edgeSort(vector<vector<Edge *>> &edges);
 
@@ -163,6 +170,7 @@ private:
     std::unordered_map<PEGraph_Pointer, Node *> mapToLeafNode;
 //    std::set<vertexid_t> singletonSet;
 
+    void deleteLinkList(Node *head);
 };
 
 
