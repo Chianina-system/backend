@@ -6,21 +6,22 @@
  */
 
 #include "cfg_compute_ooc.h"
+//#include "context.h"
 
 
-bool CFGCompute_ooc::load(Partition partition, CFG *cfg_, Singletons* singletons, GraphStore *graphstore) {
-	const string filename_cfg = "cfg_" + partition;
-	const string filename_mirrors_in = "mirrors_in_" + partition;
-	const string filename_mirrors_out = "mirrors_out" + partition;
-	const string foldername_actives = "actives_" + partition;
-	const string filename_stmt = "stmt_" + partition;
-	const string filename_singleton = "singleton_" + partition;
-	const string filename_graphs = "graphstore_" + partition;
-	const string foldername_graphs_in = "graphstore_in_" + partition;
+bool CFGCompute_ooc::load(Partition part, CFG *cfg_, Singletons* singletons, GraphStore *graphstore) {
+	string partition = to_string(part);
+	const string filename_cfg = Context::file_cfg + partition;
+	const string filename_mirrors_in = Context::folder_mirrors_in + partition;
+	const string filename_mirrors_out = Context::folder_mirrors_out + partition;
+	const string foldername_actives = Context::folder_actives + partition;
+	const string filename_stmt = Context::file_stmts + partition;
+	const string filename_singleton = Context::file_singletons + partition;
+	const string filename_graphs = Context::file_graphstore + partition;
+	const string foldername_graphs_in = Context::folder_graphs_in + partition;
 
 	CFG_map_outcore* cfg = dynamic_cast<CFG_map_outcore*>(cfg_);
-	cfg->loadCFG_ooc(filename_cfg, filename_stmt, filename_mirrors_in,
-			filename_mirrors_out, foldername_actives);
+	cfg->loadCFG_ooc(filename_cfg, filename_stmt, filename_mirrors_in, filename_mirrors_out, foldername_actives);
 	cout << *cfg;
 
 	graphstore->loadGraphStore(filename_graphs, foldername_graphs_in);
@@ -49,28 +50,31 @@ void store_actives(const string& file_actives, std::unordered_set<CFGNode*>& set
 	}
 }
 
-void write_readable(ofstream& myfile, PEGraph_Pointer pointer, PEGraph* graph) {
-	myfile << pointer << "\t";
-	graph->write_readable(myfile);
-}
+
 
 //append the updated in_mirrors into the corresponding file
 void store_graphs_in(const string& file_graphs_in, CFG* cfg, GraphStore* graphstore, std::unordered_set<CFGNode*>& set){
+	std::unordered_set<CFGNode*> s;
+	for(auto& it: set){
+		CFGNode* node_dst = it;
+		auto nodes = cfg->getPredesessors(node_dst);
+		for(auto& n: nodes){
+			s.insert(n);
+		}
+	}
+
 	if(readable){
 		ofstream myfile;
 		myfile.open(file_graphs_in, std::ofstream::out | std::ofstream::app);
 		if (myfile.is_open()){
-			for(auto& it: set){
-				CFGNode* node_dst = it;
-				auto nodes = cfg->getPredesessors(node_dst);
-				for(auto& n: nodes){
-					auto pointer = n->getOutPointer();
-					PEGraph* graph = graphstore->retrieve(pointer);
-					//write a pegraph into file
-					write_readable(myfile, pointer, graph);
-				}
+			for (auto& n : s) {
+				auto pointer = n->getOutPointer();
+				PEGraph* graph = graphstore->retrieve(pointer);
+				//write a pegraph into file
+		    	myfile << pointer << "\t";
+		    	graph->write_readable(myfile);
+		    	myfile << "\n";
 			}
-
 			myfile.close();
 		}
 	}
@@ -79,17 +83,17 @@ void store_graphs_in(const string& file_graphs_in, CFG* cfg, GraphStore* graphst
 	}
 }
 
-void CFGCompute_ooc::pass(Partition partition, CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* actives){
+void CFGCompute_ooc::pass(Partition partition, CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* actives, Context* context){
 	//store all the graphs into file
 	const string filename_graphs = "graphstore_" + partition;
 	NaiveGraphStore* graphstore_naive = dynamic_cast<NaiveGraphStore*>(graphstore);
-	graphstore_naive->deserialize(filename_graphs);
+	graphstore_naive->serialize(filename_graphs);
 
 	//divide all the activated nodes into multiple partitions
 	std::unordered_map<Partition, std::unordered_set<CFGNode*>> map;
     CFGNode* cfg_node;
 	while(actives->pop(cfg_node)){
-		Partition partition = Preprocess::getPartition(cfg_node);
+		Partition partition = context->getPartition(cfg_node);
 		if(map.find(partition) != map.end()){
 			map[partition].insert(cfg_node);
 		}
@@ -101,9 +105,9 @@ void CFGCompute_ooc::pass(Partition partition, CFG* cfg, GraphStore* graphstore,
 	//get the corresponding partition
 	for(auto it = map.begin(); it != map.end(); ++it){
 		Partition part = it->first;
-		const string& file_actives = "actives_" + part;
+		const string file_actives = Context::folder_actives + to_string(part);
 		store_actives(file_actives, it->second);
-		const string& file_graphs_in = "graphstore_in_" + std::to_string(part) + "/" + std::to_string(partition);
+		const string file_graphs_in = Context::folder_graphs_in + std::to_string(part) + "/" + std::to_string(partition);
 		store_graphs_in(file_graphs_in, cfg, graphstore, it->second);
 	}
 

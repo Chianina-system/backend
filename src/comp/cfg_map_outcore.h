@@ -9,6 +9,7 @@
 #define COMP_CFG_MAP_OUTCORE_H_
 
 #include "cfg_map.h"
+#include "../utility/FileUtil.hpp"
 
 class CFG_map_outcore : public CFG_map {
 
@@ -154,6 +155,9 @@ public:
 			}
 		}
 		fin.close();
+
+		//delete the actives file
+		FileUtil::delete_file(file_actives);
 
 	}
 

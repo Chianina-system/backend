@@ -124,6 +124,19 @@ public:
     	}
     }
 
+    void load_readable(std::stringstream& stream){
+        std::string id;
+		stream >> id;
+		int size = atoi(id.c_str());
+		for (int i = 0; i < size; ++i) {
+			stream >> id;
+			vertexid_t src = atoi(id.c_str());
+			//load an edgearray
+			this->graph[src] = EdgeArray();
+			this->graph[src].load_readable(stream);
+		}
+    }
+
 
 private:
     std::unordered_map<vertexid_t, EdgeArray> graph;

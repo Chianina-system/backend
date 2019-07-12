@@ -23,7 +23,7 @@ public:
 
     static bool load(Partition partition, CFG *cfg, Singletons* singletons, GraphStore *graphstore);
 
-    static void pass(Partition partition, CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* actives);
+    static void pass(Partition partition, CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* actives, Context* context);
 
 
 private:

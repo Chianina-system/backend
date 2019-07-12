@@ -87,7 +87,6 @@ private:
     label_t *labels;
     int size;
     int capacity;
-//    int realNumEdges; // exclude duplicate edges
 
 
 

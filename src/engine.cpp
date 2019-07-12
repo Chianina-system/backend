@@ -11,10 +11,14 @@
 //#include "../preproc/preprocess.h"
 using namespace std;
 
+const string file_cfg = "/home/zqzuo/Desktop/inlined/final";
+const string file_stmts = "/home/zqzuo/Desktop/inlined/id_stmt_info.txt";
+const string file_singletons = "/home/zqzuo/Desktop/inlined/var_singleton_info.txt";
+const string file_grammar = "/home/zqzuo/Desktop/inlined/rules_pointsto.txt";
+
 /* function declaration */
 void preprocess();
-Partition schedule();
-void compute(Partition partition, Grammar* grammar);
+void compute(Partition partition, Grammar* grammar, Context* context);
 void compute_inmemory();
 
 
@@ -25,7 +29,7 @@ int main() {
 
 
 
-void compute(Partition partition, Grammar* grammar){
+void compute(Partition partition, Grammar* grammar, Context* context){
 	CFG *cfg = new CFG_map_outcore();
 	GraphStore *graphstore = new NaiveGraphStore();
 	Singletons * singletons = new Singletons();
@@ -33,7 +37,7 @@ void compute(Partition partition, Grammar* grammar){
 
     CFGCompute_ooc::load(partition, cfg, singletons, graphstore);
     CFGCompute_ooc::do_worklist_ooc(cfg, graphstore, grammar, singletons, actives);
-	CFGCompute_ooc::pass(partition, cfg, graphstore, actives);
+	CFGCompute_ooc::pass(partition, cfg, graphstore, actives, context);
 
 	delete cfg;
 	delete graphstore;
@@ -48,16 +52,18 @@ void run(){
 	grammar->loadGrammar("");
 
 	//preprocessing
+	Context* context = new Context(2, 9);
 	preprocess();
 
 	//iterative computation
 	while(true){
-		Partition partition = schedule();
+		Partition partition = context->schedule();
 
-		compute(partition, grammar);
+		compute(partition, grammar, context);
 	}
 
 	delete grammar;
+	delete context;
 }
 
 
@@ -68,22 +74,19 @@ void compute_inmemory(){
 	Singletons * singletons = new Singletons();
     Grammar *grammar = new Grammar();
 
-	CFGCompute::load("/home/zqzuo/Desktop/inlined/final", "/home/zqzuo/Desktop/inlined/id_stmt_info.txt", cfg,
-			"/home/zqzuo/Desktop/inlined/var_singleton_info.txt", singletons, graphstore, "/home/zqzuo/Desktop/inlined/rules_pointsto.txt", grammar);
+	CFGCompute::load(file_cfg, file_stmts, cfg, file_singletons, singletons, graphstore, file_grammar, grammar);
 	CFGCompute::do_worklist_synchronous(cfg, graphstore, grammar, singletons);
 //	CFGCompute_asyn::do_worklist_asynchronous(cfg, graphstore, grammar, singletons);
 
 	delete cfg;
 	delete graphstore;
 	delete grammar;
-
+	delete singletons;
 }
 
 void preprocess(){
 
 }
 
-Partition schedule(){
-	return 0;
-}
+
 

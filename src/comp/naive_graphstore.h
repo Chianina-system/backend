@@ -10,6 +10,7 @@
 
 #include "graphstore.h"
 #include "../utility/Logger.hpp"
+#include "../utility/FileUtil.hpp"
 //#include "cfg_compute.h"
 
 using namespace std;
@@ -29,7 +30,7 @@ public:
 	    std::ifstream fin;
 	    fin.open(file);
 	    if(!fin) {
-	        cout << "can't load file_singleton: " << file << endl;
+	        cout << "can't load file_graphs: " << file << endl;
 	        exit (EXIT_FAILURE);
 	    }
 
@@ -37,26 +38,15 @@ public:
 	    while (getline(fin, line) && line != "") {
 	        std::stringstream stream(line);
 	        std::string id;
-	        while(true){
-				stream >> id;
-				PEGraph_Pointer graph_pointer = atoi(id.c_str());
-				PEGraph* pegraph = new PEGraph();
-				stream >> id;
-				int size = atoi(id.c_str());
-				for(int i = 0; i < size; ++i){
-					stream >> id;
-					vertexid_t src = atoi(id.c_str());
-					//load an edgearray
-					EdgeArray edges = EdgeArray();
-					edges.load_readable(stream);
-					pegraph->graph[src] = edges;
-				}
-				if(map.find(graph_pointer) != map.end()){
-		//    		Logger::print_thread_info_locked("deleting +++++++++++++++++++++++ " +  to_string((long) map[graph_pointer]) + " +++++++++++++++++++++++\n", LEVEL_LOG_GRAPHSTORE) ;
-					delete map[graph_pointer];
-				}
-				map[graph_pointer] = pegraph;
-	        }
+			stream >> id;
+			PEGraph_Pointer graph_pointer = atoi(id.c_str());
+			PEGraph* pegraph = new PEGraph();
+			pegraph->load_readable(stream);
+			//since the file is appended, we just use the recent updated pegraph
+			if (map.find(graph_pointer) != map.end()) {
+				delete map[graph_pointer];
+			}
+			map[graph_pointer] = pegraph;
 	    }
 	    fin.close();
     }
@@ -65,24 +55,47 @@ public:
     void loadGraphStore(const string& file, const string& folder_in) {
     	//graphstore file
     	this->deserialize(file);
+    	//delete the old graphstore file
+    	FileUtil::delete_file(file);
 
     	//updated graphstore
         DIR* dirp = opendir(folder_in.c_str());
         struct dirent * dp;
         while ((dp = readdir(dirp)) != NULL) {
-//        	this->deserialize(dp->d_name);
         	this->load_readable(dp->d_name);
+        	//delele the updated graphstore file
+        	FileUtil::delete_file(dp->d_name);
         }
         closedir(dirp);
     }
 
 
     void serialize(const string& file){
+    	if(readable){
+    		ofstream myfile;
+    		myfile.open(file, std::ofstream::out);
+    		if (myfile.is_open()){
+    			for (auto& n : map) {
+    				//write a pegraph into file
+    		    	myfile << n.first << "\t";
+    		    	n.second->write_readable(myfile);
+    		    	myfile << "\n";
+    			}
+    			myfile.close();
+    		}
+    	}
+    	else{
 
+    	}
     }
 
     void deserialize(const string& file){
+    	if(readable){
+    		load_readable(file);
+    	}
+    	else{
 
+    	}
     }
 
 

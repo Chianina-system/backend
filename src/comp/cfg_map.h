@@ -45,7 +45,7 @@ public:
 		std::ifstream fin;
 		fin.open(file_stmt);
 		if (!fin) {
-			cout << "can't load file_stmt " << endl;
+			cout << "can't load file_stmt " << file_stmt << endl;
 			exit(EXIT_FAILURE);
 		}
 
