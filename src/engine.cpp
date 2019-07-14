@@ -18,7 +18,7 @@ const string file_grammar = "/home/zqzuo/Desktop/inlined/rules_pointsto.txt";
 
 /* function declaration */
 void preprocess();
-void compute(Partition partition, Grammar* grammar, Context* context);
+void compute(Partition partition, Context* context);
 void compute_inmemory();
 
 
@@ -29,40 +29,32 @@ int main() {
 
 
 
-void compute(Partition partition, Grammar* grammar, Context* context){
+void compute(Partition partition, Context* context){
 	CFG *cfg = new CFG_map_outcore();
 	GraphStore *graphstore = new NaiveGraphStore();
 	Singletons * singletons = new Singletons();
     Concurrent_Worklist<CFGNode*>* actives = new Concurrent_Workset<CFGNode*>();
 
     CFGCompute_ooc::load(partition, cfg, singletons, graphstore);
-    CFGCompute_ooc::do_worklist_ooc(cfg, graphstore, grammar, singletons, actives);
+    CFGCompute_ooc::do_worklist_ooc(cfg, graphstore, context->getGrammar(), singletons, actives);
 	CFGCompute_ooc::pass(partition, cfg, graphstore, actives, context);
 
 	delete cfg;
 	delete graphstore;
 	delete actives;
 	delete singletons;
-
 }
 
 void run(){
-	/* TODO: load grammar from file grammar->loadGrammar(filename) */
-	Grammar* grammar = new Grammar();
-	grammar->loadGrammar("");
-
 	//preprocessing
 	Context* context = new Context(2, 9);
-	preprocess();
+	Preprocess::process(*context);
 
 	//iterative computation
-	while(true){
-		Partition partition = context->schedule();
-
-		compute(partition, grammar, context);
+	while(Partition partition = context->schedule() != -1){
+		compute(partition, context);
 	}
 
-	delete grammar;
 	delete context;
 }
 

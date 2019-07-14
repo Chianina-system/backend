@@ -88,7 +88,7 @@ typedef int vertexid_t;
 typedef char label_t;
 
 typedef int PEGraph_Pointer;
-typedef unsigned Partition;
+typedef int Partition;
 
 #define GRAMMAR_STR_LEN 36
 

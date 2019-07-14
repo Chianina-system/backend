@@ -10,10 +10,12 @@
 
 #include "../common/CommonLibs.hpp"
 #include "../comp/cfg_node.h"
+#include "grammar.h"
 
 using namespace std;
 
-class partition_info{
+class partition_info {
+
 public:
 	partition_info(unsigned int id, int s){
 		this->partition_id = id;
@@ -44,10 +46,14 @@ public:
 		for(unsigned int i = 0; i < this->number_partitions; i++){
 			this->priority_set.insert(partition_info(i, 0));
 		}
+
+		grammar = new Grammar();
+		grammar->loadGrammar(file_grammar.c_str());
 	}
 
 	~Context(){
 		delete[] partitions;
+		delete grammar;
 	}
 
 
@@ -61,6 +67,7 @@ public:
 	static const string folder_mirrors_in;
 	static const string folder_mirrors_out;
 	static const string folder_graphs_in;
+
 
 	Partition getPartition(CFGNode* node){
 		return getPartition(node->getCfgNodeId());
@@ -107,10 +114,21 @@ public:
 //		return working_path;
 //	}
 
+	Grammar* getGrammar() const {
+		return grammar;
+	}
+
 
 	Partition schedule(){
-		return 0;
+		if(!priority_set.empty()){
+			auto first = priority_set.begin();
+			Partition p = first->partition_id;
+			priority_set.erase(first);
+			return p;
+		}
+		return -1;
 	}
+
 
 private:
 
@@ -119,6 +137,9 @@ private:
 	unsigned int* partitions;
 
 	std::set<partition_info, partition_compare> priority_set;
+
+	/* TODO: load grammar from file grammar->loadGrammar(filename) */
+	Grammar* grammar;
 
 
 };

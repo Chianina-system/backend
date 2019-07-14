@@ -85,7 +85,7 @@ void store_graphs_in(const string& file_graphs_in, CFG* cfg, GraphStore* graphst
 
 void CFGCompute_ooc::pass(Partition partition, CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* actives, Context* context){
 	//store all the graphs into file
-	const string filename_graphs = "graphstore_" + partition;
+	const string filename_graphs = Context::file_graphstore + to_string(partition);
 	NaiveGraphStore* graphstore_naive = dynamic_cast<NaiveGraphStore*>(graphstore);
 	graphstore_naive->serialize(filename_graphs);
 

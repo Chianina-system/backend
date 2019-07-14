@@ -76,8 +76,6 @@ public:
 			}
 			myfile_stmt.close();
 		}
-
-
 	}
 
 
