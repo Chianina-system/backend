@@ -35,7 +35,7 @@ void compute(Partition partition, Context* context){
 	Singletons * singletons = new Singletons();
     Concurrent_Worklist<CFGNode*>* actives = new Concurrent_Workset<CFGNode*>();
 
-    CFGCompute_ooc::load(partition, cfg, singletons, graphstore);
+    CFGCompute_ooc::load(partition, cfg, singletons, graphstore, context);
     CFGCompute_ooc::do_worklist_ooc(cfg, graphstore, context->getGrammar(), singletons, actives);
 	CFGCompute_ooc::pass(partition, cfg, graphstore, actives, context);
 

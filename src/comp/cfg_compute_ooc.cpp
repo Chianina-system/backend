@@ -9,7 +9,7 @@
 //#include "context.h"
 
 
-bool CFGCompute_ooc::load(Partition part, CFG *cfg_, Singletons* singletons, GraphStore *graphstore) {
+bool CFGCompute_ooc::load(Partition part, CFG *cfg_, Singletons* singletons, GraphStore *graphstore, Context* context) {
 	string partition = to_string(part);
 	const string filename_cfg = Context::file_cfg + partition;
 	const string filename_mirrors_in = Context::folder_mirrors_in + partition;
@@ -23,6 +23,9 @@ bool CFGCompute_ooc::load(Partition part, CFG *cfg_, Singletons* singletons, Gra
 	CFG_map_outcore* cfg = dynamic_cast<CFG_map_outcore*>(cfg_);
 	cfg->loadCFG_ooc(filename_cfg, filename_stmt, filename_mirrors_in, filename_mirrors_out, foldername_actives);
 	cout << *cfg;
+
+	//resume the score of the current partition
+	context->reset_priority(part);
 
 	graphstore->loadGraphStore(filename_graphs, foldername_graphs_in);
 	cout << *graphstore << endl;
@@ -109,6 +112,9 @@ void CFGCompute_ooc::pass(Partition partition, CFG* cfg, GraphStore* graphstore,
 		store_actives(file_actives, it->second);
 		const string file_graphs_in = Context::folder_graphs_in + std::to_string(part) + "/" + std::to_string(partition);
 		store_graphs_in(file_graphs_in, cfg, graphstore, it->second);
+
+		//update the priority set information
+		context->update_priority(part, it->second.size());
 	}
 
 }

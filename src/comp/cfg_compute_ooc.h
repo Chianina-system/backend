@@ -21,7 +21,7 @@ class CFGCompute_ooc {
 public:
 	static void do_worklist_ooc(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives); //worklist algorithm in parallel
 
-    static bool load(Partition partition, CFG *cfg, Singletons* singletons, GraphStore *graphstore);
+    static bool load(Partition partition, CFG *cfg, Singletons* singletons, GraphStore *graphstore, Context* context);
 
     static void pass(Partition partition, CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* actives, Context* context);
 

@@ -17,10 +17,26 @@ using namespace std;
 class partition_info {
 
 public:
-	partition_info(unsigned int id, int s){
+
+//	partition_info(unsigned int id, int s){
+//		this->partition_id = id;
+//		this->score = s;
+//	}
+
+	partition_info(unsigned int id, int s = 0){
 		this->partition_id = id;
 		this->score = s;
 	}
+
+	//operator for map
+	bool operator==(const partition_info& other) const {
+		return this->partition_id == other.partition_id;
+	}
+
+	void increase_score(int s){
+		this->score += s;
+	}
+
 
 //private:
 	unsigned int partition_id;
@@ -28,6 +44,15 @@ public:
 
 };
 
+namespace std {
+	template<>
+	struct hash<partition_info> {
+		std::size_t operator()(const partition_info& pinfo) const {
+			//simple hash
+			return std::hash<int>()(pinfo.partition_id);
+		}
+	};
+}
 
 struct partition_compare {
     bool operator() (const partition_info& lhs, const partition_info& rhs) const {
@@ -128,6 +153,32 @@ public:
 		}
 		return -1;
 	}
+
+	void update_priority(Partition part, int size){
+		partition_info pinfo(part, size);
+		auto it = priority_set.find(pinfo);
+		assert(it != priority_set.end());
+		int old_score = ((partition_info) (*it)).score;
+		priority_set.erase(it);
+		pinfo.increase_score(old_score);
+		priority_set.insert(pinfo);
+	}
+
+	void reset_priority(Partition part){
+		partition_info pinfo(part);
+		auto it = priority_set.find(pinfo);
+		assert(it != priority_set.end());
+		priority_set.erase(it);
+		priority_set.insert(pinfo);
+	}
+
+
+//	int get_score(Partition pid){
+//		partition_info pinfo(pid);
+//		auto it = priority_set.find(pinfo);
+//		assert(it != priority_set.end());
+//		return ((partition_info)(*it)).score;
+//	}
 
 
 private:
