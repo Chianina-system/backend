@@ -99,12 +99,90 @@ void FrequentItemsetStore::retrieveSet(set<int> &graphSet, set<int> &realEdgeSet
     }
 }
 
-// still under coding
-set<int> FrequentItemsetStore::frequentItemsetMining(int min_support, vector<set<int>> &graphs) {
 
-    return set<int>();
+// still under coding
+set<int> FrequentItemsetStore::frequentItemsetMining_closed(int min_support, vector<set<int>> &graphs) {
+    writeToFile(graphs);
+
+    system("../lib/eclat -tc ../lib/file/test ../lib/file/out");            // should we stop for a while?
+
+    set<int> v = readFromFile();            // only read the first line
+    return v;
 }
 
-FrequentItemsetStore::FrequentItemsetStore() :frequentItemsetNum(0), edgeId(0) {}
+set<int> FrequentItemsetStore::frequentItemsetMining_minimum(int min_support, vector<set<int>> &graphs) {
+    writeToFile(graphs);
+
+    system("../lib/eclat -tm ../lib/file/test ../lib/file/out");            // should we stop for a while?
+
+    set<int> v = readFromFile();            // only read the first line
+    return v;
+}
+
+
+FrequentItemsetStore::FrequentItemsetStore() : frequentItemsetNum(0), edgeId(0) {}
+
+FrequentItemsetStore::FrequentItemsetStore(vector<set<int>> graphs) {
+    set<int> frequentItemset = frequentItemsetMining_closed(support, graphs);       //compute the frequent itemset
+    while (!frequentItemset.empty()) {
+        for (auto &graph: graphs) {
+            bool flag = true;           //check if the graphSet need to update
+            for (auto &elem : frequentItemset) {
+                if (!graph.count(elem)) {
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag) {
+//              delete the element in FISet
+                for (auto &elem : frequentItemset) {
+                    graph.erase(graph.find(elem));
+                }
+//              insert a special Edge for the num_p
+//                Edge newEdge = Edge(-num_p, 0, 0);
+                int newEdge = -num_p;
+                num_p++;
+                intToFrequentItemset[newEdge] = frequentItemset;
+                graph.insert(newEdge);
+            }
+        }
+        frequentItemset = frequentItemsetMining_closed(support, graphs);
+    }
+}
+
+void FrequentItemsetStore::writeToFile(vector<set<int>> &graphs) {
+    ofstream output;
+    output.open(filePath);
+
+    for (auto graph : graphs) {
+        for (auto edgeId: graph) {
+            cout << edgeId << " ";            // todo check the end of the line
+        }
+        cout << endl;
+    }
+    output.close();
+}
+
+set<int> FrequentItemsetStore::readFromFile() {
+    vector<set<int>> graphs;
+
+    ifstream fin;
+    fin.open(filePath);
+    if (!fin) {
+        cout << "can't load file: " << filePath << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    std::string line;
+    while (getline(fin, line) && line != "") {
+        set<int> graph;
+        std::stringstream stream(line);
+        int id;
+        while (stream >> id) graph.insert(id);
+        graphs.push_back(graph);
+    }
+    fin.close();
+}
+
 
 

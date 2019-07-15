@@ -6,8 +6,12 @@
 #define BACKEND1_FREQUENTITEMSETSTORE_H
 
 
+static const char *const filePath = "../lib/file/intSets.txt";
+
+static const int support = 2;
+
 #include "graphstore.h"
-#include "art.h"
+#include "art_linklist.h"
 
 
 
@@ -18,6 +22,8 @@ public:
     FrequentItemsetStore();
 
 private:
+
+    FrequentItemsetStore(vector<set<int>> graphs);
 
     ~FrequentItemsetStore() override;
 
@@ -39,7 +45,7 @@ private:
     std::unordered_map<Edge, int> edgeToInt;
     int frequentItemsetNum;
     int edgeId;
-
+    int num_p;
 
     PEGraph *convertToPeGraph(set<int> edgeSet);
 
@@ -47,7 +53,14 @@ private:
 
     void retrieveSet(set<int> &graphSet, set<int> &realEdgeSet);
 
-    set<int> frequentItemsetMining(int min_support, vector<set<int>> &graphs);
+    set<int> frequentItemsetMining_closed(int min_support, vector<set<int>> &graphs);
+
+    set<int> frequentItemsetMining_minimum(int min_support, vector<set<int>> &graphs);
+
+
+    void writeToFile(vector<set<int>> &graphs);
+
+    set<int> readFromFile();
 
 
 };

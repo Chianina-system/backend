@@ -1,16 +1,14 @@
-/*
- * art.h
- *
- *  Created on: May 22, 2019
- *      Author: zqzuo
- */
+#include <utility>
 
-#ifndef COMP_ART_H_
-#define COMP_ART_H_
+//
+// Created by w on 19-7-11.
+//
+
+#ifndef BACKEND_NJU_ART_ARRAY_H
+#define BACKEND_NJU_ART_ARRAY_H
+
 
 #include "graphstore.h"
-
-using namespace std;
 
 struct Edge {
     int src;
@@ -50,8 +48,6 @@ struct Edge {
         return label < rhs.label;
     }
 
-
-
     bool operator!=(const Edge &rhs) const {
         return !(rhs == *this);
     }
@@ -76,18 +72,18 @@ namespace std {
                    ^ (hash<char>()(e.label) << 1);
         }
     };
-
 }
 
-
 struct Node {
+    Node();
+
+    ~Node(){
+        delete data;
+     }
+
     Edge *data;
     Node *parent;
-    Node *children;
-    Node *next;
-    int leafNum;
-
-    Node() : parent(nullptr), children(nullptr), data(nullptr), next(nullptr), leafNum(0) {};
+    vector<Node*> children;
 
     bool equal(Node *other) {
         if (!other)return false;
@@ -99,46 +95,35 @@ struct Node {
         return this->data->equal(other);
     }
 
-    void toString() {
-        cout << this->data->src << " " << this->data->label << " " << this->data->des << endl;
+    void insert_binarySearch(Node *child) {
+        this->children.insert(lower_bound(this->children.begin(), this->children.end(), child), child);
     }
 };
 
-class ART : public GraphStore {
-
+class ART_array : public GraphStore{
 public:
-    ART();
+    PEGraph *retrieve_locked(PEGraph_Pointer graph_pointer) override;
 
-    ~ART();
+    ART_array();
+
+    virtual ~ART_array();
 
     PEGraph *retrieve(PEGraph_Pointer graph_pointer) override;
 
-    PEGraph *retrieve_locked(PEGraph_Pointer graph_pointer) override;
+    void update_locked(PEGraph_Pointer graph_pointer, PEGraph *peGraph) override;
 
-    void update(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
-
-    void update_locked(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
-
-    Node *insert(vector<Edge *> &v);
-
-    void insert(vector<Edge *> v, Node *root, int begin);
-
-    vector<Edge *> retrieveFromLeaf(Node *node) const;
-
-    static void del(Node *leaf);
-
-    void DFS(Node *node);
-
-    void edgeSort(vector<vector<Edge *>> &edges);
-
-    Node *findChild(Node *parent, Edge *child);
-
-    PEGraph * convertToPEGraph(vector<Edge *> &v) const;
-
-    vector<Edge *> convertToVector(PEGraph *peGraph);
+    void update(PEGraph_Pointer graph_pointer, PEGraph *peGraph) override;
 
 //    void loadGraphStore(const string &file) override;
-    void loadGraphStore(const string& file, const string& folder_in);
+    void loadGraphStore(const string& file, const string& file_in);
+
+    void addOneGraph(PEGraph_Pointer pointer, PEGraph *peGraph) override;
+
+    void update_graphs(GraphStore *another) override;
+
+    void clearEntryOnly() override;
+
+    void clear() override;
 
     string toString() override;
 
@@ -147,14 +132,30 @@ protected:
 
     void toString_sub(std::ostringstream &strm) override;
 
-//    void addOneSingleton(vertexid_t t);
-
 private:
-    Node *root = new Node();
-    std::unordered_map<PEGraph_Pointer, Node *> m;
-//    std::set<vertexid_t> singletonSet;
+    Node *root;
+    unordered_map<PEGraph_Pointer ,Node *> mapToLeafNode;
+    unordered_map<Node*, int> mapToLeafNum;
+    unordered_map<Edge, int> sortBase;
 
+    void del(Node *leaf);
+
+    vector<Edge *> convertToVector(PEGraph *peGraph);
+
+    Node * insert(vector<Edge *> &v);
+
+    Node *findChild(Node *parent, Edge *child);
+
+    static void postOrderDelete_recursion(Node *root);
+
+    static vector<Edge *> retrieveFromLeaf(Node *node);
+
+    static PEGraph *convertToPEGraph(vector<Edge *> &v);
+
+    static void postOrderDelete_iteration(Node *root);
+
+    void edgeSort(vector<vector<Edge *>> &graphs);
 };
 
 
-#endif /* COMP_ART_H_ */
+#endif //BACKEND_NJU_ART_ARRAY_H

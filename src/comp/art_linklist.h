@@ -89,6 +89,10 @@ struct Node {
 
     Node() : parent(nullptr), children(nullptr), data(nullptr), next(nullptr), leafNum(0) {};
 
+    ~Node(){
+        delete data;
+    }
+
     bool equal(Node *other) {
         if (!other)return false;
         return this->data->equal(other->data);
@@ -102,14 +106,19 @@ struct Node {
     void toString() {
         cout << this->data->src << " " << this->data->label << " " << this->data->des << endl;
     }
+
 };
 
-class ART : public GraphStore {
+
+
+
+
+class ART_LinkList : public GraphStore {
 
 public:
-    ART();
+    ART_LinkList();
 
-    ~ART();
+    ~ART_LinkList();
 
     PEGraph *retrieve(PEGraph_Pointer graph_pointer) override;
 
@@ -119,6 +128,14 @@ public:
 
     void update_locked(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
 
+    void addOneGraph(PEGraph_Pointer pointer, PEGraph *graph) override;
+
+    void update_graphs(GraphStore *another) override;
+
+    void clearEntryOnly() override;
+
+    void clear() override;
+
     Node *insert(vector<Edge *> &v);
 
     void insert(vector<Edge *> v, Node *root, int begin);
@@ -127,7 +144,7 @@ public:
 
     static void del(Node *leaf);
 
-    void DFS(Node *node);
+    void DFS(Node *node, Node *head);
 
     void edgeSort(vector<vector<Edge *>> &edges);
 
@@ -138,7 +155,7 @@ public:
     vector<Edge *> convertToVector(PEGraph *peGraph);
 
 //    void loadGraphStore(const string &file) override;
-    void loadGraphStore(const string& file, const string& folder_in);
+    void loadGraphStore(const string& file, const string& file_in);
 
     string toString() override;
 
@@ -151,9 +168,10 @@ protected:
 
 private:
     Node *root = new Node();
-    std::unordered_map<PEGraph_Pointer, Node *> m;
+    std::unordered_map<PEGraph_Pointer, Node *> mapToLeafNode;
 //    std::set<vertexid_t> singletonSet;
 
+    void deleteLinkList(Node *head);
 };
 
 

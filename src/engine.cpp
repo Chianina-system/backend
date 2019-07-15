@@ -76,6 +76,7 @@ void compute_inmemory(){
 	Singletons * singletons = new Singletons();
     Grammar *grammar = new Grammar();
 
+
 	CFGCompute::load(file_cfg, file_stmts, cfg, file_singletons, singletons, graphstore, file_grammar, grammar);
 //	CFGCompute::do_worklist_synchronous(cfg, graphstore, grammar, singletons);
 	CFGCompute_asyn::do_worklist_asynchronous(cfg, graphstore, grammar, singletons);
@@ -84,6 +85,7 @@ void compute_inmemory(){
 	delete graphstore;
 	delete grammar;
 	delete singletons;
+
 }
 
 
