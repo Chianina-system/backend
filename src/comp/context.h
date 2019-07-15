@@ -64,13 +64,21 @@ struct partition_compare {
 class Context {
 
 public:
-	Context(unsigned int n_parts, long total_nodes){
+	Context(unsigned int n_parts, long total_nodes, const string& file_cfg, const string& file_stmts, const string& file_singletons, const string& file_grammar){
 		this->number_partitions = n_parts;
 		this->total_nodes = total_nodes;
 		this->partitions = new unsigned int[this->number_partitions];
-		for(unsigned int i = 0; i < this->number_partitions; i++){
-			this->priority_set.insert(partition_info(i, 0));
-		}
+
+		//initialize the worklist
+//		for(unsigned int i = 0; i < this->number_partitions; i++){
+//			this->priority_set.insert(partition_info(i, 0));
+//		}
+
+		//file path initialization
+		this->file_cfg_init = file_cfg;
+		this->file_stmts_init = file_stmts;
+		this->file_grammar_init = file_grammar;
+		this->file_singletons_init = file_singletons;
 
 		grammar = new Grammar();
 		grammar->loadGrammar(file_grammar.c_str());
@@ -127,9 +135,9 @@ public:
 //		return partitions;
 //	}
 
-//	const std::set<partition_info, partition_compare>& getPrioritySet() const {
-//		return priority_set;
-//	}
+	const std::set<partition_info, partition_compare>& getPrioritySet() const {
+		return priority_set;
+	}
 
 	long getTotalNodes() const {
 		return total_nodes;
@@ -143,35 +151,55 @@ public:
 		return grammar;
 	}
 
-
-	Partition schedule(){
-		if(!priority_set.empty()){
-			auto first = priority_set.begin();
-			Partition p = first->partition_id;
-			priority_set.erase(first);
-			return p;
+	bool schedule(Partition& part){
+		if(priority_set.empty()){
+			return false;
 		}
-		return -1;
+		else{
+			auto first = priority_set.begin();
+			part = first->partition_id;
+			priority_set.erase(first);
+			return true;
+		}
 	}
 
 	void update_priority(Partition part, int size){
 		partition_info pinfo(part, size);
 		auto it = priority_set.find(pinfo);
-		assert(it != priority_set.end());
-		int old_score = ((partition_info) (*it)).score;
-		priority_set.erase(it);
-		pinfo.increase_score(old_score);
-		priority_set.insert(pinfo);
+		if(it != priority_set.end()){
+//			assert(it != priority_set.end());
+			int old_score = ((partition_info) (*it)).score;
+			priority_set.erase(it);
+			pinfo.increase_score(old_score);
+			priority_set.insert(pinfo);
+		}
+		else{
+			priority_set.insert(pinfo);
+		}
 	}
 
-	void reset_priority(Partition part){
-		partition_info pinfo(part);
-		auto it = priority_set.find(pinfo);
-		assert(it != priority_set.end());
-		priority_set.erase(it);
-		priority_set.insert(pinfo);
+//	void reset_priority(Partition part){
+//		partition_info pinfo(part);
+//		auto it = priority_set.find(pinfo);
+//		assert(it != priority_set.end());
+//		priority_set.erase(it);
+//	}
+
+	string getFileCfg() const {
+		return file_cfg_init;
 	}
 
+	string getFileGrammar() const {
+		return file_grammar_init;
+	}
+
+	string getFileSingletons() const {
+		return file_singletons_init;
+	}
+
+	string getFileStmts() const {
+		return file_stmts_init;
+	}
 
 //	int get_score(Partition pid){
 //		partition_info pinfo(pid);
@@ -179,6 +207,7 @@ public:
 //		assert(it != priority_set.end());
 //		return ((partition_info)(*it)).score;
 //	}
+
 
 
 private:
@@ -191,6 +220,12 @@ private:
 
 	/* TODO: load grammar from file grammar->loadGrammar(filename) */
 	Grammar* grammar;
+
+	//the path of input files
+	string file_cfg_init;
+	string file_stmts_init;
+	string file_singletons_init;
+	string file_grammar_init;
 
 
 };

@@ -27,46 +27,63 @@ public:
 
 
     void load_readable(const string& file){
+    	//for debugging
+    	Logger::print_thread_info_locked("load-readable starting...\n", LEVEL_LOG_FUNCTION);
+
+    	cout << "file name: " << file << endl;
+
 	    std::ifstream fin;
 	    fin.open(file);
 	    if(!fin) {
 	        cout << "can't load file_graphs: " << file << endl;
-	        exit (EXIT_FAILURE);
+//	        exit (EXIT_FAILURE);
+	    }
+	    else{
+			std::string line;
+			while (getline(fin, line) && line != "") {
+				std::stringstream stream(line);
+				std::string id;
+				stream >> id;
+				PEGraph_Pointer graph_pointer = atoi(id.c_str());
+				PEGraph* pegraph = new PEGraph();
+				pegraph->load_readable(stream);
+				//since the file is appended, we just use the recent updated pegraph
+				if (map.find(graph_pointer) != map.end()) {
+					delete map[graph_pointer];
+				}
+				map[graph_pointer] = pegraph;
+			}
+			fin.close();
+
+	    	//delete the old graphstore file
+	    	FileUtil::delete_file(file);
 	    }
 
-	    std::string line;
-	    while (getline(fin, line) && line != "") {
-	        std::stringstream stream(line);
-	        std::string id;
-			stream >> id;
-			PEGraph_Pointer graph_pointer = atoi(id.c_str());
-			PEGraph* pegraph = new PEGraph();
-			pegraph->load_readable(stream);
-			//since the file is appended, we just use the recent updated pegraph
-			if (map.find(graph_pointer) != map.end()) {
-				delete map[graph_pointer];
-			}
-			map[graph_pointer] = pegraph;
-	    }
-	    fin.close();
+		//for debugging
+		Logger::print_thread_info_locked("load-readable finished.\n", LEVEL_LOG_FUNCTION);
+
     }
 
 
     void loadGraphStore(const string& file, const string& folder_in) {
     	//graphstore file
     	this->deserialize(file);
-    	//delete the old graphstore file
-    	FileUtil::delete_file(file);
 
     	//updated graphstore
         DIR* dirp = opendir(folder_in.c_str());
-        struct dirent * dp;
-        while ((dp = readdir(dirp)) != NULL) {
-        	this->load_readable(dp->d_name);
-        	//delele the updated graphstore file
-        	FileUtil::delete_file(dp->d_name);
+        if(dirp){
+			struct dirent * dp;
+			while ((dp = readdir(dirp)) != NULL) {
+				if(strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0){
+					cout << "file name: " << dp->d_name << endl;
+					this->load_readable(folder_in + "/" + dp->d_name);
+				}
+			}
+			closedir(dirp);
         }
-        closedir(dirp);
+        else{
+        	cout << "can't load folder: " << folder_in << endl;
+        }
     }
 
 

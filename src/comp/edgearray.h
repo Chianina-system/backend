@@ -61,7 +61,7 @@ public:
     	os << capacity << "\t";
     	for(int i = 0; i < size; i++){
     		os << edges[i] << "\t";
-    		os << labels[i] << "\t";
+    		os << (int)labels[i] << "\t";
     	}
     }
 

@@ -27,6 +27,14 @@ public:
 		return (stat(filename.c_str(), &buffer) == 0);
 	}
 
+
+	static void reset_folder(const std::string& file_name){
+		const string command_delete = "rm -rf " + file_name;
+		system(command_delete.c_str());
+		const string command_mkdir = "mkdir " + file_name;
+		system(command_mkdir.c_str());
+	}
+
 };
 
 

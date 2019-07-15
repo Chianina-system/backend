@@ -7,11 +7,11 @@
 
 #include "context.h"
 
-const string Context::working_path = "";
+const string Context::working_path = "/home/zqzuo/Desktop/inlined/test/";
 const string Context::file_cfg = working_path + "cfg_";
 const string Context::file_stmts = working_path + "stmt_";
 const string Context::file_singletons = working_path + "singleton_";
-const string Context::file_grammar = working_path + "grammar";
+
 const string Context::folder_actives = working_path + "actives_";
 const string Context::file_graphstore = working_path + "graphstore_";
 const string Context::folder_mirrors_in = working_path + "mirrors_in_";

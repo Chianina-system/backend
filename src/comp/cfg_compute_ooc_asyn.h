@@ -1,38 +1,29 @@
 /*
- * cfg_compute_asynchronous.h
+ * cfg_compute_ooc_asyn.h
  *
- *  Created on: Jul 5, 2019
+ *  Created on: Jul 15, 2019
  *      Author: zqzuo
  */
 
-#ifndef COMP_CFG_COMPUTE_ASYN_H_
-#define COMP_CFG_COMPUTE_ASYN_H_
+#ifndef COMP_CFG_COMPUTE_OOC_ASYN_H_
+#define COMP_CFG_COMPUTE_OOC_ASYN_H_
 
-#include "cfg_compute.h"
+#include "cfg_compute_ooc.h"
+#include "cfg_compute_asyn.h"
 
-using namespace std;
-
-class CFGCompute_asyn {
+class CFGCompute_ooc_asyn {
 
 public:
-//	static void do_worklist_asynchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons); //worklist algorithm in parallel
-//
-//
-//
-//private:
-//
-//	static void compute_asynchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Grammar* grammar, Singletons* singletons);
-//
-//	static PEGraph* combine_asynchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds);
 
-
-	static void do_worklist_asynchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons) {
+	static void do_worklist_ooc_asynchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives) {
 		Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
 	    Concurrent_Worklist<CFGNode*>* worklist = new Concurrent_Workset<CFGNode*>();
 
 	    //initiate concurrent worklist
-	    std::vector<CFGNode*> nodes = cfg->getNodes();
+	    CFG_map_outcore* cfg = dynamic_cast<CFG_map_outcore*>(cfg_);
+	    std::unordered_set<CFGNode*> nodes = cfg->getActiveNodes();
+//	    std::vector<CFGNode*> nodes = cfg->getNodes();
 	//    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
 
 	//    //for debugging
@@ -44,7 +35,7 @@ public:
 
 		std::vector<std::thread> comp_threads;
 		for (unsigned int i = 0; i < NUM_THREADS; i++)
-			comp_threads.push_back(std::thread([=] {compute_asynchronous(cfg, graphstore, worklist, grammar, singletons);}));
+			comp_threads.push_back(std::thread([=] {compute_ooc_asynchronous(cfg, graphstore, worklist, grammar, singletons, actives);}));
 
 		for (auto &t : comp_threads)
 			t.join();
@@ -57,7 +48,8 @@ public:
 	}
 
 
-	static void compute_asynchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist, Grammar* grammar, Singletons* singletons){
+private:
+	static void compute_ooc_asynchronous(CFG_map_outcore* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives){
 		CFGNode* cfg_node;
 	    while(worklist->pop_atomic(cfg_node)){
 	    	//for debugging
@@ -72,7 +64,7 @@ public:
 	    	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
 	//        //for debugging
 	//    	StaticPrinter::print_vector(preds);
-	        PEGraph* in = combine_asynchronous(graphstore, preds);
+	        PEGraph* in = CFGCompute_asyn::combine_asynchronous(graphstore, preds);
 
 	        //for debugging
 	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", LEVEL_LOG_PEG);
@@ -96,7 +88,16 @@ public:
 	            //propagate
 	            std::vector<CFGNode*> successors = cfg->getSuccessors(cfg_node);
 	            for(auto it = successors.cbegin(); it != successors.cend(); ++it){
-	                worklist->push_atomic(*it);
+//	                worklist->push_atomic(*it);
+	                if(!cfg->isMirror(*it)){
+	                	worklist->push_atomic(*it);
+	                }
+	//                else if(cfg->isInMirror(*it)){
+	//                	worklist_2->push_atomic(*it);
+	//                }
+	                else{
+	                	actives->push_atomic(*it);
+	                }
 	            }
 	        }
 
@@ -113,42 +114,8 @@ public:
 	//    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
 	}
 
-	static PEGraph* combine_asynchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds){
-		//for debugging
-		Logger::print_thread_info_locked("combine starting...\n", LEVEL_LOG_FUNCTION);
-
-		PEGraph* out;
-
-	    if(preds.size() == 0){//entry node
-	        //return an empty graph
-	        out = new PEGraph();
-	    }
-	    else if(preds.size() == 1){
-	        CFGNode* pred = preds[0];
-	        PEGraph_Pointer out_pointer = pred->getOutPointer();
-	        out = graphstore->retrieve_locked(out_pointer);
-	    }
-	    else{
-	        out = new PEGraph();
-
-	        for(auto it = preds.cbegin(); it != preds.cend(); it++){
-	            CFGNode* pred = *it;
-	            PEGraph_Pointer out_pointer = pred->getOutPointer();
-	            PEGraph* out_graph = graphstore->retrieve_locked(out_pointer);
-	            out->merge(out_graph);
-	            delete out_graph;
-	        }
-	    }
-
-		//for debugging
-		Logger::print_thread_info_locked("combine finished.\n", LEVEL_LOG_FUNCTION);
-
-		return out;
-	}
 
 };
 
 
-
-
-#endif /* COMP_CFG_COMPUTE_ASYN_H_ */
+#endif /* COMP_CFG_COMPUTE_OOC_ASYN_H_ */
