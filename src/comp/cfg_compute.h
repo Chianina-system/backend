@@ -27,10 +27,10 @@ using namespace std;
 class CFGCompute {
 
 public:
-    static bool load(Partition* part, CFG* cfg, GraphStore* graphstore);
 
-    static bool load(const string& file_cfg, const string& file_stmt, CFG *cfg,
+    static bool load(const string& file_cfg, const string& file_stmt, CFG *cfg_,
     		const string& file_singleton, Singletons* singletons, GraphStore *graphstore, const string& file_grammar, Grammar * grammar){
+    	CFG_map* cfg = dynamic_cast<CFG_map*>(cfg_);
     	cfg->loadCFG(file_cfg, file_stmt);
     	cout << *cfg;
 
@@ -70,8 +70,6 @@ public:
 
 private:
     static void compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons);
-
-//    static void update_GraphStore(GraphStore* graphstore, GraphStore* tmp_graphstore);
 
     static PEGraph* transfer_copy(PEGraph* in, Stmt* stmt,Grammar* grammar, Singletons* singletons);
 

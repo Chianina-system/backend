@@ -8,18 +8,16 @@
 
 #include "cfg_compute.h"
 
-bool CFGCompute::load(Partition* part, CFG* cfg, GraphStore* graphstore){
-	return true;
-}
 
-void CFGCompute::do_worklist_synchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons){
+void CFGCompute::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons){
 	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
     Concurrent_Worklist<CFGNode*>* worklist_1 = new Concurrent_Workset<CFGNode*>();
 
     //initiate concurrent worklist
-    std::vector<CFGNode*> nodes = cfg->getNodes();
-//    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
+    CFG_map* cfg = dynamic_cast<CFG_map*>(cfg_);
+//    std::vector<CFGNode*> nodes = cfg->getNodes();
+    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
 
 //    //for debugging
 //    StaticPrinter::print_vector(nodes);

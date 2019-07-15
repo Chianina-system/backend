@@ -50,10 +50,6 @@ public:
 		return actives;
 	}
 
-	void loadCFG(const string& file_cfg, const string& file_stmt) {
-
-	}
-
 	void loadCFG_ooc(const string& file_cfg, const string& file_stmt, const string& file_mirrors_in, const string& file_mirrors_out, const string& file_actives) {
 		// handle the stmt file
 		std::ifstream fin;
@@ -226,11 +222,6 @@ public:
         return nodes;
     }
 
-    std::vector<CFGNode*> getEntryNodes() const override {
-    	return nodes_entry;
-    }
-
-
     void addOneNode(CFGNode *Node)  {
         nodes.push_back(Node);
     }
@@ -267,8 +258,6 @@ private:
 
 
     std::vector<CFGNode*> nodes;
-
-    std::vector<CFGNode*> nodes_entry;
 
     vertexid_t number_edges = 0;
 

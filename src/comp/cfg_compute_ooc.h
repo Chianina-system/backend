@@ -19,17 +19,6 @@ using namespace std;
 class CFGCompute_ooc {
 
 public:
-//	static void do_worklist_ooc(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives); //worklist algorithm in parallel
-//
-//    static bool load(Partition partition, CFG *cfg, Singletons* singletons, GraphStore *graphstore, Context* context);
-//
-//    static void pass(Partition partition, CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* actives, Context* context);
-//
-//
-//private:
-//
-//	static void compute_ooc(CFG_map_outcore* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1,
-//			Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives);
 
 	static bool load(Partition part, CFG *cfg_, Singletons* singletons, GraphStore *graphstore, Context* context) {
 		//for debugging

@@ -56,7 +56,6 @@ void run(){
 	cout << context->getPrioritySet().size() << "\n";
 	auto p = context->getPrioritySet().begin();
 	cout << ((partition_info)*p).partition_id << ", " << ((partition_info)*p).score << "\n";
-//	cout << context->schedule() << "\n";
 
 	//iterative computation
 	Partition partition;

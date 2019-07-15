@@ -15,25 +15,16 @@ using namespace std;
 class CFGCompute_asyn {
 
 public:
-//	static void do_worklist_asynchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons); //worklist algorithm in parallel
-//
-//
-//
-//private:
-//
-//	static void compute_asynchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Grammar* grammar, Singletons* singletons);
-//
-//	static PEGraph* combine_asynchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds);
 
-
-	static void do_worklist_asynchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons) {
+	static void do_worklist_asynchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons) {
 		Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
 	    Concurrent_Worklist<CFGNode*>* worklist = new Concurrent_Workset<CFGNode*>();
 
 	    //initiate concurrent worklist
-	    std::vector<CFGNode*> nodes = cfg->getNodes();
-	//    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
+	    CFG_map* cfg = dynamic_cast<CFG_map*>(cfg_);
+//	    std::vector<CFGNode*> nodes = cfg->getNodes();
+	    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
 
 	//    //for debugging
 	//    StaticPrinter::print_vector(nodes);
