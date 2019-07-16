@@ -30,8 +30,6 @@ public:
     	//for debugging
     	Logger::print_thread_info_locked("load-readable starting...\n", LEVEL_LOG_FUNCTION);
 
-    	cout << "file name: " << file << endl;
-
 	    std::ifstream fin;
 	    fin.open(file);
 	    if(!fin) {

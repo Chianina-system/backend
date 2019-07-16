@@ -35,6 +35,8 @@ void compute(Partition partition, Context* context){
 	GraphStore *graphstore = new NaiveGraphStore();
 	Singletons * singletons = new Singletons();
     Concurrent_Worklist<CFGNode*>* actives = new Concurrent_Workset<CFGNode*>();
+
+    //get the flag for adding self-loop edges
     bool flag = context->getFlag(partition);
 	context->setFlag(partition);
 
@@ -54,15 +56,15 @@ void run(){
 	Context* context = new Context(2, 7, file_cfg, file_stmts, file_singletons, file_grammar);
 	Preprocess::process(*context);
 
-	//for debugging
-	cout << context->getPrioritySet().size() << "\n";
-	auto p = context->getPrioritySet().begin();
-	cout << ((partition_info)*p).partition_id << ", " << ((partition_info)*p).score << "\n";
+//	//for debugging
+//	cout << context->getPrioritySet().size() << "\n";
+//	auto p = context->getPrioritySet().begin();
+//	cout << ((partition_info)*p).partition_id << ", " << ((partition_info)*p).score << "\n";
 
 	//iterative computation
 	Partition partition;
 	while(context->schedule(partition)){
-		cout << "dealing with partition: " << partition << "\n";
+//		cout << "dealing with partition: " << partition << "\n";
 		compute(partition, context);
 	}
 
@@ -79,7 +81,7 @@ void compute_inmemory(){
 
 
 	CFGCompute::load(file_cfg, file_stmts, cfg, file_singletons, singletons, graphstore, file_grammar, grammar);
-//	CFGCompute::do_worklist_synchronous(cfg, graphstore, grammar, singletons);
+//	CFGCompute::do_worklist_synchronous(cfg, graphstore, grammar, singletons, true);
 	CFGCompute_asyn::do_worklist_asynchronous(cfg, graphstore, grammar, singletons, true);
 
 	delete cfg;

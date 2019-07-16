@@ -37,16 +37,10 @@ public:
 
 		CFG_map_outcore* cfg = dynamic_cast<CFG_map_outcore*>(cfg_);
 		cfg->loadCFG_ooc(filename_cfg, filename_stmt, filename_mirrors_in, filename_mirrors_out, foldername_actives);
-		cout << *cfg;
-
-	//	//resume the score of the current partition
-	//	context->reset_priority(part);
 
 		graphstore->loadGraphStore(filename_graphs, foldername_graphs_in);
-//		cout << "=========================================graphstore right here=========================================\n" << *graphstore << endl;
 
 		singletons->loadSingletonSet(filename_singleton);
-		cout << *singletons << endl;
 
 		//for debugging
 		Logger::print_thread_info_locked("load finished.\n", LEVEL_LOG_FUNCTION);
@@ -64,8 +58,8 @@ public:
 		NaiveGraphStore* graphstore_naive = dynamic_cast<NaiveGraphStore*>(graphstore);
 		graphstore_naive->serialize(filename_graphs);
 
-		//for debugging
-		cout << actives->size() << endl;
+//		//for debugging
+//		cout << actives->size() << endl;
 
 		//divide all the activated nodes into multiple partitions
 		std::unordered_map<Partition, std::unordered_set<CFGNode*>> map;
@@ -94,6 +88,7 @@ public:
 
 			//write graphs_in
 			const string file_graphs_in = Context::folder_graphs_in + std::to_string(part);
+			store_graphs_in(file_graphs_in, cfg, graphstore, it->second);
 //			if(!FileUtil::file_exists(folder_in)){
 //				if(mkdir(folder_in.c_str(), 0777) == -1){
 //			        cout << "can't create folder: " << folder_in << endl;
@@ -102,8 +97,6 @@ public:
 //			}
 //			const string file_graphs_in = folder_in + "/" + std::to_string(partition);
 //			store_graphs_in(file_graphs_in, cfg, graphstore, it->second);
-
-			store_graphs_in(file_graphs_in, cfg, graphstore, it->second);
 
 			//update the priority set information
 			context->update_priority(part, it->second.size());
@@ -249,10 +242,9 @@ private:
 			ofstream myfile;
 			myfile.open(file_actives, std::ofstream::out | std::ofstream::app);
 			if (myfile.is_open()){
-				cout << "file path: " << file_actives << endl;
+//				cout << "file path: " << file_actives << endl;
 				for(auto& it: set){
 					myfile << it->getCfgNodeId() << "\n";
-					cout << "ID: " << it->getCfgNodeId() << endl;
 				}
 				myfile.close();
 			}
@@ -274,9 +266,6 @@ private:
 				s.insert(n);
 			}
 		}
-
-		//for debugging
-		cout << "size: " << s.size() << endl;
 
 		if(readable){
 			ofstream myfile;

@@ -64,8 +64,6 @@ public:
 
 		std::string line;
 		while (getline(fin, line) && line != "") {
-			std::cout << line << "\n";
-
 			CFGNode* cfgNode = new CFGNode(line);
 			m[cfgNode->getCfgNodeId()] = cfgNode;
 

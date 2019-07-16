@@ -52,8 +52,8 @@ public:
 		std::string type, dst, src, aux;
 		stream >> type >> dst >> src >> aux;
 
-		std::cout << type << "," << dst << "," << src
-				<< "," << aux << "\n";
+//		std::cout << type << "," << dst << "," << src
+//				<< "," << aux << "\n";
 
 		if (type == "assign") {
 			this->t = TYPE::Assign;
@@ -77,8 +77,8 @@ public:
 			this->auxiliary = atoi(aux.c_str());
 		}
 
-		std::cout << (int)this->t << "," << this->dst << "," << this->src
-						<< "," << this->auxiliary << "\n";
+//		std::cout << (int)this->t << "," << this->dst << "," << this->src
+//						<< "," << this->auxiliary << "\n";
 
     }
 
