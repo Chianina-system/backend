@@ -18,7 +18,7 @@ enum class TYPE {
 
 class Stmt{
 	friend std::ostream & operator<<(std::ostream & strm, const Stmt& stmt) {
-		strm << "\nStmt:\t" << (int)stmt.t << ", " << stmt.getDst() << " <- " << stmt.getSrc() << ", " << stmt.getAdded() << endl;
+		strm << "\nStmt:\t" << (int)stmt.t << ", " << stmt.getDst() << " <- " << stmt.getSrc() << ", " << stmt.getAux() << endl;
 		return strm;
 	}
 
@@ -38,20 +38,54 @@ public:
 		return dst;
 	}
 
-    vertexid_t getAdded() const{
-        return added;
+    vertexid_t getAux() const{
+        return auxiliary;
     }
 
-    bool isValidAdded() const {
-    	return added != -1;
+    bool isValidAux() const {
+    	return auxiliary != -1;
     }
 
-    Stmt(TYPE t, vertexid_t src, vertexid_t dst, vertexid_t added = -1) : t(t), src(src), dst(dst), added(added) {}
+    Stmt(TYPE t, vertexid_t src, vertexid_t dst, vertexid_t aux = -1) : t(t), src(src), dst(dst), auxiliary(aux) {}
+
+    Stmt(std::stringstream& stream){
+		std::string type, dst, src, aux;
+		stream >> type >> dst >> src >> aux;
+
+		std::cout << type << "," << dst << "," << src
+				<< "," << aux << "\n";
+
+		if (type == "assign") {
+			this->t = TYPE::Assign;
+		}
+		if (type == "load") {
+			this->t = TYPE::Load;
+		}
+		if (type == "store") {
+			this->t = TYPE::Store;
+		}
+		if (type == "alloca") {
+			this->t = TYPE::Alloca;
+		}
+
+		this->src = atoi(src.c_str());
+		this->dst = atoi(dst.c_str());
+		if(aux == ""){
+			this->auxiliary = -1;
+		}
+		else{
+			this->auxiliary = atoi(aux.c_str());
+		}
+
+		std::cout << (int)this->t << "," << this->dst << "," << this->src
+						<< "," << this->auxiliary << "\n";
+
+    }
 
 
     std::string toString(){
     	std::ostringstream out;
-    	out << getTypeString(t) << ", " << getDst() << " <- " << getSrc() << ", " << getAdded();
+    	out << getTypeString(t) << ", " << getDst() << " <- " << getSrc() << ", " << getAux();
     	return out.str();
     }
 
@@ -67,11 +101,13 @@ public:
 
     }
 
+
+
 private:
 	TYPE t;
 	vertexid_t src;
 	vertexid_t dst;
-	vertexid_t added;
+	vertexid_t auxiliary;
 
 };
 

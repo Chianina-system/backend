@@ -35,10 +35,12 @@ void compute(Partition partition, Context* context){
 	GraphStore *graphstore = new NaiveGraphStore();
 	Singletons * singletons = new Singletons();
     Concurrent_Worklist<CFGNode*>* actives = new Concurrent_Workset<CFGNode*>();
+    bool flag = context->getFlag(partition);
+	context->setFlag(partition);
 
     CFGCompute_ooc::load(partition, cfg, singletons, graphstore, context);
-//    CFGCompute_ooc::do_worklist_ooc(cfg, graphstore, context->getGrammar(), singletons, actives);
-    CFGCompute_ooc_asyn::do_worklist_ooc_asynchronous(cfg, graphstore, context->getGrammar(), singletons, actives);
+//    CFGCompute_ooc::do_worklist_ooc(cfg, graphstore, context->getGrammar(), singletons, actives, flag);
+    CFGCompute_ooc_asyn::do_worklist_ooc_asynchronous(cfg, graphstore, context->getGrammar(), singletons, actives, flag);
 	CFGCompute_ooc::pass(partition, cfg, graphstore, actives, context);
 
 	delete cfg;
@@ -78,7 +80,7 @@ void compute_inmemory(){
 
 	CFGCompute::load(file_cfg, file_stmts, cfg, file_singletons, singletons, graphstore, file_grammar, grammar);
 //	CFGCompute::do_worklist_synchronous(cfg, graphstore, grammar, singletons);
-	CFGCompute_asyn::do_worklist_asynchronous(cfg, graphstore, grammar, singletons);
+	CFGCompute_asyn::do_worklist_asynchronous(cfg, graphstore, grammar, singletons, true);
 
 	delete cfg;
 	delete graphstore;

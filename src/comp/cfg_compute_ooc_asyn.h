@@ -15,7 +15,7 @@ class CFGCompute_ooc_asyn {
 
 public:
 
-	static void do_worklist_ooc_asynchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives) {
+	static void do_worklist_ooc_asynchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag) {
 		Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
 	    Concurrent_Worklist<CFGNode*>* worklist = new Concurrent_Workset<CFGNode*>();
@@ -35,7 +35,7 @@ public:
 
 		std::vector<std::thread> comp_threads;
 		for (unsigned int i = 0; i < NUM_THREADS; i++)
-			comp_threads.push_back(std::thread([=] {compute_ooc_asynchronous(cfg, graphstore, worklist, grammar, singletons, actives);}));
+			comp_threads.push_back(std::thread([=] {compute_ooc_asynchronous(cfg, graphstore, worklist, grammar, singletons, actives, flag);}));
 
 		for (auto &t : comp_threads)
 			t.join();
@@ -49,7 +49,8 @@ public:
 
 
 private:
-	static void compute_ooc_asynchronous(CFG_map_outcore* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives){
+	static void compute_ooc_asynchronous(CFG_map_outcore* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist, Grammar* grammar, Singletons* singletons,
+			Concurrent_Worklist<CFGNode*>* actives, bool flag){
 		CFGNode* cfg_node;
 	    while(worklist->pop_atomic(cfg_node)){
 	    	//for debugging
@@ -70,7 +71,7 @@ private:
 	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", LEVEL_LOG_PEG);
 
 	        //transfer
-	        PEGraph* out = CFGCompute::transfer(in, cfg_node->getStmt(), grammar, singletons);
+	        PEGraph* out = CFGCompute::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
 	        //for debugging
 	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString() + "\n", LEVEL_LOG_PEG);

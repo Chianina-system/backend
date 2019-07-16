@@ -48,6 +48,11 @@ public:
 
     void setEdgeArray(vertexid_t index, int numEdges, vertexid_t *edges, label_t *labels);
 
+    void setEdgeArray(vertexid_t index, EdgeArray& array){
+//    	assert(this->graph.find(index)==this->graph.end());
+        this->graph[index] = array;
+    }
+
     void setGraph(const std::unordered_map<vertexid_t, EdgeArray> &graph) {
         this->graph = graph;
     }

@@ -68,6 +68,10 @@ public:
 		this->number_partitions = n_parts;
 		this->total_nodes = total_nodes;
 		this->partitions = new unsigned int[this->number_partitions];
+		this->flag_partitions = new bool[this->number_partitions];
+		for(unsigned int i = 0; i < this->number_partitions; i++){
+			flag_partitions[i] = false;
+		}
 
 		//initialize the worklist
 //		for(unsigned int i = 0; i < this->number_partitions; i++){
@@ -86,6 +90,7 @@ public:
 
 	~Context(){
 		delete[] partitions;
+		delete[] flag_partitions;
 		delete grammar;
 	}
 
@@ -208,6 +213,13 @@ public:
 //		return ((partition_info)(*it)).score;
 //	}
 
+	bool getFlag(Partition p){
+		return flag_partitions[p];
+	}
+
+	void setFlag(Partition p){
+		flag_partitions[p] = true;
+	}
 
 
 private:
@@ -215,6 +227,8 @@ private:
 	long total_nodes;
 	unsigned int number_partitions;
 	unsigned int* partitions;
+
+	bool* flag_partitions;
 
 	std::set<partition_info, partition_compare> priority_set;
 

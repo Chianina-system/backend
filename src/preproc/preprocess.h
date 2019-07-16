@@ -111,9 +111,69 @@ public:
 				std::stringstream stream(line);
 				std::string id;
 				stream >> id;
-				Partition p = context.getPartition(atoi(id.c_str()));
+				vertexid_t node_id = atoi(id.c_str());
+
+				Partition p = context.getPartition(node_id);
 				//write to the respectively stmt files
 				write_to_partition_stmt(p, line);
+
+//				//initialize graphs by adding self-loop edges
+//				Stmt* stmt = new Stmt(stream);
+//			    vertexid_t src = stmt->getSrc();
+//			    EdgeArray edges_src = EdgeArray();
+//
+//			    vertexid_t dst = stmt->getDst();
+//			    EdgeArray edges_dst = EdgeArray();
+//
+//			    vertexid_t aux = stmt->getAux();
+//			    EdgeArray edges_aux = EdgeArray();
+//
+//				//self-loop edges
+//				for (int i = 0; i < context.getGrammar()->getNumErules(); ++i) {
+//					char label = context.getGrammar()->getErule(i);
+//					edges_src.addOneEdge(src, label);
+//					edges_dst.addOneEdge(dst, label);
+//					if (stmt->isValidAux()) {
+//						edges_aux.addOneEdge(aux, label);
+//					}
+//				}
+//
+//			    //merge and sort
+//			    edges_src.merge();
+//			    edges_dst.merge();
+//			    if(stmt->isValidAux()){
+//					edges_aux.merge();
+//			    }
+//
+//			    PEGraph* pegraph = new PEGraph();
+//			    pegraph->setEdgeArray(src, edges_src);
+//			    pegraph->setEdgeArray(dst, edges_dst);
+//			    if(stmt->isValidAux()){
+//			    	pegraph->setEdgeArray(aux, edges_aux);
+//			    }
+//
+//			    //write to file
+//				const string file_graphs_in = Context::folder_graphs_in + std::to_string(p);
+//				if(readable){
+//					ofstream myfile;
+//					myfile.open(file_graphs_in, std::ofstream::out | std::ofstream::app);
+//					if (myfile.is_open()){
+//						//write a pegraph into file
+//					    myfile << node_id << "\t";
+//					    pegraph->write_readable(myfile);
+//					    myfile << "\n";
+//
+//						myfile.close();
+//					}
+//				}
+//				else{
+//
+//				}
+//
+//				//clean
+//				delete stmt;
+//				delete pegraph;
+
 			}
 			myfile_stmt.close();
 		}

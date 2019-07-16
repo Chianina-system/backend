@@ -55,31 +55,8 @@ public:
 		while (getline(fin, line) && line != "") {
 			std::cout << line << "\n";
 
-			std::stringstream stream(line);
-			std::string stmt_id, type, dst, src, added;
-			stream >> stmt_id >> type >> dst >> src >> added;
-
-			std::cout << stmt_id << "," << type << "," << dst << "," << src
-					<< "," << added << "\n";
-
-			TYPE t;
-			if (type == "assign") {
-				t = TYPE::Assign;
-			}
-			if (type == "load") {
-				t = TYPE::Load;
-			}
-			if (type == "store") {
-				t = TYPE::Store;
-			}
-			if (type == "alloca") {
-				t = TYPE::Alloca;
-			}
-
-			Stmt* stmt = new Stmt(t, atoi(src.c_str()), atoi(dst.c_str()),
-					atoi(added.c_str()));
-			CFGNode* cfgNode = new CFGNode(atoi(stmt_id.c_str()), stmt);
-			m[atoi(stmt_id.c_str())] = cfgNode;
+			CFGNode* cfgNode = new CFGNode(line);
+			m[cfgNode->getCfgNodeId()] = cfgNode;
 
 			//add cfgnode into cfg
 			this->addOneNode(cfgNode);

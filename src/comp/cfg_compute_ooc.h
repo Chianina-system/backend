@@ -43,7 +43,7 @@ public:
 	//	context->reset_priority(part);
 
 		graphstore->loadGraphStore(filename_graphs, foldername_graphs_in);
-		cout << *graphstore << endl;
+//		cout << "=========================================graphstore right here=========================================\n" << *graphstore << endl;
 
 		singletons->loadSingletonSet(filename_singleton);
 		cout << *singletons << endl;
@@ -87,16 +87,22 @@ public:
 		//get the corresponding partition
 		for(auto it = map.begin(); it != map.end(); ++it){
 			Partition part = it->first;
+
+			//write actives
 			const string file_actives = Context::folder_actives + to_string(part);
 			store_actives(file_actives, it->second);
-			const string folder_in = Context::folder_graphs_in + std::to_string(part);
-			if(!FileUtil::file_exists(folder_in)){
-				if(mkdir(folder_in.c_str(), 0777) == -1){
-			        cout << "can't create folder: " << folder_in << endl;
-			        exit (EXIT_FAILURE);
-				}
-			}
-			const string file_graphs_in = folder_in + "/" + std::to_string(partition);
+
+			//write graphs_in
+			const string file_graphs_in = Context::folder_graphs_in + std::to_string(part);
+//			if(!FileUtil::file_exists(folder_in)){
+//				if(mkdir(folder_in.c_str(), 0777) == -1){
+//			        cout << "can't create folder: " << folder_in << endl;
+//			        exit (EXIT_FAILURE);
+//				}
+//			}
+//			const string file_graphs_in = folder_in + "/" + std::to_string(partition);
+//			store_graphs_in(file_graphs_in, cfg, graphstore, it->second);
+
 			store_graphs_in(file_graphs_in, cfg, graphstore, it->second);
 
 			//update the priority set information
@@ -108,7 +114,7 @@ public:
 	}
 
 
-	static void do_worklist_ooc(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives){
+	static void do_worklist_ooc(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag){
 		Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
 	    Concurrent_Worklist<CFGNode*>* worklist_1 = new Concurrent_Workset<CFGNode*>();
@@ -134,7 +140,7 @@ public:
 
 	        std::vector<std::thread> comp_threads;
 	        for (unsigned int i = 0; i < NUM_THREADS_CFGCOMPUTE; i++)
-	            comp_threads.push_back(std::thread( [=] {compute_ooc(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore, singletons, actives);}));
+	            comp_threads.push_back(std::thread( [=] {compute_ooc(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore, singletons, actives, flag);}));
 
 	        for (auto &t : comp_threads)
 	            t.join();
@@ -166,7 +172,7 @@ public:
 
 
 	static void compute_ooc(CFG_map_outcore* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1,
-			Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives){
+			Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag){
 	    CFGNode* cfg_node;
 		while(worklist_1->pop_atomic(cfg_node)){
 	//    	//for debugging
@@ -187,7 +193,7 @@ public:
 	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", LEVEL_LOG_PEG);
 
 	        //transfer
-	        PEGraph* out = CFGCompute::transfer(in, cfg_node->getStmt(), grammar, singletons);
+	        PEGraph* out = CFGCompute::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
 	        //for debugging
 	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString() + "\n", LEVEL_LOG_PEG);
@@ -275,7 +281,7 @@ private:
 		if(readable){
 			ofstream myfile;
 			myfile.open(file_graphs_in, std::ofstream::out | std::ofstream::app);
-			cout << "file is open? " << myfile.is_open() << endl;
+//			cout << "file is open? " << myfile.is_open() << endl;
 			if (myfile.is_open()){
 				for (auto& n : s) {
 					auto pointer = n->getOutPointer();

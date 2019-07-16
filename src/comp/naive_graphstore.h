@@ -26,7 +26,7 @@ public:
     }
 
 
-    void load_readable(const string& file){
+    void load_onebyone(const string& file){
     	//for debugging
     	Logger::print_thread_info_locked("load-readable starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -70,20 +70,22 @@ public:
     	this->deserialize(file);
 
     	//updated graphstore
-        DIR* dirp = opendir(folder_in.c_str());
-        if(dirp){
-			struct dirent * dp;
-			while ((dp = readdir(dirp)) != NULL) {
-				if(strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0){
-					cout << "file name: " << dp->d_name << endl;
-					this->load_readable(folder_in + "/" + dp->d_name);
-				}
-			}
-			closedir(dirp);
-        }
-        else{
-        	cout << "can't load folder: " << folder_in << endl;
-        }
+//        DIR* dirp = opendir(folder_in.c_str());
+//        if(dirp){
+//			struct dirent * dp;
+//			while ((dp = readdir(dirp)) != NULL) {
+//				if(strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0){
+//					cout << "file name: " << dp->d_name << endl;
+//					this->load_onebyone(folder_in + "/" + dp->d_name);
+//				}
+//			}
+//			closedir(dirp);
+//        }
+//        else{
+//        	cout << "can't load folder: " << folder_in << endl;
+//        }
+
+    	this->load_onebyone(folder_in);
     }
 
 
@@ -108,7 +110,7 @@ public:
 
     void deserialize(const string& file){
     	if(readable){
-    		load_readable(file);
+    		load_onebyone(file);
     	}
     	else{
 

@@ -50,6 +50,7 @@ public:
 		return actives;
 	}
 
+
 	void loadCFG_ooc(const string& file_cfg, const string& file_stmt, const string& file_mirrors_in, const string& file_mirrors_out, const string& file_actives) {
 		// handle the stmt file
 		std::ifstream fin;
@@ -65,31 +66,8 @@ public:
 		while (getline(fin, line) && line != "") {
 			std::cout << line << "\n";
 
-			std::stringstream stream(line);
-			std::string stmt_id, type, dst, src, added;
-			stream >> stmt_id >> type >> dst >> src >> added;
-
-			std::cout << stmt_id << "," << type << "," << dst << "," << src
-					<< "," << added << "\n";
-
-			TYPE t;
-			if (type == "assign") {
-				t = TYPE::Assign;
-			}
-			if (type == "load") {
-				t = TYPE::Load;
-			}
-			if (type == "store") {
-				t = TYPE::Store;
-			}
-			if (type == "alloca") {
-				t = TYPE::Alloca;
-			}
-
-			Stmt* stmt = new Stmt(t, atoi(src.c_str()), atoi(dst.c_str()),
-					atoi(added.c_str()));
-			CFGNode* cfgNode = new CFGNode(atoi(stmt_id.c_str()), stmt);
-			m[atoi(stmt_id.c_str())] = cfgNode;
+			CFGNode* cfgNode = new CFGNode(line);
+			m[cfgNode->getCfgNodeId()] = cfgNode;
 
 			//add cfgnode into cfg
 			this->addOneNode(cfgNode);

@@ -22,11 +22,22 @@ class CFGNode{
 public:
     CFGNode();
     CFGNode(int _id, Stmt* _stmt) {
-    id = _id;
-    stmt = _stmt;
+    	id = _id;
+    	stmt = _stmt;
     }
 
-    ~CFGNode(){}
+    CFGNode(std::string& line){
+		std::stringstream stream(line);
+		std::string stmt_id;
+		stream >> stmt_id;
+
+		this->id = atoi(stmt_id.c_str());
+		this->stmt = new Stmt(stream);
+	}
+
+    ~CFGNode(){
+    	delete stmt;
+    }
 
 
     inline Stmt* getStmt(){
@@ -50,13 +61,13 @@ public:
     }
 
 
+
+
+
 private:
     PEGraph_Pointer id;
-//    int id;
 
     Stmt* stmt;
-
-    //vetex id...
 
 
 };

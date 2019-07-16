@@ -16,7 +16,7 @@ class CFGCompute_asyn {
 
 public:
 
-	static void do_worklist_asynchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons) {
+	static void do_worklist_asynchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag) {
 		Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
 	    Concurrent_Worklist<CFGNode*>* worklist = new Concurrent_Workset<CFGNode*>();
@@ -35,7 +35,7 @@ public:
 
 		std::vector<std::thread> comp_threads;
 		for (unsigned int i = 0; i < NUM_THREADS; i++)
-			comp_threads.push_back(std::thread([=] {compute_asynchronous(cfg, graphstore, worklist, grammar, singletons);}));
+			comp_threads.push_back(std::thread([=] {compute_asynchronous(cfg, graphstore, worklist, grammar, singletons, flag);}));
 
 		for (auto &t : comp_threads)
 			t.join();
@@ -48,7 +48,7 @@ public:
 	}
 
 
-	static void compute_asynchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist, Grammar* grammar, Singletons* singletons){
+	static void compute_asynchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist, Grammar* grammar, Singletons* singletons, bool flag){
 		CFGNode* cfg_node;
 	    while(worklist->pop_atomic(cfg_node)){
 	    	//for debugging
@@ -69,7 +69,7 @@ public:
 	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", LEVEL_LOG_PEG);
 
 	        //transfer
-	        PEGraph* out = CFGCompute::transfer(in, cfg_node->getStmt(), grammar, singletons);
+	        PEGraph* out = CFGCompute::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
 	        //for debugging
 	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString() + "\n", LEVEL_LOG_PEG);
