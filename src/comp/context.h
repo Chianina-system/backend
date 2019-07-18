@@ -89,9 +89,16 @@ public:
 	}
 
 	~Context(){
-		delete[] partitions;
-		delete[] flag_partitions;
-		delete grammar;
+		if(partitions){
+			delete[] partitions;
+		}
+
+		if(flag_partitions){
+			delete[] flag_partitions;
+		}
+
+		if(grammar)
+			delete grammar;
 	}
 
 

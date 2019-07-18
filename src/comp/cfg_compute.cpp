@@ -166,6 +166,28 @@ PEGraph* CFGCompute::combine_synchronous(GraphStore* graphstore, std::vector<CFG
 }
 
 
+PEGraph* CFGCompute::transfer_phi(PEGraph* in, Stmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
+	//for debugging
+	Logger::print_thread_info_locked("transfer-phi starting...\n", LEVEL_LOG_FUNCTION);
+
+//    PEGraph* out = new PEGraph(in);
+	PEGraph* out = in;
+
+    // the KILL set
+    std::set<vertexid_t> vertices_changed;
+    std::set<vertexid_t> vertices_affected;
+    strong_update(stmt->getDst(),out,vertices_changed,grammar,vertices_affected, singletons);
+
+    // the GEN set
+    peg_compute_add(out,stmt,grammar, flag);
+
+	//for debugging
+	Logger::print_thread_info_locked("transfer-phi finished.\n", LEVEL_LOG_FUNCTION);
+
+    return out;
+}
+
+
 PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
 	//for debugging
 	Logger::print_thread_info_locked("transfer-copy starting...\n", LEVEL_LOG_FUNCTION);
@@ -493,12 +515,55 @@ void CFGCompute::removeExistingEdges(const EdgeArray& edges_src, vertexid_t src,
 	delete[] labels;
 }
 
-bool containsSelfLoopEdges(PEGraph *out, Stmt *stmt, Grammar *grammar){
-	vertexid_t src = stmt->getSrc();
+//bool containsSelfLoopEdges(PEGraph *out, Stmt *stmt, Grammar *grammar){
+//	vertexid_t src = stmt->getSrc();
+//
+//	vertexid_t dst = stmt->getDst();
+//
+//	vertexid_t aux = stmt->getAux();
+//}
+
+void CFGCompute::getDirectAddedEdges_phi(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag){
+    //'a', '-a', 'd', '-d', and self-loop edges
+	int length = stmt->getLength();
+	vertexid_t* srcs = stmt->getSrcs();
 
 	vertexid_t dst = stmt->getDst();
+	EdgeArray edges_dst = EdgeArray();
 
-	vertexid_t aux = stmt->getAux();
+	for(int i = 0; i < length; i++){
+		vertexid_t src = srcs[i];
+		EdgeArray edges_src = EdgeArray();
+
+		//'a', '-a'
+		edges_src.addOneEdge(dst, grammar->getLabelValue("a"));
+		edges_dst.addOneEdge(src, grammar->getLabelValue("-a"));
+
+//		//self-loop edges
+//	    if(!flag){
+//			for(int i = 0; i < grammar->getNumErules(); ++i){
+//				char label = grammar->getErule(i);
+//				edges_src.addOneEdge(src, label);
+//			}
+//	    }
+
+	    //merge and sort
+	    edges_src.merge();
+
+	    //remove the existing edges
+		removeExistingEdges(edges_src, src, out, m);
+	}
+
+	//self-loop edges
+    if(!flag){
+		for(int i = 0; i < grammar->getNumErules(); ++i){
+			char label = grammar->getErule(i);
+			edges_dst.addOneEdge(dst, label);
+		}
+    }
+
+	edges_dst.merge();
+	removeExistingEdges(edges_dst, dst, out, m);
 }
 
 void CFGCompute::getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag){
@@ -565,10 +630,15 @@ void CFGCompute::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar, boo
 	//for debugging
 	Logger::print_thread_info_locked("peg-compute-add starting...\n", LEVEL_LOG_FUNCTION);
 
-	bool isConservative = true;
+	bool isConservative = false;
 
 	std::unordered_map<vertexid_t, EdgeArray> m;
-	getDirectAddedEdges(out, stmt, grammar, &m, flag);
+	if(stmt->getType() == TYPE::Phi){
+		getDirectAddedEdges_phi(out, stmt, grammar, &m, flag);
+	}
+	else{
+		getDirectAddedEdges(out, stmt, grammar, &m, flag);
+	}
 	if(m.empty() && !isConservative){// no new edges directly added
 		return;
 	}

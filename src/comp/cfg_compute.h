@@ -61,6 +61,16 @@ public:
                 return transfer_store(in, stmt, grammar, singletons, flag);
             case TYPE::Alloca:
                 return transfer_address(in, stmt, grammar, singletons, flag);
+            case TYPE::Phi:
+            	return transfer_phi(in, stmt, grammar, singletons, flag);
+            case TYPE::Call:
+            	return transfer_call(in);
+            case TYPE::Return:
+            	return transfer_return(in);
+            case TYPE::Ret:
+            	return transfer_ret(in);
+            case TYPE::Skip:
+            	return transfer_skip(in);
             default:
                 return nullptr;
         }
@@ -71,6 +81,24 @@ public:
 private:
     static void compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
     		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag);
+
+    static PEGraph* transfer_call(PEGraph* in){
+    	return in;
+    }
+
+    static PEGraph* transfer_return(PEGraph* in){
+    	return in;
+    }
+
+    static PEGraph* transfer_ret(PEGraph* in){
+    	return in;
+    }
+
+    static PEGraph* transfer_skip(PEGraph* in){
+    	return in;
+    }
+
+    static PEGraph* transfer_phi(PEGraph* in, Stmt* stmt,Grammar* grammar, Singletons* singletons, bool flag);
 
     static PEGraph* transfer_copy(PEGraph* in, Stmt* stmt,Grammar* grammar, Singletons* singletons, bool flag);
 
@@ -93,6 +121,7 @@ private:
     static void peg_compute_delete(PEGraph *out,Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* m);
 	static void getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& vertices_changed, Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* m);
 	static void getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag);
+	static void getDirectAddedEdges_phi(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag);
 	static void removeExistingEdges(const EdgeArray& edges_src, vertexid_t src, PEGraph* out, std::unordered_map<vertexid_t, EdgeArray>* m);
 };
 
