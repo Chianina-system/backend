@@ -21,6 +21,11 @@ public:
         for (auto &node : nodes) {
             delete node;
         }
+
+        for(auto &mirror: mirrors){
+        	assert(mirror->getStmt() == nullptr);
+        	delete mirror;
+        }
 	}
 
     void print(std::ostream& str) const override {
@@ -35,16 +40,17 @@ public:
     }
 
 	inline bool isMirror(CFGNode* node) {
-		return in_mirrors.find(node) != in_mirrors.end() || out_mirrors.find(node) != out_mirrors.end();
+//		return in_mirrors.find(node) != in_mirrors.end() || out_mirrors.find(node) != out_mirrors.end();
+		return mirrors.find(node) != mirrors.end();
 	}
-
-	inline bool isInMirror(CFGNode* node) {
-		return in_mirrors.find(node) != in_mirrors.end();
-	}
-
-	inline bool isOutMirror(CFGNode* node) {
-		return out_mirrors.find(node) != out_mirrors.end();
-	}
+//
+//	inline bool isInMirror(CFGNode* node) {
+//		return in_mirrors.find(node) != in_mirrors.end();
+//	}
+//
+//	inline bool isOutMirror(CFGNode* node) {
+//		return out_mirrors.find(node) != out_mirrors.end();
+//	}
 
 	inline std::unordered_set<CFGNode*>& getActiveNodes(){
 		return actives;
@@ -52,6 +58,9 @@ public:
 
 
 	void loadCFG_ooc(const string& file_cfg, const string& file_stmt, const string& file_mirrors_in, const string& file_mirrors_out, const string& file_actives) {
+		//for debugging
+		Logger::print_thread_info_locked("load-cfg-ooc starting...\n", LEVEL_LOG_FUNCTION);
+
 		// handle the stmt file
 		std::ifstream fin;
 		fin.open(file_stmt);
@@ -92,7 +101,8 @@ public:
 				if(m.find(id) == m.end()){
 					m[id] = new CFGNode(id, nullptr);
 				}
-				this->in_mirrors.insert(m[id]);
+//				this->in_mirrors.insert(m[id]);
+				this->mirrors.insert(m[id]);
 			}
 			fin.close();
 		}
@@ -118,7 +128,8 @@ public:
 				if(m.find(id) == m.end()){
 					m[id] = new CFGNode(id, nullptr);
 				}
-				this->out_mirrors.insert(m[id]);
+//				this->out_mirrors.insert(m[id]);
+				this->mirrors.insert(m[id]);
 			}
 			fin.close();
 		}
@@ -167,6 +178,8 @@ public:
 		//delete the actives file
 		FileUtil::delete_file(file_actives);
 
+		//for debugging
+		Logger::print_thread_info_locked("load-cfg-ooc finished.\n", LEVEL_LOG_FUNCTION);
 	}
 
 
@@ -225,12 +238,13 @@ public:
 
 
 private:
-	std::unordered_set<CFGNode*> in_mirrors;
+//	std::unordered_set<CFGNode*> in_mirrors;
+//
+//	std::unordered_set<CFGNode*> out_mirrors;
 
-	std::unordered_set<CFGNode*> out_mirrors;
+	std::unordered_set<CFGNode*> mirrors;
 
 	std::unordered_set<CFGNode*> actives;
-
 
 
     std::vector<CFGNode*> nodes;

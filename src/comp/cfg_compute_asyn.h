@@ -23,8 +23,8 @@ public:
 
 	    //initiate concurrent worklist
 	    CFG_map* cfg = dynamic_cast<CFG_map*>(cfg_);
-//	    std::vector<CFGNode*> nodes = cfg->getNodes();
-	    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
+	    std::vector<CFGNode*> nodes = cfg->getNodes();
+//	    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
 
 	//    //for debugging
 	//    StaticPrinter::print_vector(nodes);
@@ -44,7 +44,8 @@ public:
 	    delete(worklist);
 
 	    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
-	    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
+//	    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
+	    dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
 	}
 
 
@@ -52,12 +53,11 @@ public:
 		CFGNode* cfg_node;
 	    while(worklist->pop_atomic(cfg_node)){
 	    	//for debugging
-	//    	cout << "\nCFG Node under processing: " << *cfg_node << endl;
 	    	Logger::print_thread_info_locked("----------------------- CFG Node "
 	    			+ to_string(cfg_node->getCfgNodeId())
 					+ " {" + cfg_node->getStmt()->toString()
 					+ "} start processing -----------------------\n", LEVEL_LOG_CFGNODE);
-	    	Logger::print_thread_info_locked(to_string((long)graphstore) + "\n", LEVEL_LOG_CFGNODE);
+//	    	Logger::print_thread_info_locked(to_string((long)graphstore) + "\n", LEVEL_LOG_CFGNODE);
 
 	        //merge
 	    	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
@@ -66,13 +66,13 @@ public:
 	        PEGraph* in = combine_asynchronous(graphstore, preds);
 
 	        //for debugging
-	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", LEVEL_LOG_PEG);
+	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
 	        //transfer
 	        PEGraph* out = CFGCompute::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
 	        //for debugging
-	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString() + "\n", LEVEL_LOG_PEG);
+	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
 	        //update and propagate
 	        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
@@ -98,10 +98,10 @@ public:
 	        //for debugging
 	        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
 
-	        //for debugging
-	        Logger::print_thread_info_locked("1-> " + worklist->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);
+//	        //for debugging
+//	        Logger::print_thread_info_locked("1-> " + worklist->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);
 	    }
-	//    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
+//	    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
 	}
 
 	static PEGraph* combine_asynchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds){

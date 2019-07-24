@@ -107,14 +107,15 @@ public:
 	}
 
 
-	static void do_worklist_ooc(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag){
+	static void do_worklist_ooc_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag){
 		Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
 	    Concurrent_Worklist<CFGNode*>* worklist_1 = new Concurrent_Workset<CFGNode*>();
 
 	    //initiate concurrent worklist
 	    CFG_map_outcore* cfg = dynamic_cast<CFG_map_outcore*>(cfg_);
-	    std::unordered_set<CFGNode*> nodes = cfg->getActiveNodes();
+//	    std::unordered_set<CFGNode*> nodes = cfg->getActiveNodes();
+	    std::vector<CFGNode*> nodes = cfg->getNodes();
 
 	//    //for debugging
 	//    StaticPrinter::print_vector(nodes);
@@ -132,7 +133,7 @@ public:
 	        Logger::print_thread_info_locked("--------------------------------------------------------------- superstep starting ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
 
 	        std::vector<std::thread> comp_threads;
-	        for (unsigned int i = 0; i < NUM_THREADS_CFGCOMPUTE; i++)
+	        for (unsigned int i = 0; i < NUM_THREADS; i++)
 	            comp_threads.push_back(std::thread( [=] {compute_ooc(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore, singletons, actives, flag);}));
 
 	        for (auto &t : comp_threads)
@@ -160,7 +161,8 @@ public:
 	    delete(tmp_graphstore);
 
 	    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
-	    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
+//	    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
+	    dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
 	}
 
 
@@ -174,7 +176,7 @@ public:
 	    			+ to_string(cfg_node->getCfgNodeId())
 					+ " {" + cfg_node->getStmt()->toString()
 					+ "} start processing -----------------------\n", LEVEL_LOG_CFGNODE);
-	    	Logger::print_thread_info_locked(to_string((long)graphstore) + "\n", LEVEL_LOG_CFGNODE);
+//	    	Logger::print_thread_info_locked(to_string((long)graphstore) + "\n", LEVEL_LOG_CFGNODE);
 
 	        //merge
 	    	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
@@ -182,14 +184,14 @@ public:
 	//    	StaticPrinter::print_vector(preds);
 	        PEGraph* in = CFGCompute::combine_synchronous(graphstore, preds);
 
-	        //for debugging
-	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", LEVEL_LOG_PEG);
+//	        //for debugging
+//	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", LEVEL_LOG_PEG);
 
 	        //transfer
 	        PEGraph* out = CFGCompute::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
-	        //for debugging
-	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString() + "\n", LEVEL_LOG_PEG);
+//	        //for debugging
+//	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString() + "\n", LEVEL_LOG_PEG);
 
 	        //update and propagate
 	        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
@@ -213,7 +215,7 @@ public:
 	            }
 
 	            //store the new graph into tmp_graphstore
-	            tmp_graphstore->addOneGraph(out_pointer, out);
+	            tmp_graphstore->addOneGraph_atomic(out_pointer, out);
 	        }
 	        else{
 				delete out;
@@ -230,8 +232,6 @@ public:
 	        Logger::print_thread_info_locked("1-> " + worklist_1->toString() + "\t2-> " + worklist_2->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);
 	    }
 	}
-
-
 
 
 private:

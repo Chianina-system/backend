@@ -117,7 +117,7 @@ public:
 //    void loadGraphStore(const string &file) override;
     void loadGraphStore(const string& file, const string& file_in);
 
-    void addOneGraph(PEGraph_Pointer pointer, PEGraph *peGraph) override;
+    void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph *peGraph) override;
 
     void update_graphs(GraphStore *another) override;
 

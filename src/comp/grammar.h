@@ -31,17 +31,19 @@ class Grammar {
 		void test();
 
 		// TODO: modify following methods.
-		inline bool isAssign(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "a");}
+		inline bool isAssign(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "a") == 0;}
 
-		inline bool isAssign_bidirect(char label){char* raw = this->getRawLabel(label); return strcmp(raw, "a") || strcmp(raw, "-a");}
+		inline bool isAssign_bidirect(char label){char* raw = this->getRawLabel(label); return strcmp(raw, "a") == 0 || strcmp(raw, "-a") == 0;}
 
-		inline bool isMemoryAlias(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "M");}
+		inline bool isMemoryAlias(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "M") == 0;}
 
-		inline bool isDereference(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "d");}
+		inline bool isPointsTo(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "Pt") == 0;}
 
-		inline bool isDereference_reverse(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "-d");}
+		inline bool isDereference(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "d") == 0;}
 
-		inline bool isDereference_bidirect(char label){char* raw = this->getRawLabel(label); return strcmp(raw, "d") || strcmp(raw, "-d");}
+		inline bool isDereference_reverse(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "-d") == 0;}
+
+		inline bool isDereference_bidirect(char label){char* raw = this->getRawLabel(label); return strcmp(raw, "d") == 0 || strcmp(raw, "-d") == 0;}
 
 		inline bool isEruleLabel(char label){
 			for(int i = 0; i < getNumErules(); i++){

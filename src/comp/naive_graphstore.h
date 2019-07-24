@@ -22,7 +22,11 @@ public:
 
 
     ~NaiveGraphStore(){
-    	clear();
+//    	cout << "deleting naive-graph-store..." << endl;
+    	for(auto it = map.begin(); it != map.end(); ++it){
+//    		cout << "deleting pegraph " << it->first << endl;
+    		delete it->second;
+    	}
     }
 
 
@@ -166,7 +170,8 @@ public:
     }
 
 
-    void addOneGraph(PEGraph_Pointer pointer, PEGraph* graph){
+    void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph* graph){
+    	std::lock_guard<std::mutex> lockGuard(mutex);
     	this->map[pointer] = graph;
     }
 
@@ -187,6 +192,24 @@ public:
     		it = map.erase(it);
     	}
     }
+
+
+    void printOutInfo(){
+    	int size_graphs = map.size();
+    	long size_edges = 0;
+
+    	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
+
+    	for(auto it = map.begin(); it != map.end(); ++it){
+    		cout << it->first << "\t" << it->second->getNumEdges() << endl;
+    		size_edges += it->second->getNumEdges();
+    	}
+
+    	cout << "Number of graphs: " << size_graphs << endl;
+    	cout << "Number of edges: " << size_edges << endl;
+    }
+
+
 
 protected:
     void print(std::ostream& str) {

@@ -22,8 +22,8 @@ public:
 
 	    //initiate concurrent worklist
 	    CFG_map_outcore* cfg = dynamic_cast<CFG_map_outcore*>(cfg_);
-	    std::unordered_set<CFGNode*> nodes = cfg->getActiveNodes();
-//	    std::vector<CFGNode*> nodes = cfg->getNodes();
+//	    std::unordered_set<CFGNode*> nodes = cfg->getActiveNodes();
+	    std::vector<CFGNode*> nodes = cfg->getNodes();
 	//    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
 
 	//    //for debugging
@@ -44,7 +44,8 @@ public:
 	    delete(worklist);
 
 	    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
-	    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
+//	    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
+	    dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
 	}
 
 
@@ -67,14 +68,14 @@ private:
 	//    	StaticPrinter::print_vector(preds);
 	        PEGraph* in = CFGCompute_asyn::combine_asynchronous(graphstore, preds);
 
-	        //for debugging
-	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", LEVEL_LOG_PEG);
+//	        //for debugging
+//	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", LEVEL_LOG_PEG);
 
 	        //transfer
 	        PEGraph* out = CFGCompute::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
-	        //for debugging
-	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString() + "\n", LEVEL_LOG_PEG);
+//	        //for debugging
+//	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString() + "\n", LEVEL_LOG_PEG);
 
 	        //update and propagate
 	        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();

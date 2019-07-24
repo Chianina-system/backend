@@ -41,7 +41,8 @@ void ART_array::loadGraphStore(const string& file, const string& file_in) {
 
 }
 
-void ART_array::addOneGraph(PEGraph_Pointer pointer, PEGraph *peGraph) {
+void ART_array::addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph *peGraph) {
+	std::lock_guard<std::mutex> lockGuard(mutex);
     vector<Edge *> edges = convertToVector(peGraph);     //##这里是不是返回引用更好一些
     // 对vector进行排序
     sort(edges.begin(), edges.end(), [=](const Edge *lhs, const Edge *rhs) -> bool {

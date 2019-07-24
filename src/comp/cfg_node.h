@@ -36,7 +36,9 @@ public:
 	}
 
     ~CFGNode(){
-    	delete stmt;
+    	if(stmt){
+			delete stmt;
+    	}
     }
 
 

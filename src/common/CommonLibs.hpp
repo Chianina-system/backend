@@ -59,6 +59,8 @@
 #include <sys/types.h>
 #include <dirent.h>
 
+#include <bits/stdc++.h>
+
 using std::cout;
 using std::endl;
 
@@ -96,11 +98,11 @@ typedef int Partition;
 
 
 #define IS_PEGCOMPUTE_PARALLEL 0
-#define NUM_THREADS 4
-#define NUM_THREADS_CFGCOMPUTE 4
+#define NUM_THREADS 1
+#define NUM_THREADS_CFGCOMPUTE 1
 
 #define LEVEL_LOG_INFO 0
-#define LEVEL_LOG_FUNCTION 1
+#define LEVEL_LOG_FUNCTION 0
 #define LEVEL_LOG_PEG 0
 #define LEVEL_LOG_GRAPHSTORE 0
 #define LEVEL_LOG_CFGNODE 0

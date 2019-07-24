@@ -245,7 +245,7 @@ void ART_LinkList::edgeSort(vector<vector<Edge *>> &edges) {
     }
 }
 
-void ART_LinkList::addOneGraph(PEGraph_Pointer pointer, PEGraph *graph) {
+void ART_LinkList::addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph *graph) {
 
 }
 

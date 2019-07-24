@@ -23,7 +23,7 @@ enum class TYPE {
 
 class Stmt{
 	friend std::ostream & operator<<(std::ostream & strm, const Stmt& stmt) {
-		strm << "\nStmt:\t" << (int)stmt.t << ", " << stmt.getDst() << " <- " << stmt.getSrc() << ", " << stmt.getAux() << endl;
+//		strm << "\nStmt:\t" << (int)stmt.t << ", " << stmt.getDst() << " <- " << stmt.getSrc() << ", " << stmt.getAux() << endl;
 		return strm;
 	}
 
@@ -124,11 +124,10 @@ public:
 			stream >> dst;
 			this->dst = atoi(dst.c_str());
 
-			stream >> src;
 			std::vector<std::string> vector_string;
-			while(src != ""){
+			while(getline(stream, src, '\t')){
 				vector_string.push_back(src);
-				stream >> src;
+//				cout << src << endl;
 			}
 
 			this->length = vector_string.size();
@@ -176,7 +175,8 @@ public:
 
     std::string toString(){
     	std::ostringstream out;
-    	out << getTypeString(t) << ", " << getDst() << " <- " << getSrc() << ", " << getAux();
+    	out << getTypeString(t) << ", " << getDst() << " <- " << getSrc() << ", " << getAux() << ", ";
+    	out << getTypeString(t) << ", " << getFlag();
     	return out.str();
     }
 
@@ -205,12 +205,21 @@ public:
 		return src;
 	}
 
+	bool getFlag()  const {
+		return flag;
+	}
+
+	void setFlag() {
+		flag = true;
+	}
+
 private:
     int length;
-	vertexid_t* src;
+	vertexid_t* src = nullptr;
 	vertexid_t dst;
 	vertexid_t auxiliary;
 	TYPE t;
+	bool flag = false;
 
 };
 

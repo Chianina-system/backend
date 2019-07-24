@@ -12,15 +12,15 @@ PEGraph::PEGraph() {
 }
 
 PEGraph::PEGraph(PEGraph *p) {
-	//for debugging
-	Logger::print_thread_info_locked("pegraph copy starting...\n", LEVEL_LOG_FUNCTION);
+//	//for debugging
+//	Logger::print_thread_info_locked("pegraph copy starting...\n", LEVEL_LOG_FUNCTION);
 
     for (auto it = p->getGraph().begin(); it != p->getGraph().end(); it++){
         graph[it->first] = it->second;
     }
 
-	//for debugging
-	Logger::print_thread_info_locked("pegraph copy finished.\n", LEVEL_LOG_FUNCTION);
+//	//for debugging
+//	Logger::print_thread_info_locked("pegraph copy finished.\n", LEVEL_LOG_FUNCTION);
 }
 
 void PEGraph::merge(PEGraph * graph_toMerge){
@@ -60,7 +60,7 @@ std::unordered_map<vertexid_t, EdgeArray> & PEGraph::getGraph() {
 
 bool PEGraph::equals(PEGraph *another) {
 	//TODO:
-	if(!this || !another){
+	if(!another){
 		return false;
 	}
 

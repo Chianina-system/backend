@@ -128,7 +128,7 @@ public:
 
     void update_locked(PEGraph_Pointer graph_pointer, PEGraph *pegraph) override;
 
-    void addOneGraph(PEGraph_Pointer pointer, PEGraph *graph) override;
+    void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph *graph) override;
 
     void update_graphs(GraphStore *another) override;
 

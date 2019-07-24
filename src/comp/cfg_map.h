@@ -53,9 +53,8 @@ public:
 
 		std::string line;
 		while (getline(fin, line) && line != "") {
-			std::cout << line << "\n";
-
 			CFGNode* cfgNode = new CFGNode(line);
+			assert(m.find(cfgNode->getCfgNodeId()) == m.end());
 			m[cfgNode->getCfgNodeId()] = cfgNode;
 
 			//add cfgnode into cfg

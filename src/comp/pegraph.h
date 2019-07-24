@@ -20,7 +20,9 @@ class PEGraph {
 public:
     PEGraph();
 
-    ~PEGraph() {}
+    ~PEGraph() {
+//    	cout << "deleting pegraph..." << endl;
+    }
 
     PEGraph(PEGraph *p);
 
@@ -32,6 +34,14 @@ public:
 		}
 		strm << "------------------" << endl;
 		strm << "size=" << size << endl;
+	}
+
+	int getNumEdges(){
+		int size = 0;
+		for(auto& it : graph){
+			size += it.second.getSize();
+		}
+		return size;
 	}
 
 	bool equals(PEGraph *another);
@@ -106,13 +116,13 @@ public:
 
 
 
-    std::string toString(){
+    std::string toString(Grammar* grammar){
     	std::ostringstream strm;
     	strm << "PEGraph<<<<\n---------------------" << endl;
 //    	toString_sub(strm);
     	int size = 0;
 		for(auto& it : graph){
-			strm << it.first << " -> " << it.second << endl;
+			strm << it.first << " -> " << it.second.toString(grammar) << endl;
 			size += it.second.getSize();
 		}
     	strm << "------------------" << endl;

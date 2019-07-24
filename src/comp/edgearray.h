@@ -5,6 +5,7 @@
 #include "../common/CommonLibs.hpp"
 #include "myalgorithm.h"
 #include "../utility/Logger.hpp"
+#include "grammar.h"
 
 #define CAPACITY_VALUE 8
 //using namespace std;
@@ -22,9 +23,9 @@ class EdgeArray {
 
 public:
     EdgeArray();
-//    EdgeArray(int size,vertexid_t *edges,label_t *labels);
+
     ~EdgeArray(){
-//    	cout << "edgearray destructor is called.\n";
+//    	cout << "deleting EdgeArray..." << endl;
     	clear();
     }
 
@@ -81,12 +82,22 @@ public:
     	}
     }
 
+    std::string toString(Grammar* grammar){
+      	std::ostringstream strm;
+		strm << "{size=" << size << "; ";
+		for(int i = 0; i < size; i++){
+			strm << "(" << edges[i] << ", " << grammar->getRawLabel(labels[i]) << ") ";
+		}
+		strm << "}";
+		return strm.str();
+    }
+
 
 private:
-    vertexid_t *edges;
-    label_t *labels;
-    int size;
-    int capacity;
+    vertexid_t *edges = nullptr;
+    label_t *labels = nullptr;
+    int size = 0;
+    int capacity = 0;
 
 
 

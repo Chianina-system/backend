@@ -32,17 +32,12 @@ public:
     		const string& file_singleton, Singletons* singletons, GraphStore *graphstore, const string& file_grammar, Grammar * grammar){
     	CFG_map* cfg = dynamic_cast<CFG_map*>(cfg_);
     	cfg->loadCFG(file_cfg, file_stmt);
-    	cout << *cfg;
 
 //    	graphstore->loadGraphStore(file_singleton);
-//    	cout << *graphstore << endl;
 
     	singletons->loadSingletonSet(file_singleton);
-    	cout << *singletons << endl;
 
-        /* TODO: load grammar from file
-         * grammar->loadGrammar(filename);
-         */
+        /* TODO: load grammar from file */
         grammar->loadGrammar(file_grammar.c_str());
 
         return true;
@@ -113,6 +108,12 @@ private:
     static void strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar,std::set<vertexid_t> &vertices_delete, Singletons* singletons);
 
     static void must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar, std::set<vertexid_t> &vertices_delete, Singletons* singletons);
+
+    static bool is_strong_update_store(vertexid_t aux,PEGraph *out,Grammar *grammar, Singletons* singletons);
+
+    static void strong_update_store(vertexid_t aux, vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar,std::set<vertexid_t> &vertices_delete, Singletons* singletons);
+
+    static void must_alias_store(vertexid_t aux, vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar, std::set<vertexid_t> &vertices_delete, Singletons* singletons);
 
     static bool isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar);
 

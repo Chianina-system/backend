@@ -38,7 +38,7 @@ public:
 
     virtual void loadGraphStore(const string& file, const string& file_in) = 0;
 
-    virtual void addOneGraph(PEGraph_Pointer pointer, PEGraph* graph) = 0;
+    virtual void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph* graph) = 0;
 
     virtual void update_graphs(GraphStore* another) = 0;
 
@@ -50,6 +50,7 @@ public:
 //
 //    virtual void serialize(const string& file) = 0;
 
+//    virtual void printOutInfo() = 0;
 
     virtual std::string toString(){
     	std::ostringstream strm;

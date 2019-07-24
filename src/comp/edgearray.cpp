@@ -18,6 +18,10 @@ EdgeArray::EdgeArray(const EdgeArray& array){
         memcpy(this->edges,array.edges,sizeof(vertexid_t)*size);
         memcpy(this->labels,array.labels,sizeof(label_t)*size);
 	}
+	else{
+		edges = NULL;
+		labels = NULL;
+	}
 
 }
 
@@ -33,6 +37,10 @@ EdgeArray& EdgeArray::operator=(const EdgeArray& array){
 		this->labels = new label_t[size];
         memcpy(this->edges,array.edges,sizeof(vertexid_t)*size);
         memcpy(this->labels,array.labels,sizeof(label_t)*size);
+	}
+	else{
+		edges = NULL;
+		labels = NULL;
 	}
 
 //	//for debugging
@@ -172,7 +180,7 @@ void EdgeArray::merge() {
 }
 
 bool EdgeArray::equals(EdgeArray* another) const {
-	if(!this || !another){
+	if(!another){
 		return false;
 	}
 

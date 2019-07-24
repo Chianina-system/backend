@@ -28,7 +28,6 @@ public:
 		}
 	}
 
-
 	static void write_to_partition_stmt(Partition partition, string& line){
 		string stmt_partition_file = Context::file_stmts + to_string(partition);
 		ofstream myfile;
