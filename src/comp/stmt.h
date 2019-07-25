@@ -175,8 +175,8 @@ public:
 
     std::string toString(){
     	std::ostringstream out;
-    	out << getTypeString(t) << ", " << getDst() << " <- " << getSrc() << ", " << getAux() << ", ";
-    	out << getTypeString(t) << ", " << getFlag();
+//    	out << getTypeString(t) << ", " << getDst() << " <- " << getSrc() << ", " << getAux() << ", ";
+//    	out << getTypeString(t) << ", " << getFlag();
     	return out.str();
     }
 
@@ -210,7 +210,7 @@ public:
 	}
 
 	void setFlag() {
-		flag = true;
+//		flag = true;
 	}
 
 private:

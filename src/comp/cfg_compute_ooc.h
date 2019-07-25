@@ -170,13 +170,11 @@ public:
 			Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag){
 	    CFGNode* cfg_node;
 		while(worklist_1->pop_atomic(cfg_node)){
-	//    	//for debugging
-	//    	cout << "\nCFG Node under processing: " << *cfg_node << endl;
-	    	Logger::print_thread_info_locked("----------------------- CFG Node "
-	    			+ to_string(cfg_node->getCfgNodeId())
-					+ " {" + cfg_node->getStmt()->toString()
-					+ "} start processing -----------------------\n", LEVEL_LOG_CFGNODE);
-//	    	Logger::print_thread_info_locked(to_string((long)graphstore) + "\n", LEVEL_LOG_CFGNODE);
+//	//    	//for debugging
+//	    	Logger::print_thread_info_locked("----------------------- CFG Node "
+//	    			+ to_string(cfg_node->getCfgNodeId())
+//					+ " {" + cfg_node->getStmt()->toString()
+//					+ "} start processing -----------------------\n", LEVEL_LOG_CFGNODE);
 
 	        //merge
 	    	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
@@ -185,20 +183,22 @@ public:
 	        PEGraph* in = CFGCompute::combine_synchronous(graphstore, preds);
 
 //	        //for debugging
-//	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", LEVEL_LOG_PEG);
+//	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
 	        //transfer
 	        PEGraph* out = CFGCompute::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
 //	        //for debugging
-//	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString() + "\n", LEVEL_LOG_PEG);
+//	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
 	        //update and propagate
 	        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
 	        PEGraph* old_out = graphstore->retrieve(out_pointer);
 	        bool isEqual = out->equals(old_out);
-	        //for debugging
-	        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", LEVEL_LOG_INFO);
+
+//	        //for debugging
+//	        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", LEVEL_LOG_INFO);
+
 	        if(!isEqual){
 	            //propagate
 	            std::vector<CFGNode*> successors = cfg->getSuccessors(cfg_node);
@@ -224,12 +224,12 @@ public:
 	        //clean out
 	        delete old_out;
 
-	        //for debugging
-	//        Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
-	        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
-
-	        //for debugging
-	        Logger::print_thread_info_locked("1-> " + worklist_1->toString() + "\t2-> " + worklist_2->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);
+//	        //for debugging
+//	//        Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
+//	        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
+//
+//	        //for debugging
+//	        Logger::print_thread_info_locked("1-> " + worklist_1->toString() + "\t2-> " + worklist_2->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);
 	    }
 	}
 
@@ -242,7 +242,6 @@ private:
 			ofstream myfile;
 			myfile.open(file_actives, std::ofstream::out | std::ofstream::app);
 			if (myfile.is_open()){
-//				cout << "file path: " << file_actives << endl;
 				for(auto& it: set){
 					myfile << it->getCfgNodeId() << "\n";
 				}

@@ -52,12 +52,11 @@ public:
 	static void compute_asynchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist, Grammar* grammar, Singletons* singletons, bool flag){
 		CFGNode* cfg_node;
 	    while(worklist->pop_atomic(cfg_node)){
-	    	//for debugging
-	    	Logger::print_thread_info_locked("----------------------- CFG Node "
-	    			+ to_string(cfg_node->getCfgNodeId())
-					+ " {" + cfg_node->getStmt()->toString()
-					+ "} start processing -----------------------\n", LEVEL_LOG_CFGNODE);
-//	    	Logger::print_thread_info_locked(to_string((long)graphstore) + "\n", LEVEL_LOG_CFGNODE);
+//	    	//for debugging
+//	    	Logger::print_thread_info_locked("----------------------- CFG Node "
+//	    			+ to_string(cfg_node->getCfgNodeId())
+//					+ " {" + cfg_node->getStmt()->toString()
+//					+ "} start processing -----------------------\n", LEVEL_LOG_CFGNODE);
 
 	        //merge
 	    	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
@@ -65,21 +64,23 @@ public:
 	//    	StaticPrinter::print_vector(preds);
 	        PEGraph* in = combine_asynchronous(graphstore, preds);
 
-	        //for debugging
-	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
+//	        //for debugging
+//	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
 	        //transfer
 	        PEGraph* out = CFGCompute::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
-	        //for debugging
-	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
+//	        //for debugging
+//	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
 	        //update and propagate
 	        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
 	        PEGraph* old_out = graphstore->retrieve_locked(out_pointer);
 	        bool isEqual = out->equals(old_out);
-	        //for debugging
-	        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", LEVEL_LOG_INFO);
+
+//	        //for debugging
+//	        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", LEVEL_LOG_INFO);
+
 	        if(!isEqual){
 	            //update out
 	            graphstore->update_locked(out_pointer, out);
@@ -95,8 +96,8 @@ public:
 	        delete old_out;
 	        delete out;
 
-	        //for debugging
-	        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
+//	        //for debugging
+//	        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
 
 //	        //for debugging
 //	        Logger::print_thread_info_locked("1-> " + worklist->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);

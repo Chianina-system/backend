@@ -98,14 +98,14 @@ typedef int Partition;
 
 
 #define IS_PEGCOMPUTE_PARALLEL 0
-#define NUM_THREADS 1
+#define NUM_THREADS 16
 #define NUM_THREADS_CFGCOMPUTE 1
 
 #define LEVEL_LOG_INFO 0
 #define LEVEL_LOG_FUNCTION 0
-#define LEVEL_LOG_PEG 0
+#define LEVEL_LOG_PEG 1
 #define LEVEL_LOG_GRAPHSTORE 0
-#define LEVEL_LOG_CFGNODE 0
+#define LEVEL_LOG_CFGNODE 1
 #define LEVEL_LOG_WORKLIST 0
 #define LEVEL_LOG_MAIN 1
 

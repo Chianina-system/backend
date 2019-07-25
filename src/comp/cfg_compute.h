@@ -103,17 +103,21 @@ private:
 
     static PEGraph* transfer_address(PEGraph* in, Stmt* stmt,Grammar* grammar, Singletons* singletons, bool flag);
 
-    static bool is_strong_update(vertexid_t x,PEGraph *out,Grammar *grammar, Singletons* singletons);
+    static bool is_strong_update_dst(vertexid_t x,PEGraph *out,Grammar *grammar, Singletons* singletons);
 
     static void strong_update(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar,std::set<vertexid_t> &vertices_delete, Singletons* singletons);
 
     static void must_alias(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar, std::set<vertexid_t> &vertices_delete, Singletons* singletons);
 
-    static bool is_strong_update_store(vertexid_t aux,PEGraph *out,Grammar *grammar, Singletons* singletons);
+    static void must_alias_store_dst(vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar, std::set<vertexid_t> &vertices_delete, Singletons* singletons);
 
-    static void strong_update_store(vertexid_t aux, vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar,std::set<vertexid_t> &vertices_delete, Singletons* singletons);
+    static bool is_strong_update_aux(vertexid_t aux,PEGraph *out,Grammar *grammar, Singletons* singletons);
 
-    static void must_alias_store(vertexid_t aux, vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar, std::set<vertexid_t> &vertices_delete, Singletons* singletons);
+    static void strong_update_store_aux(vertexid_t aux, vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar,std::set<vertexid_t> &vertices_delete, Singletons* singletons);
+
+    static void strong_update_store_dst(vertexid_t x, PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar,std::set<vertexid_t> &vertices_delete, Singletons* singletons);
+
+    static void must_alias_store_aux(vertexid_t aux, vertexid_t x,PEGraph *out,std::set<vertexid_t> &vertices,Grammar *grammar, std::set<vertexid_t> &vertices_delete, Singletons* singletons);
 
     static bool isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar);
 

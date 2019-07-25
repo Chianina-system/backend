@@ -174,6 +174,11 @@ void PEGCompute_parallel::postProcessOneVertex(vertexid_t id, ComputationSet *co
 	{
 		//deltasV <- {newsV - oldsV}, newsV <- emptyset
 		vertexid_t i_new = id;
+
+		if (isDelete) {
+			mergeToDeletedGraph(i_new, m, compset);
+		}
+
 		int n1 = compset->getNewsNumEdges(i_new);
 		int n2 = compset->getOldsNumEdges(i_new);
 		vertexid_t *edges = new vertexid_t[n1];
@@ -183,10 +188,6 @@ void PEGCompute_parallel::postProcessOneVertex(vertexid_t id, ComputationSet *co
 				compset->getOldsEdges(i_new), compset->getOldsLabels(i_new));
 		if (len) {
 			compset->setDeltas(i_new, len, edges, labels);
-
-			if (isDelete) {
-				mergeToDeletedGraph(i_new, m, compset);
-			}
 		}
 
 		delete[] edges;
@@ -201,19 +202,19 @@ void PEGCompute_parallel::postProcessOneVertex(vertexid_t id, ComputationSet *co
 void PEGCompute_parallel::mergeToDeletedGraph(vertexid_t i_new, std::unordered_map<vertexid_t, EdgeArray>* m, ComputationSet* compset) {
 	if(!(m->at(i_new).isEmpty())){
 		int n1 = m->at(i_new).getSize();
-		int n2 = compset->getDeltasNumEdges(i_new);
+		int n2 = compset->getNewsNumEdges(i_new);
 		vertexid_t* edges = new vertexid_t[n1 + n2];
 		char* labels = new char[n1 + n2];
 		int len_union = myalgo::unionTwoArray(edges, labels,
 				n1, m->at(i_new).getEdges(), m->at(i_new).getLabels(),
-				n2, compset->getDeltasEdges(i_new), compset->getDeltasLabels(i_new));
+				n2, compset->getNewsEdges(i_new), compset->getNewsLabels(i_new));
 		m->at(i_new).set(len_union, edges, labels);
 
 		delete[] edges;
 		delete[] labels;
 	}
 	else{
-		m->at(i_new).set(compset->getDeltasNumEdges(i_new), compset->getDeltasEdges(i_new), compset->getDeltasLabels(i_new));
+		m->at(i_new).set(compset->getNewsNumEdges(i_new), compset->getNewsEdges(i_new), compset->getNewsLabels(i_new));
 	}
 }
 

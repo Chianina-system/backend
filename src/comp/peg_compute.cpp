@@ -321,24 +321,25 @@ void PEGCompute::postProcessOneIteration(ComputationSet *compset, bool isDelete,
     // deltasV <- newsV - oldsV, newsV <= empty set
     for (auto it = compset->getNews().begin(); it != compset->getNews().end(); ) {
         vertexid_t i_new = it->first;
-        int n1;
-        int n2;
-        vertexid_t *edges;
-        char *labels;
-        n1 = compset->getNewsNumEdges(i_new);
-        n2 = compset->getOldsNumEdges(i_new);
-        edges = new vertexid_t[n1];
-        labels = new char[n1];
+
+//        //for debugging
+//        cout << i_new << endl;
+//        cout << compset->getNews()[i_new] << std::endl;
+
+        if (isDelete) {
+			mergeToDeletedGraph(i_new, m, compset);
+        }
+
+        int n1 = compset->getNewsNumEdges(i_new);
+        int n2 = compset->getOldsNumEdges(i_new);
+        vertexid_t* edges = new vertexid_t[n1];
+        char* labels = new char[n1];
         int len = myalgo::minusTwoArray(edges, labels,
                                         n1, compset->getNewsEdges(i_new), compset->getNewsLabels(i_new),
                                         n2, compset->getOldsEdges(i_new), compset->getOldsLabels(i_new));
 
 		if (len){
 			compset->setDeltas(i_new, len, edges, labels);
-
-            if (isDelete) {
-				mergeToDeletedGraph(i_new, m, compset);
-            }
         }
 
 		delete[] edges;
@@ -354,12 +355,12 @@ void PEGCompute::postProcessOneIteration(ComputationSet *compset, bool isDelete,
 void PEGCompute::mergeToDeletedGraph(vertexid_t i_new, std::unordered_map<vertexid_t, EdgeArray>* m, ComputationSet* compset) {
 	if(m->find(i_new) != m->end()){
 		int n1 = m->at(i_new).getSize();
-		int n2 = compset->getDeltasNumEdges(i_new);
+		int n2 = compset->getNewsNumEdges(i_new);
 		vertexid_t* edges = new vertexid_t[n1 + n2];
 		char* labels = new char[n1 + n2];
 		int len_union = myalgo::unionTwoArray(edges, labels,
 				n1, m->at(i_new).getEdges(), m->at(i_new).getLabels(),
-				n2, compset->getDeltasEdges(i_new), compset->getDeltasLabels(i_new));
+				n2, compset->getNewsEdges(i_new), compset->getNewsLabels(i_new));
 		m->at(i_new).set(len_union, edges, labels);
 
 		delete[] edges;
@@ -368,7 +369,7 @@ void PEGCompute::mergeToDeletedGraph(vertexid_t i_new, std::unordered_map<vertex
 	else{
 		(*m)[i_new] = EdgeArray();
 //		m->insert(std::make_pair<vertexid_t, EdgeArray>(i_new, EdgeArray()));
-		m->at(i_new).set(compset->getDeltasNumEdges(i_new), compset->getDeltasEdges(i_new), compset->getDeltasLabels(i_new));
+		m->at(i_new).set(compset->getNewsNumEdges(i_new), compset->getNewsEdges(i_new), compset->getNewsLabels(i_new));
 	}
 }
 

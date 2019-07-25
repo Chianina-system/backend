@@ -9,7 +9,9 @@
 #include "comp/cfg_compute_ooc_asyn.h"
 using namespace std;
 
-const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/newtest/inlined/";
+//const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/newtest/inlined/";
+//const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/testExample/inlined/";
+const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/httpd/";
 const string file_cfg = dir + "final";
 const string file_stmts = dir + "id_stmt_info.txt";
 const string file_singletons = dir + "var_singleton_info.txt";
@@ -64,7 +66,6 @@ void compute_ooc(Partition partition, Context* context, int sync_mode){
 
     //get the flag for adding self-loop edges
     bool flag = context->getFlag(partition);
-	context->setFlag(partition);
 
     CFGCompute_ooc::load(partition, cfg, singletons, graphstore, context);
     if(sync_mode){
@@ -75,6 +76,7 @@ void compute_ooc(Partition partition, Context* context, int sync_mode){
     }
 	CFGCompute_ooc::pass(partition, cfg, graphstore, actives, context);
 
+	context->setFlag(partition);
 	delete cfg;
 	delete graphstore;
 	delete actives;
