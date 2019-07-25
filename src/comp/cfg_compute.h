@@ -33,6 +33,7 @@ public:
     	CFG_map* cfg = dynamic_cast<CFG_map*>(cfg_);
     	cfg->loadCFG(file_cfg, file_stmt);
 
+    	graphstore->init(cfg_);
 //    	graphstore->loadGraphStore(file_singleton);
 
     	singletons->loadSingletonSet(file_singleton);

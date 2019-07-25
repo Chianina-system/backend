@@ -64,19 +64,19 @@ void compute_ooc(Partition partition, Context* context, int sync_mode){
 	Singletons * singletons = new Singletons();
     Concurrent_Worklist<CFGNode*>* actives = new Concurrent_Workset<CFGNode*>();
 
-    //get the flag for adding self-loop edges
-    bool flag = context->getFlag(partition);
+//    //get the flag for adding self-loop edges
+//    bool flag = context->getFlag(partition);
+//	context->setFlag(partition);
 
     CFGCompute_ooc::load(partition, cfg, singletons, graphstore, context);
     if(sync_mode){
-		CFGCompute_ooc::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), singletons, actives, flag);
+		CFGCompute_ooc::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), singletons, actives, false);
     }
     else{
-    	CFGCompute_ooc_asyn::do_worklist_ooc_asynchronous(cfg, graphstore, context->getGrammar(), singletons, actives, flag);
+    	CFGCompute_ooc_asyn::do_worklist_ooc_asynchronous(cfg, graphstore, context->getGrammar(), singletons, actives, false);
     }
 	CFGCompute_ooc::pass(partition, cfg, graphstore, actives, context);
 
-	context->setFlag(partition);
 	delete cfg;
 	delete graphstore;
 	delete actives;

@@ -9,6 +9,7 @@
 #define COMP_GRAPHSTORE_H_
 
 #include "pegraph.h"
+#include "cfg.h"
 //#include "peGraphPointer.h"
 //#include "cfg_compute.h"
 
@@ -37,6 +38,8 @@ public:
     virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
 
     virtual void loadGraphStore(const string& file, const string& file_in) = 0;
+
+    virtual void init(CFG* cfg) = 0;
 
     virtual void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph* graph) = 0;
 

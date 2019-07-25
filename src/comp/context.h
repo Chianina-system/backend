@@ -67,11 +67,11 @@ public:
 	Context(unsigned int n_parts, long total_nodes, const string& file_cfg, const string& file_stmts, const string& file_singletons, const string& file_grammar){
 		this->number_partitions = n_parts;
 		this->total_nodes = total_nodes;
-		this->partitions = new unsigned int[this->number_partitions];
-		this->flag_partitions = new bool[this->number_partitions];
-		for(unsigned int i = 0; i < this->number_partitions; i++){
-			flag_partitions[i] = false;
-		}
+//		this->partitions = new unsigned int[this->number_partitions];
+//		this->flag_partitions = new bool[this->number_partitions];
+//		for(unsigned int i = 0; i < this->number_partitions; i++){
+//			flag_partitions[i] = false;
+//		}
 
 		//initialize the worklist
 //		for(unsigned int i = 0; i < this->number_partitions; i++){
@@ -89,13 +89,13 @@ public:
 	}
 
 	~Context(){
-		if(partitions){
-			delete[] partitions;
-		}
-
-		if(flag_partitions){
-			delete[] flag_partitions;
-		}
+//		if(partitions){
+//			delete[] partitions;
+//		}
+//
+//		if(flag_partitions){
+//			delete[] flag_partitions;
+//		}
 
 		if(grammar)
 			delete grammar;
@@ -123,29 +123,11 @@ public:
 		return node_id / mode;
 	}
 
-//	static const string&& getFileCfg() const {
-//		return file_cfg;
-//	}
-//
-//	static const string&& getFileGrammar() const {
-//		return file_grammar;
-//	}
-//
-//	static const string&& getFileSingletons() const {
-//		return file_singletons;
-//	}
-//
-//	static const string&& getFileStmts() const {
-//		return file_stmts;
-//	}
 
 	unsigned int getNumberPartitions() const {
 		return number_partitions;
 	}
 
-//	unsigned int* getPartitions() const {
-//		return partitions;
-//	}
 
 	const std::set<partition_info, partition_compare>& getPrioritySet() const {
 		return priority_set;
@@ -154,10 +136,6 @@ public:
 	long getTotalNodes() const {
 		return total_nodes;
 	}
-
-//	static const string&& getWorkingPath() const {
-//		return working_path;
-//	}
 
 	Grammar* getGrammar() const {
 		return grammar;
@@ -220,22 +198,21 @@ public:
 //		return ((partition_info)(*it)).score;
 //	}
 
-	bool getFlag(Partition p){
-		return flag_partitions[p];
-	}
-
-	void setFlag(Partition p){
-		flag_partitions[p] = true;
-	}
+//	bool getFlag(Partition p){
+//		return flag_partitions[p];
+//	}
+//
+//	void setFlag(Partition p){
+//		flag_partitions[p] = true;
+//	}
 
 
 private:
 
 	long total_nodes;
 	unsigned int number_partitions;
-	unsigned int* partitions;
-
-	bool* flag_partitions;
+//	unsigned int* partitions;
+//	bool* flag_partitions;
 
 	std::set<partition_info, partition_compare> priority_set;
 

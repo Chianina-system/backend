@@ -108,6 +108,10 @@ public:
 
     virtual ~ART_array();
 
+    void init(CFG* cfg) {
+
+    }
+
     PEGraph *retrieve(PEGraph_Pointer graph_pointer) override;
 
     void update_locked(PEGraph_Pointer graph_pointer, PEGraph *peGraph) override;

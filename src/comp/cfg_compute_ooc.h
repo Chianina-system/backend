@@ -30,7 +30,6 @@ public:
 		const string filename_mirrors_out = Context::folder_mirrors_out + partition;
 		const string foldername_actives = Context::folder_actives + partition;
 		const string filename_stmt = Context::file_stmts + partition;
-	//	const string filename_singleton = Context::file_singletons + partition;
 		const string filename_singleton = context->getFileSingletons();
 		const string filename_graphs = Context::file_graphstore + partition;
 		const string foldername_graphs_in = Context::folder_graphs_in + partition;
@@ -38,6 +37,7 @@ public:
 		CFG_map_outcore* cfg = dynamic_cast<CFG_map_outcore*>(cfg_);
 		cfg->loadCFG_ooc(filename_cfg, filename_stmt, filename_mirrors_in, filename_mirrors_out, foldername_actives);
 
+		graphstore->init(cfg_);
 		graphstore->loadGraphStore(filename_graphs, foldername_graphs_in);
 
 		singletons->loadSingletonSet(filename_singleton);

@@ -29,6 +29,16 @@ public:
     	}
     }
 
+    void init(CFG* cfg) {
+    	std::vector<CFGNode*> nodes = cfg->getNodes();
+    	for(auto & node: nodes){
+    		PEGraph_Pointer graph_pointer = node->getOutPointer();
+        	if(map.find(graph_pointer) == map.end()){
+        		map[graph_pointer] = new PEGraph();
+        	}
+    	}
+    }
+
 
     void load_onebyone(const string& file){
     	//for debugging
