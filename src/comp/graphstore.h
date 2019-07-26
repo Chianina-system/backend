@@ -10,6 +10,7 @@
 
 #include "pegraph.h"
 #include "cfg.h"
+#include "concurrent_workset.h"
 //#include "peGraphPointer.h"
 //#include "cfg_compute.h"
 
@@ -39,7 +40,7 @@ public:
 
     virtual void loadGraphStore(const string& file, const string& file_in) = 0;
 
-    virtual void init(CFG* cfg) = 0;
+//    virtual void init(CFG* cfg) = 0;
 
     virtual void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph* graph) = 0;
 

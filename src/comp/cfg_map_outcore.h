@@ -61,18 +61,21 @@ public:
 		//for debugging
 		Logger::print_thread_info_locked("load-cfg-ooc starting...\n", LEVEL_LOG_FUNCTION);
 
+		std::map<PEGraph_Pointer, CFGNode*> m;
+
 		// handle the stmt file
 		std::ifstream fin;
 		fin.open(file_stmt);
 		if (!fin) {
-			cout << "can't load file_stmt " << endl;
+			cout << "can't load file_stmt " << file_stmt << endl;
 			exit(EXIT_FAILURE);
 		}
-
-		std::map<PEGraph_Pointer, CFGNode*> m;
-
 		std::string line;
-		while (getline(fin, line) && line != "") {
+		while (getline(fin, line)) {
+			if(line == ""){
+				continue;
+			}
+
 			CFGNode* cfgNode = new CFGNode(line);
 			m[cfgNode->getCfgNodeId()] = cfgNode;
 
@@ -89,8 +92,15 @@ public:
 
 		//handle mirrors file
 		fin.open(file_mirrors_in);
-		if (fin) {
-			while (getline(fin, line) && line != "") {
+		if (!fin) {
+			cout << "can't load file_mirrors_in: " << file_mirrors_in << endl;
+		}
+		else {
+			while (getline(fin, line)) {
+				if(line == ""){
+					continue;
+				}
+
 	//			std::stringstream stream(line);
 	//			std::string item;
 	//			while(getline(stream, item, '\t')){
@@ -106,18 +116,17 @@ public:
 			}
 			fin.close();
 		}
-		else{
-			cout << "can't load file_mirrors_in: " << file_mirrors_in << endl;
-//			exit(EXIT_FAILURE);
-		}
 
 		fin.open(file_mirrors_out);
 		if (!fin) {
 			cout << "can't load file_mirrors_out: " << file_mirrors_out << endl;
-//			exit(EXIT_FAILURE);
 		}
 		else{
-			while (getline(fin, line) && line != "") {
+			while (getline(fin, line)) {
+				if(line == ""){
+					continue;
+				}
+
 	//			std::stringstream stream(line);
 	//			std::string item;
 	//			while(getline(stream, item, '\t')){
@@ -141,8 +150,11 @@ public:
 			cout << "can't load file_cfg: " << file_cfg << endl;
 			exit(EXIT_FAILURE);
 		}
+		while (getline(fin, line)) {
+			if(line == ""){
+				continue;
+			}
 
-		while (getline(fin, line) && line != "") {
 			std::stringstream stream(line);
 			std::string pred_id, succ_id;
 			stream >> pred_id >> succ_id;
@@ -164,8 +176,11 @@ public:
 			cout << "can't load file_actives: " << file_actives << endl;
 			exit(EXIT_FAILURE);
 		}
+		while (getline(fin, line)) {
+			if(line == ""){
+				continue;
+			}
 
-		while (getline(fin, line) && line != "") {
 //			std::stringstream stream(line);
 //			std::string item;
 //			while(getline(stream, item, '\t')){

@@ -12,6 +12,8 @@ using namespace std;
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/newtest/inlined/";
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/testExample/inlined/";
 const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/httpd/";
+const string file_total = dir + "total.txt";
+const string file_entries = dir + "entries.txt";
 const string file_cfg = dir + "final";
 const string file_stmts = dir + "id_stmt_info.txt";
 const string file_singletons = dir + "var_singleton_info.txt";
@@ -88,9 +90,9 @@ void compute_ooc(Partition partition, Context* context, int sync_mode){
 
 void run_ooc(int sync_mode){
 	//preprocessing
-	int num_partitions = 1;
-	long totol_nodes = 2693933;
-	Context* context = new Context(num_partitions, totol_nodes, file_cfg, file_stmts, file_singletons, file_grammar);
+	int num_partitions = 2;
+//	long totol_nodes = 2693933;
+	Context* context = new Context(num_partitions, file_total, file_cfg, file_stmts, file_entries, file_singletons, file_grammar);
 	Preprocess::process(*context);
 
 	//iterative computation
@@ -109,7 +111,7 @@ void compute_inmemory(int sync_mode){
 	Singletons * singletons = new Singletons();
     Grammar *grammar = new Grammar();
 
-	CFGCompute::load(file_cfg, file_stmts, cfg, file_singletons, singletons, graphstore, file_grammar, grammar);
+	CFGCompute::load(file_total, file_cfg, file_stmts, file_entries, cfg, file_singletons, singletons, graphstore, file_grammar, grammar);
 	if(sync_mode){
 		CFGCompute::do_worklist_synchronous(cfg, graphstore, grammar, singletons, false);
 	}

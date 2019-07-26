@@ -23,7 +23,12 @@ enum class TYPE {
 
 class Stmt{
 	friend std::ostream & operator<<(std::ostream & strm, const Stmt& stmt) {
-//		strm << "\nStmt:\t" << (int)stmt.t << ", " << stmt.getDst() << " <- " << stmt.getSrc() << ", " << stmt.getAux() << endl;
+		if(stmt.t != TYPE::Alloca && stmt.t != TYPE::Load && stmt.t != TYPE::Store && stmt.t != TYPE::Assign){
+			strm << "\nStmt:\t" << (int)stmt.t << ", " << stmt.getDst() << " <- " << stmt.getSrcs() << ", " << stmt.getAux() << endl;
+		}
+		else{
+			strm << "\nStmt:\t" << (int)stmt.t << ", " << stmt.getDst() << " <- " << stmt.getSrc() << ", " << stmt.getAux() << endl;
+		}
 		return strm;
 	}
 
@@ -175,7 +180,12 @@ public:
 
     std::string toString(){
     	std::ostringstream out;
-//    	out << getTypeString(t) << ", " << getDst() << " <- " << getSrc() << ", " << getAux() << ", ";
+    	if(t != TYPE::Alloca && t != TYPE::Load && t != TYPE::Store && t != TYPE::Assign){
+    		out << getTypeString(t) << ", " << getDst() << " <- " << getSrcs() << ", " << getAux() << ", ";
+    	}
+    	else{
+			out << getTypeString(t) << ", " << getDst() << " <- " << getSrc() << ", " << getAux() << ", ";
+    	}
 //    	out << getTypeString(t) << ", " << getFlag();
     	return out.str();
     }
@@ -205,13 +215,13 @@ public:
 		return src;
 	}
 
-	bool getFlag()  const {
-		return flag;
-	}
-
-	void setFlag() {
+//	bool getFlag()  const {
+//		return flag;
+//	}
+//
+//	void setFlag() {
 //		flag = true;
-	}
+//	}
 
 private:
     int length;
@@ -219,7 +229,7 @@ private:
 	vertexid_t dst;
 	vertexid_t auxiliary;
 	TYPE t;
-	bool flag = false;
+//	bool flag = false;
 
 };
 

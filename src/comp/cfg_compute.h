@@ -28,12 +28,12 @@ class CFGCompute {
 
 public:
 
-    static bool load(const string& file_cfg, const string& file_stmt, CFG *cfg_,
+    static bool load(const string& file_total, const string& file_cfg, const string& file_stmt, const string& file_entries, CFG *cfg_,
     		const string& file_singleton, Singletons* singletons, GraphStore *graphstore, const string& file_grammar, Grammar * grammar){
     	CFG_map* cfg = dynamic_cast<CFG_map*>(cfg_);
-    	cfg->loadCFG(file_cfg, file_stmt);
+    	cfg->loadCFG(file_cfg, file_stmt, file_entries);
 
-    	graphstore->init(cfg_);
+//    	graphstore->init(cfg_);
 //    	graphstore->loadGraphStore(file_singleton);
 
     	singletons->loadSingletonSet(file_singleton);

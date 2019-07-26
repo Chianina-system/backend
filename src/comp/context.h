@@ -64,9 +64,11 @@ struct partition_compare {
 class Context {
 
 public:
-	Context(unsigned int n_parts, long total_nodes, const string& file_cfg, const string& file_stmts, const string& file_singletons, const string& file_grammar){
+	Context(unsigned int n_parts, const string& file_total, const string& file_cfg, const string& file_stmts, const string& file_entries, const string& file_singletons, const string& file_grammar){
 		this->number_partitions = n_parts;
-		this->total_nodes = total_nodes;
+		this->total_nodes = readTotalNodes(file_total);
+		assert(this->total_nodes != -1);
+
 //		this->partitions = new unsigned int[this->number_partitions];
 //		this->flag_partitions = new bool[this->number_partitions];
 //		for(unsigned int i = 0; i < this->number_partitions; i++){
@@ -81,6 +83,7 @@ public:
 		//file path initialization
 		this->file_cfg_init = file_cfg;
 		this->file_stmts_init = file_stmts;
+		this->file_entries_init = file_entries;
 		this->file_grammar_init = file_grammar;
 		this->file_singletons_init = file_singletons;
 
@@ -183,6 +186,10 @@ public:
 		return file_grammar_init;
 	}
 
+	string getFileEntries() const {
+		return file_entries_init;
+	}
+
 	string getFileSingletons() const {
 		return file_singletons_init;
 	}
@@ -222,9 +229,27 @@ private:
 	//the path of input files
 	string file_cfg_init;
 	string file_stmts_init;
+	string file_entries_init;
 	string file_singletons_init;
 	string file_grammar_init;
 
+
+	long readTotalNodes(const string& file){
+		ifstream myfile_total(file);
+		if (myfile_total.is_open()) {
+			string line;
+			while (getline(myfile_total, line)) {
+				if(line == ""){
+					continue;
+				}
+				return atol(line.c_str());
+			}
+
+			myfile_total.close();
+		}
+
+		return -1;
+	}
 
 };
 

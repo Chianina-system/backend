@@ -185,11 +185,48 @@ public:
     	this->map[pointer] = graph;
     }
 
-    void update_graphs(GraphStore* another){
+    static void update_parallel(NaiveGraphStore* current, NaiveGraphStore* another, Concurrent_Worklist<vertexid_t>* worklist){
+    	vertexid_t id = -1;
+    	while(worklist->pop_atomic(id)){
+    		assert(current->map.find(id) != current->map.end());
+    		current->update(id, another->map.at(id));
+    	}
+    }
+
+    void update_graphs_parallel(GraphStore* another){
+	    //initiate concurrent worklist
+	    Concurrent_Worklist<vertexid_t>* worklist = new Concurrent_Workset<vertexid_t>();
+	    NaiveGraphStore* another_graphstore = dynamic_cast<NaiveGraphStore*>(another);
+	    for(auto& it: another_graphstore->map){
+	        worklist->push_atomic(it.first);
+
+			//initialize the graphstore
+	        if(map.find(it.first) == map.end()){
+	        	map[it.first] = new PEGraph();
+	        }
+	    }
+
+		std::vector<std::thread> comp_threads;
+		for (unsigned int i = 0; i < NUM_THREADS; i++)
+			comp_threads.push_back(std::thread([=] {update_parallel(this, another_graphstore, worklist);}));
+
+		for (auto &t : comp_threads)
+			t.join();
+
+	    //clean
+	    delete(worklist);
+    }
+
+    void update_graphs_sequential(GraphStore* another){
     	NaiveGraphStore* another_graphstore = dynamic_cast<NaiveGraphStore*>(another);
     	for(auto& it: another_graphstore->map){
     		update(it.first, it.second);
     	}
+    }
+
+    void update_graphs(GraphStore* another){
+//    	update_graphs_sequential(another); // sequential
+    	update_graphs_parallel(another); // in parallel
     }
 
     void clearEntryOnly(){
@@ -211,7 +248,7 @@ public:
     	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
 
     	for(auto it = map.begin(); it != map.end(); ++it){
-    		cout << it->first << "\t" << it->second->getNumEdges() << endl;
+//    		cout << it->first << "\t" << it->second->getNumEdges() << endl;
     		size_edges += it->second->getNumEdges();
     	}
 

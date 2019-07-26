@@ -16,8 +16,8 @@ void CFGCompute::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Gram
 
     //initiate concurrent worklist
     CFG_map* cfg = dynamic_cast<CFG_map*>(cfg_);
-    std::vector<CFGNode*> nodes = cfg->getNodes();
-//    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
+//    std::vector<CFGNode*> nodes = cfg->getNodes();
+    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
 
 //    //for debugging
 //    StaticPrinter::print_vector(nodes);
@@ -42,7 +42,6 @@ void CFGCompute::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Gram
             t.join();
 
         //synchronize and communicate
-//        update_GraphStore(graphstore, tmp_graphstore);
         graphstore->update_graphs(tmp_graphstore);
         tmp_graphstore->clear();
 
@@ -67,10 +66,6 @@ void CFGCompute::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Gram
 //    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
     dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
 }
-
-//void CFGCompute::update_GraphStore(GraphStore* graphstore, GraphStore* tmp_graphstore){
-//	graphstore->update_graphs(tmp_graphstore);
-//}
 
 
 void CFGCompute::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
@@ -126,7 +121,7 @@ void CFGCompute::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurren
         //clean out
         delete old_out;
 
-        //for debugging
+//        //for debugging
 //        Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
 //        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
 
@@ -190,7 +185,6 @@ PEGraph* CFGCompute::transfer_phi(PEGraph* in, Stmt* stmt,Grammar *grammar, Sing
 
     return out;
 }
-
 
 PEGraph* CFGCompute::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
 	//for debugging
@@ -447,7 +441,11 @@ void CFGCompute::strong_update_store_aux(vertexid_t aux, vertexid_t x, PEGraph *
 //	cout << "\n";
 
     /* remove edges */
-    for(auto it = m.begin(); it!= m.end() && !(it->second.isEmpty()); it++){
+    for(auto it = m.begin(); it!= m.end(); it++){
+    	if(it->second.isEmpty()){
+    		continue;
+    	}
+
         vertexid_t src = it->first;
 
         /* delete all the ('a', '-a', 'V', 'M', and other temp labels) edges associated with a vertex within vertices_changed, and
@@ -516,7 +514,11 @@ void CFGCompute::strong_update_store_dst(vertexid_t x, PEGraph *out, std::set<ve
     peg_compute_delete(out, grammar, &m);
 
     /* remove edges */
-    for(auto it = m.begin(); it!= m.end() && !(it->second.isEmpty()); it++){
+    for(auto it = m.begin(); it!= m.end(); it++){
+    	if(it->second.isEmpty()){
+    		continue;
+    	}
+
         vertexid_t src = it->first;
 
         /* delete all the ('a', '-a', 'V', 'M', and other temp labels) edges associated with a vertex within vertices_changed, and
@@ -587,7 +589,11 @@ void CFGCompute::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid_t> 
     peg_compute_delete(out, grammar, &m);
 
     /* remove edges */
-    for(auto it = m.begin(); it!= m.end() && !(it->second.isEmpty()); it++){
+    for(auto it = m.begin(); it!= m.end(); it++){
+    	if(it->second.isEmpty()){
+    		continue;
+    	}
+
         vertexid_t src = it->first;
 
         /* delete all the ('a', '-a', 'V', 'M', and other temp labels) edges associated with a vertex within vertices_changed, and
@@ -905,7 +911,7 @@ void CFGCompute::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unorder
 
     // start GEN
     long number_deleted = 0;
-    if(IS_PEGCOMPUTE_PARALLEL){
+    if(IS_PEGCOMPUTE_PARALLEL_DELETE){
 		number_deleted = PEGCompute_parallel::startCompute_delete(compset, grammar, m);
     }
     else{
@@ -976,9 +982,8 @@ void CFGCompute::getDirectAddedEdges_phi(PEGraph *out, Stmt *stmt, Grammar *gram
 	}
 
 	//self-loop edges
-    if(!flag && !stmt->getFlag()){
+    if(!flag){
 //    	Logger::print_thread_info_locked("adding self-loop edges...\n", 1);
-    	stmt->setFlag();
 
 		for(int i = 0; i < grammar->getNumErules(); ++i){
 			char label = grammar->getErule(i);
@@ -1024,9 +1029,8 @@ void CFGCompute::getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar,
     }
 
 	//self-loop edges
-    if(!flag && !stmt->getFlag()){
+    if(!flag){
 //    	Logger::print_thread_info_locked("adding self-loop edges...\n", 1);
-    	stmt->setFlag();
 
 		for(int i = 0; i < grammar->getNumErules(); ++i){
 			char label = grammar->getErule(i);
@@ -1066,6 +1070,7 @@ void CFGCompute::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar, boo
 	else{
 		getDirectAddedEdges(out, stmt, grammar, &m, flag);
 	}
+
 	if(m.empty() && !isConservative){// no new edges directly added
 		return;
 	}
@@ -1078,7 +1083,7 @@ void CFGCompute::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar, boo
 //    cout << *compset << endl;
 
     // start GEN
-    if(IS_PEGCOMPUTE_PARALLEL){
+    if(IS_PEGCOMPUTE_PARALLEL_ADD){
 		PEGCompute_parallel::startCompute_add(compset, grammar);
     }
     else{

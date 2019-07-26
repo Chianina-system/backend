@@ -40,7 +40,9 @@ public:
     }
 
 
-    void loadCFG(const string& file_cfg, const string& file_stmt) {
+    void loadCFG(const string& file_cfg, const string& file_stmt, const string& file_entries) {
+		std::map<vertexid_t, CFGNode*> m;
+
 		// handle the stmt file
 		std::ifstream fin;
 		fin.open(file_stmt);
@@ -49,21 +51,18 @@ public:
 			exit(EXIT_FAILURE);
 		}
 
-		std::map<int, CFGNode*> m;
-
 		std::string line;
-		while (getline(fin, line) && line != "") {
+		while (getline(fin, line)) {
+			if(line == ""){
+				continue;
+			}
+
 			CFGNode* cfgNode = new CFGNode(line);
 			assert(m.find(cfgNode->getCfgNodeId()) == m.end());
 			m[cfgNode->getCfgNodeId()] = cfgNode;
 
 			//add cfgnode into cfg
 			this->addOneNode(cfgNode);
-
-			//add entry node
-			if(cfgNode->getCfgNodeId() == 0){
-				this->nodes_entry.push_back(cfgNode);
-			}
 		}
 		fin.close();
 
@@ -74,7 +73,11 @@ public:
 			exit(EXIT_FAILURE);
 		}
 
-		while (getline(fin, line) && line != "") {
+		while (getline(fin, line)) {
+			if(line == ""){
+				continue;
+			}
+
 			std::stringstream stream(line);
 			std::string pred_id, succ_id;
 			stream >> pred_id >> succ_id;
@@ -87,6 +90,27 @@ public:
 					m[atoi(pred_id.c_str())]);
 		}
 		fin.close();
+
+		//handle entry nodes
+		fin.open(file_entries);
+		if (!fin) {
+			cout << "can't load file_entries" << file_entries << endl;
+			exit(EXIT_FAILURE);
+		}
+
+		while (getline(fin, line)) {
+			if(line == ""){
+				continue;
+			}
+
+			vertexid_t id = atoi(line.c_str());
+			assert(m.find(id) != m.end());
+
+//			//add entry node
+			this->nodes_entry.push_back(m[id]);
+		}
+		fin.close();
+
     }
 
     std::vector<CFGNode*> getPredesessors(const CFGNode* node) const override{

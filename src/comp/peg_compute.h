@@ -12,8 +12,6 @@
 
 class PEGCompute {
 private:
-    static void computeOneIteration(ComputationSet *compset,Grammar *grammar);
-    static void postProcessOneIteration(ComputationSet *compset, bool isDelete, std::unordered_map<vertexid_t, EdgeArray> *m = nullptr);
 
     static void genS_RuleEdges_delta(vertexid_t index, ComputationSet *compset,ContainersToMerge &containers,Grammar *grammar);
     static void genD_RuleEdges_delta(vertexid_t index, ComputationSet *compset,ContainersToMerge &containers,Grammar *grammar);
@@ -26,6 +24,9 @@ public:
     static long startCompute_delete(ComputationSet *compset, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray> *m);
 
     static long computeOneVertex(vertexid_t index, ComputationSet *compset, Grammar *grammar);
+
+    static void computeOneIteration(ComputationSet *compset,Grammar *grammar);
+    static void postProcessOneIteration(ComputationSet *compset, bool isDelete, std::unordered_map<vertexid_t, EdgeArray> *m = nullptr);
 
 };
 #endif

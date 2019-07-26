@@ -108,9 +108,9 @@ public:
 
     virtual ~ART_array();
 
-    void init(CFG* cfg) {
-
-    }
+//    void init(CFG* cfg) {
+//
+//    }
 
     PEGraph *retrieve(PEGraph_Pointer graph_pointer) override;
 

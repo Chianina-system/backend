@@ -37,7 +37,7 @@ public:
 		CFG_map_outcore* cfg = dynamic_cast<CFG_map_outcore*>(cfg_);
 		cfg->loadCFG_ooc(filename_cfg, filename_stmt, filename_mirrors_in, filename_mirrors_out, foldername_actives);
 
-		graphstore->init(cfg_);
+//		graphstore->init(cfg_);
 		graphstore->loadGraphStore(filename_graphs, foldername_graphs_in);
 
 		singletons->loadSingletonSet(filename_singleton);
@@ -114,8 +114,8 @@ public:
 
 	    //initiate concurrent worklist
 	    CFG_map_outcore* cfg = dynamic_cast<CFG_map_outcore*>(cfg_);
-//	    std::unordered_set<CFGNode*> nodes = cfg->getActiveNodes();
-	    std::vector<CFGNode*> nodes = cfg->getNodes();
+	    std::unordered_set<CFGNode*> nodes = cfg->getActiveNodes();
+//	    std::vector<CFGNode*> nodes = cfg->getNodes();
 
 	//    //for debugging
 	//    StaticPrinter::print_vector(nodes);

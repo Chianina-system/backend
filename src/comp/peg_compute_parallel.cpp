@@ -7,9 +7,11 @@ long PEGCompute_parallel::startCompute_delete(ComputationSet *compset, Grammar *
     initiateComputationSet(vertexSet, compset, m);
 
     while (true) {
-        computeOneIteration(compset, grammar);
+    	computeOneIteration(compset, grammar);
+//    	PEGCompute::computeOneIteration(compset, grammar);
 
         postProcessOneIteration(compset, true, m);
+//        PEGCompute::postProcessOneIteration(compset, true, m);
 
         long realAddedEdgesPerIter = compset->getDeltasTotalNumEdges();
         totalAddedEdges += realAddedEdgesPerIter;
@@ -34,7 +36,7 @@ void PEGCompute_parallel::initiateComputationSet(std::unordered_set<vertexid_t>&
 			compset->getNews()[index] = EdgeArray();
 		}
 
-		if(m){
+		if(m && m->find(index) == m->end()){
 			(*m)[index] = EdgeArray();
 		}
 	}
@@ -62,6 +64,7 @@ long PEGCompute_parallel::startCompute_add(ComputationSet *compset, Grammar *gra
 //        cout << "-----------------------------------------------------------------------------\n";
 
         postProcessOneIteration(compset, false);
+//        PEGCompute::postProcessOneIteration(compset, false);
 
 //        //for debugging
 //        cout << *compset << endl;
@@ -101,7 +104,7 @@ void PEGCompute_parallel::computeOneIteration(ComputationSet *compset, Grammar *
 	initiateTasks(compset, worklist);
 
 	std::vector<std::thread> comp_threads;
-	for (unsigned int i = 0; i < NUM_THREADS - NUM_THREADS_CFGCOMPUTE; i++)
+	for (unsigned int i = 0; i < NUM_THREADS_CFGCOMPUTE; i++)
 		comp_threads.push_back(std::thread([=] {computeOneVertex(compset, grammar, worklist);}));
 
 	for (auto &t : comp_threads)
@@ -124,7 +127,7 @@ void PEGCompute_parallel::postProcessOneIteration(ComputationSet *compset, bool 
 	initiateTasks(compset, worklist);
 
 	std::vector<std::thread> comp_threads;
-	for (unsigned int i = 0; i < NUM_THREADS - NUM_THREADS_CFGCOMPUTE; i++)
+	for (unsigned int i = 0; i < NUM_THREADS_CFGCOMPUTE; i++)
 		comp_threads.push_back(std::thread([=] {postProcessOneVertex(compset, isDelete, m, worklist);}));
 
 	for (auto &t : comp_threads)

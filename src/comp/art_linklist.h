@@ -120,9 +120,9 @@ public:
 
     ~ART_LinkList();
 
-    void init(CFG* cfg) {
-
-    }
+//    void init(CFG* cfg) {
+//
+//    }
 
     PEGraph *retrieve(PEGraph_Pointer graph_pointer) override;
 

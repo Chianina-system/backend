@@ -22,8 +22,8 @@ public:
 
 	    //initiate concurrent worklist
 	    CFG_map_outcore* cfg = dynamic_cast<CFG_map_outcore*>(cfg_);
-//	    std::unordered_set<CFGNode*> nodes = cfg->getActiveNodes();
-	    std::vector<CFGNode*> nodes = cfg->getNodes();
+	    std::unordered_set<CFGNode*> nodes = cfg->getActiveNodes();
+//	    std::vector<CFGNode*> nodes = cfg->getNodes();
 	//    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
 
 	//    //for debugging

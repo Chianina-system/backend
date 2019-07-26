@@ -23,8 +23,8 @@ public:
 
 	    //initiate concurrent worklist
 	    CFG_map* cfg = dynamic_cast<CFG_map*>(cfg_);
-	    std::vector<CFGNode*> nodes = cfg->getNodes();
-//	    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
+//	    std::vector<CFGNode*> nodes = cfg->getNodes();
+	    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
 
 	//    //for debugging
 	//    StaticPrinter::print_vector(nodes);

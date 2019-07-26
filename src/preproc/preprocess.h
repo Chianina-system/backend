@@ -80,7 +80,11 @@ public:
 		ifstream myfile_cfg(context.getFileCfg());
 		if (myfile_cfg.is_open()) {
 			string line;
-			while (getline(myfile_cfg, line) && line != "") {
+			while (getline(myfile_cfg, line)) {
+				if(line == ""){
+					continue;
+				}
+
 				std::stringstream stream(line);
 				std::string src_id, dst_id;
 				stream >> src_id >> dst_id;
@@ -106,7 +110,11 @@ public:
 		ifstream myfile_stmt(context.getFileStmts());
 		if (myfile_stmt.is_open()) {
 			string line;
-			while (getline(myfile_stmt, line) && line != "") {
+			while (getline(myfile_stmt, line)) {
+				if(line == ""){
+					continue;
+				}
+
 				std::stringstream stream(line);
 				std::string id;
 				stream >> id;
@@ -177,11 +185,27 @@ public:
 			myfile_stmt.close();
 		}
 
-		//tag entry partitions according to entry nodes
-		context.update_priority(context.getPartition(0), 1);
-
 		//initialize active nodes
-		write_to_partition_actives(context.getPartition(0), 0);
+		ifstream myfile_entries(context.getFileEntries());
+		if (myfile_entries.is_open()) {
+			string line;
+			while (getline(myfile_entries, line)) {
+				if(line == ""){
+					continue;
+				}
+
+				vertexid_t id = atoi(line.c_str());
+				Partition part = context.getPartition(id);
+				write_to_partition_actives(part, id);
+
+				//update entry partitions according to entry nodes
+				context.update_priority(part, 1);
+			}
+
+			myfile_entries.close();
+		}
+
+
 
 
 		//for debugging
