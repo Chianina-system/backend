@@ -21,13 +21,20 @@ const string file_grammar = "/home/dell/Desktop/Ouroboros-dataset-master/rules_p
 
 /* function declaration */
 void run_inmemory(int);
-void run_ooc(int);
+void run_ooc(int, int);
 
 
 int main(int argc, char* argv[]) {
-	if(argc != 3){
-		cout << "Usage: ./backend ooc_mode(0: in-memory; 1: out-of-core) sync_mode(0: asynchronous; 1: synchronous)" << endl;
+	if(argc != 2 && argc != 3){
+		cout << "Usage: ./backend mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1)" << endl;
 		return 0;
+	}
+
+	if(argc == 2){
+		if(atoi(argv[1]) != 0){
+			cout << "Usage: ./backend mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1)" << endl;
+			return 0;
+		}
 	}
 
 	ResourceManager rm;
@@ -35,10 +42,10 @@ int main(int argc, char* argv[]) {
 	auto start_fsm = std::chrono::high_resolution_clock::now();
 
 	if(atoi(argv[1])){
-		run_ooc(atoi(argv[2]));
+		run_ooc(atoi(argv[2]), 1);
 	}
 	else{
-		run_inmemory(atoi(argv[2]));
+		run_inmemory(1);
 	}
 
 	auto end_fsm = std::chrono::high_resolution_clock::now();
@@ -88,18 +95,35 @@ void compute_ooc(Partition partition, Context* context, int sync_mode){
 //	Logger::print_thread_info_locked("compute finished.\n", LEVEL_LOG_FUNCTION);
 }
 
-void run_ooc(int sync_mode){
+void readAllGraphs(NaiveGraphStore *graphstore, Context* context){
+	for(unsigned int partition = 0; partition < context->getNumberPartitions(); ++ partition){
+		const string filename_graphs = Context::file_graphstore + to_string(partition);
+		graphstore->deserialize(filename_graphs);
+	}
+}
+
+void run_ooc(int num_partitions, int sync_mode){
 	//preprocessing
-	int num_partitions = 2;
-//	long totol_nodes = 2693933;
 	Context* context = new Context(num_partitions, file_total, file_cfg, file_stmts, file_entries, file_singletons, file_grammar);
 	Preprocess::process(*context);
+
+	//for debugging
+	context->printOutPriorityInfo();
 
 	//iterative computation
 	Partition partition;
 	while(context->schedule(partition)){
 		compute_ooc(partition, context, sync_mode);
+
+		//for debugging
+		context->printOutPriorityInfo();
 	}
+
+	//for debugging
+	NaiveGraphStore *graphstore = new NaiveGraphStore();
+	readAllGraphs(graphstore, context);
+	graphstore->printOutInfo();
+	delete graphstore;
 
 	delete context;
 }

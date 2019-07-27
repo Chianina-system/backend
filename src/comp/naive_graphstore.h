@@ -52,7 +52,11 @@ public:
 	    }
 	    else{
 			std::string line;
-			while (getline(fin, line) && line != "") {
+			while (getline(fin, line)) {
+				if(line == ""){
+					continue;
+				}
+
 				std::stringstream stream(line);
 				std::string id;
 				stream >> id;

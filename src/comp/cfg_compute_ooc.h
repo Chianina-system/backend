@@ -162,7 +162,7 @@ public:
 
 	    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 //	    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
-	    dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
+//	    dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
 	}
 
 

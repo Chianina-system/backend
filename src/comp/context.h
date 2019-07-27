@@ -8,57 +8,13 @@
 #ifndef COMP_CONTEXT_H_
 #define COMP_CONTEXT_H_
 
-#include "../common/CommonLibs.hpp"
+//#include "../common/CommonLibs.hpp"
 #include "../comp/cfg_node.h"
 #include "grammar.h"
+#include "priority_set.h"
+#include "priority_array.h"
 
 using namespace std;
-
-class partition_info {
-
-public:
-
-//	partition_info(unsigned int id, int s){
-//		this->partition_id = id;
-//		this->score = s;
-//	}
-
-	partition_info(unsigned int id, int s = 0){
-		this->partition_id = id;
-		this->score = s;
-	}
-
-	//operator for map
-	bool operator==(const partition_info& other) const {
-		return this->partition_id == other.partition_id;
-	}
-
-	void increase_score(int s){
-		this->score += s;
-	}
-
-
-//private:
-	unsigned int partition_id;
-	int score;
-
-};
-
-namespace std {
-	template<>
-	struct hash<partition_info> {
-		std::size_t operator()(const partition_info& pinfo) const {
-			//simple hash
-			return std::hash<int>()(pinfo.partition_id);
-		}
-	};
-}
-
-struct partition_compare {
-    bool operator() (const partition_info& lhs, const partition_info& rhs) const {
-        return lhs.score < rhs.score;
-    }
-};
 
 
 class Context {
@@ -79,6 +35,8 @@ public:
 //		for(unsigned int i = 0; i < this->number_partitions; i++){
 //			this->priority_set.insert(partition_info(i, 0));
 //		}
+//		priority_set = new Priority_set();
+		priority_set = new Priority_array(this->number_partitions);
 
 		//file path initialization
 		this->file_cfg_init = file_cfg;
@@ -99,6 +57,10 @@ public:
 //		if(flag_partitions){
 //			delete[] flag_partitions;
 //		}
+
+		if(priority_set){
+			delete priority_set;
+		}
 
 		if(grammar)
 			delete grammar;
@@ -132,9 +94,9 @@ public:
 	}
 
 
-	const std::set<partition_info, partition_compare>& getPrioritySet() const {
-		return priority_set;
-	}
+//	const std::set<partition_info, partition_compare>& getPrioritySet() const {
+//		return priority_set;
+//	}
 
 	long getTotalNodes() const {
 		return total_nodes;
@@ -145,30 +107,11 @@ public:
 	}
 
 	bool schedule(Partition& part){
-		if(priority_set.empty()){
-			return false;
-		}
-		else{
-			auto first = priority_set.begin();
-			part = first->partition_id;
-			priority_set.erase(first);
-			return true;
-		}
+		return priority_set->schedule(part);
 	}
 
 	void update_priority(Partition part, int size){
-		partition_info pinfo(part, size);
-		auto it = priority_set.find(pinfo);
-		if(it != priority_set.end()){
-//			assert(it != priority_set.end());
-			int old_score = ((partition_info) (*it)).score;
-			priority_set.erase(it);
-			pinfo.increase_score(old_score);
-			priority_set.insert(pinfo);
-		}
-		else{
-			priority_set.insert(pinfo);
-		}
+		priority_set->update_priority(part, size);
 	}
 
 //	void reset_priority(Partition part){
@@ -198,6 +141,10 @@ public:
 		return file_stmts_init;
 	}
 
+	void printOutPriorityInfo(){
+		this->priority_set->printOutPriorityInfo();
+	}
+
 //	int get_score(Partition pid){
 //		partition_info pinfo(pid);
 //		auto it = priority_set.find(pinfo);
@@ -221,7 +168,8 @@ private:
 //	unsigned int* partitions;
 //	bool* flag_partitions;
 
-	std::set<partition_info, partition_compare> priority_set;
+
+	Priority_partition* priority_set;
 
 	/* TODO: load grammar from file grammar->loadGrammar(filename) */
 	Grammar* grammar;
