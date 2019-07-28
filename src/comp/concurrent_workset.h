@@ -29,12 +29,12 @@ private:
 
 protected:
 
-    void print(std::ostream& str) const {
-//    	str << "size=" << this->size() << "; ";
-//		for(auto& it: set){
-//			str << *it << ", ";
-//		}
-    }
+//    void print(std::ostream& str) const {
+////    	str << "size=" << this->size() << "; ";
+////		for(auto& it: set){
+////			str << *it << ", ";
+////		}
+//    }
 
     void toString_sub(std::ostringstream& strm) const {
 //		for(auto& it: set){

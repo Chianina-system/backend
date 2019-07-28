@@ -8,10 +8,8 @@
 #ifndef COMP_CFG_COMPUTE_SYN_H_
 #define COMP_CFG_COMPUTE_SYN_H_
 
-#include "graphstore.h"
 #include "cfg_map.h"
 #include "cfg_map_outcore.h"
-#include "naive_graphstore.h"
 #include "concurrent_workset.h"
 #include "concurrent_workqueue.h"
 #include "grammar.h"
@@ -19,8 +17,11 @@
 #include "singletons.h"
 #include "../utility/StaticPrinter.h"
 #include "../utility/Logger.hpp"
+#include "graphstore/graphstore.h"
+#include "graphstore/naive_graphstore.h"
 #include "peg_compute.h"
 #include "peg_compute_parallel.h"
+
 
 using namespace std;
 
@@ -50,15 +51,15 @@ public:
     static PEGraph* transfer(PEGraph* in, Stmt* stmt, Grammar* grammar, Singletons* singletons, bool flag){
         switch(stmt->getType()){
             case TYPE::Assign:
-                return transfer_copy(in, stmt, grammar, singletons, flag);
+                return transfer_copy(in, (AssignStmt*)stmt, grammar, singletons, flag);
             case TYPE::Load:
-                return transfer_load(in, stmt, grammar, singletons, flag);
+                return transfer_load(in, (LoadStmt*)stmt, grammar, singletons, flag);
             case TYPE::Store:
-                return transfer_store(in, stmt, grammar, singletons, flag);
+                return transfer_store(in, (StoreStmt*)stmt, grammar, singletons, flag);
             case TYPE::Alloca:
-                return transfer_address(in, stmt, grammar, singletons, flag);
+                return transfer_address(in, (AllocStmt*)stmt, grammar, singletons, flag);
             case TYPE::Phi:
-            	return transfer_phi(in, stmt, grammar, singletons, flag);
+            	return transfer_phi(in, (PhiStmt*)stmt, grammar, singletons, flag);
             case TYPE::Call:
             	return transfer_call(in);
             case TYPE::Return:
@@ -94,15 +95,15 @@ private:
     	return in;
     }
 
-    static PEGraph* transfer_phi(PEGraph* in, Stmt* stmt,Grammar* grammar, Singletons* singletons, bool flag);
+    static PEGraph* transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag);
 
-    static PEGraph* transfer_copy(PEGraph* in, Stmt* stmt,Grammar* grammar, Singletons* singletons, bool flag);
+    static PEGraph* transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag);
 
-    static PEGraph* transfer_load(PEGraph* in, Stmt* stmt,Grammar* grammar, Singletons* singletons, bool flag);
+    static PEGraph* transfer_load(PEGraph* in, LoadStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag);
 
-    static PEGraph* transfer_store(PEGraph* in, Stmt* stmt,Grammar* grammar, Singletons* singletons, bool flag);
+    static PEGraph* transfer_store(PEGraph* in, StoreStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag);
 
-    static PEGraph* transfer_address(PEGraph* in, Stmt* stmt,Grammar* grammar, Singletons* singletons, bool flag);
+    static PEGraph* transfer_address(PEGraph* in, AllocStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag);
 
     static bool is_strong_update_dst(vertexid_t x,PEGraph *out,Grammar *grammar, Singletons* singletons);
 
@@ -128,7 +129,7 @@ private:
 	static void getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& vertices_changed, Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* m);
 	static void getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag);
 	static void getDirectAddedEdges_phi(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag);
-	static void removeExistingEdges(const EdgeArray& edges_src, vertexid_t src, PEGraph* out, std::unordered_map<vertexid_t, EdgeArray>* m);
+//	static void removeExistingEdges(const EdgeArray& edges_src, vertexid_t src, PEGraph* out, std::unordered_map<vertexid_t, EdgeArray>* m);
 };
 
 

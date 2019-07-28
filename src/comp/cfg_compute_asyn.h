@@ -55,8 +55,8 @@ public:
 //	    	//for debugging
 //	    	Logger::print_thread_info_locked("----------------------- CFG Node "
 //	    			+ to_string(cfg_node->getCfgNodeId())
-//					+ " {" + cfg_node->getStmt()->toString()
-//					+ "} start processing -----------------------\n", LEVEL_LOG_CFGNODE);
+//					+ " " + cfg_node->getStmt()->toString()
+//					+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
 
 	        //merge
 	    	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);

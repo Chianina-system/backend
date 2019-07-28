@@ -9,7 +9,7 @@
 #define COMP_CFG_H_
 
 #include "cfg_node.h"
-
+#include "../utility/Logger.hpp"
 
 
 class CFG{
@@ -22,7 +22,6 @@ class CFG{
 	}
 
 public:
-//    CFG();
     virtual ~CFG(){}
 
     virtual std::vector<CFGNode*> getPredesessors(const CFGNode* node) const = 0;

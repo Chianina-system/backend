@@ -14,13 +14,13 @@
 template <typename T>
 class Concurrent_Worklist{
 
-	friend std::ostream & operator<<(std::ostream & strm, const Concurrent_Worklist<T>& worklist) {
-		strm << "worklist: [";
-		strm << "size=" << worklist.size() << "; ";
-		worklist.print(strm);
-		strm << "]";
-		return strm;
-	}
+//	friend std::ostream & operator<<(std::ostream & strm, const Concurrent_Worklist<T>& worklist) {
+//		strm << "worklist: [";
+//		strm << "size=" << worklist.size() << "; ";
+//		worklist.print(strm);
+//		strm << "]";
+//		return strm;
+//	}
 
 
 public:
@@ -58,7 +58,7 @@ protected:
     std::mutex mutex;
 
 
-    virtual void print(std::ostream& str) const = 0;
+//    virtual void print(std::ostream& str) const = 0;
     virtual void toString_sub(std::ostringstream& strm) const = 0;
 
 };

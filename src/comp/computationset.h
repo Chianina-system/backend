@@ -3,11 +3,11 @@
 #include "edgearray.h"
 #include "../common/CommonLibs.hpp"
 #include "pegraph.h"
-#include "stmt.h"
 #include "myalgorithm.h"
 #include "edgesToDelete.h"
 #include "../utility/Logger.hpp"
 #include "grammar.h"
+#include "stmt/stmt.h"
 
 class ComputationSet {
 

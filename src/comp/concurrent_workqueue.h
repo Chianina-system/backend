@@ -19,9 +19,9 @@ private:
 
 
 protected:
-    void print(std::ostream& str) const {
-
-    }
+//    void print(std::ostream& str) const {
+//
+//    }
 
     void toString_sub(std::ostringstream& strm) const {
 

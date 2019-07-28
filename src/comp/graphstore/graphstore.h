@@ -5,12 +5,12 @@
  *      Author: zqzuo
  */
 
-#ifndef COMP_GRAPHSTORE_H_
-#define COMP_GRAPHSTORE_H_
+#ifndef COMP_GRAPHSTORE_GRAPHSTORE_H_
+#define COMP_GRAPHSTORE_GRAPHSTORE_H_
 
-#include "pegraph.h"
-#include "cfg.h"
-#include "concurrent_workset.h"
+#include "../pegraph.h"
+#include "../cfg.h"
+#include "../concurrent_workset.h"
 //#include "peGraphPointer.h"
 //#include "cfg_compute.h"
 
@@ -83,4 +83,4 @@ private:
 
 
 
-#endif /* COMP_GRAPHSTORE_H_ */
+#endif /* COMP_GRAPHSTORE_GRAPHSTORE_H_ */

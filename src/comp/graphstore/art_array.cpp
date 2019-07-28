@@ -2,8 +2,9 @@
 // Created by w on 19-7-11.
 //
 
-#include <stack>
 #include "art_array.h"
+
+#include <stack>
 
 PEGraph *ART_array::retrieve_locked(PEGraph_Pointer graph_pointer) {
     std::lock_guard<std::mutex> lockGuard(mutex);

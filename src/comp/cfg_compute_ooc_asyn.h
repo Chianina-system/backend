@@ -24,7 +24,6 @@ public:
 	    CFG_map_outcore* cfg = dynamic_cast<CFG_map_outcore*>(cfg_);
 	    std::unordered_set<CFGNode*> nodes = cfg->getActiveNodes();
 //	    std::vector<CFGNode*> nodes = cfg->getNodes();
-	//    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
 
 	//    //for debugging
 	//    StaticPrinter::print_vector(nodes);
@@ -57,8 +56,8 @@ private:
 //	    	//for debugging
 //	    	Logger::print_thread_info_locked("----------------------- CFG Node "
 //	    			+ to_string(cfg_node->getCfgNodeId())
-//					+ " {" + cfg_node->getStmt()->toString()
-//					+ "} start processing -----------------------\n", LEVEL_LOG_CFGNODE);
+//					+ " " + cfg_node->getStmt()->toString()
+//					+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
 
 	        //merge
 	    	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);

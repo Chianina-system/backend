@@ -75,8 +75,8 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
     	//for debugging
     	Logger::print_thread_info_locked("----------------------- CFG Node "
     			+ to_string(cfg_node->getCfgNodeId())
-				+ " {" + cfg_node->getStmt()->toString()
-				+ "} start processing -----------------------\n", LEVEL_LOG_CFGNODE);
+				+ " " + cfg_node->getStmt()->toString()
+				+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
 
         //merge
     	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
@@ -178,7 +178,7 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
 }
 
 
-PEGraph* CFGCompute_syn::transfer_phi(PEGraph* in, Stmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
+PEGraph* CFGCompute_syn::transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
 	//for debugging
 	Logger::print_thread_info_locked("transfer-phi starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -199,7 +199,7 @@ PEGraph* CFGCompute_syn::transfer_phi(PEGraph* in, Stmt* stmt,Grammar *grammar, 
     return out;
 }
 
-PEGraph* CFGCompute_syn::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
+PEGraph* CFGCompute_syn::transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
 	//for debugging
 	Logger::print_thread_info_locked("transfer-copy starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -220,7 +220,7 @@ PEGraph* CFGCompute_syn::transfer_copy(PEGraph* in, Stmt* stmt,Grammar *grammar,
     return out;
 }
 
-PEGraph* CFGCompute_syn::transfer_load(PEGraph* in, Stmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
+PEGraph* CFGCompute_syn::transfer_load(PEGraph* in, LoadStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
 	//for debugging
 	Logger::print_thread_info_locked("transfer-load starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -241,7 +241,7 @@ PEGraph* CFGCompute_syn::transfer_load(PEGraph* in, Stmt* stmt,Grammar *grammar,
     return out;
 }
 
-PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, Stmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
+PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, StoreStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
 	//for debugging
 	Logger::print_thread_info_locked("transfer-store starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -275,7 +275,7 @@ PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, Stmt* stmt,Grammar *grammar
     return out;
 }
 
-PEGraph* CFGCompute_syn::transfer_address(PEGraph* in, Stmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
+PEGraph* CFGCompute_syn::transfer_address(PEGraph* in, AllocStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
 	//for debugging
 	Logger::print_thread_info_locked("transfer-alloc starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -939,7 +939,7 @@ void CFGCompute_syn::peg_compute_delete(PEGraph *out, Grammar *grammar, std::uno
 	Logger::print_thread_info_locked("peg-compute-delete finished.\n", LEVEL_LOG_FUNCTION);
 }
 
-void CFGCompute_syn::removeExistingEdges(const EdgeArray& edges_src, vertexid_t src, PEGraph* out, std::unordered_map<vertexid_t, EdgeArray>* m) {
+void removeExistingEdges(const EdgeArray& edges_src, vertexid_t src, PEGraph* out, std::unordered_map<vertexid_t, EdgeArray>* m) {
 	//remove the existing edges
 	int n1 = edges_src.getSize();
 	auto* edges = new vertexid_t[n1];
@@ -963,7 +963,9 @@ void CFGCompute_syn::removeExistingEdges(const EdgeArray& edges_src, vertexid_t 
 //	vertexid_t aux = stmt->getAux();
 //}
 
-void CFGCompute_syn::getDirectAddedEdges_phi(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag){
+void CFGCompute_syn::getDirectAddedEdges_phi(PEGraph *out, Stmt *stmt_, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag){
+	PhiStmt* stmt = dynamic_cast<PhiStmt*>(stmt_);
+
     //'a', '-a', 'd', '-d', and self-loop edges
 	int length = stmt->getLength();
 	vertexid_t* srcs = stmt->getSrcs();
@@ -1008,7 +1010,7 @@ void CFGCompute_syn::getDirectAddedEdges_phi(PEGraph *out, Stmt *stmt, Grammar *
 	removeExistingEdges(edges_dst, dst, out, m);
 }
 
-void CFGCompute_syn::getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag){
+void getDirectAddedEdges_alloc(PEGraph *out, AllocStmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag){
     //'a', '-a', 'd', '-d', and self-loop edges
     vertexid_t src = stmt->getSrc();
     EdgeArray edges_src = EdgeArray();
@@ -1024,22 +1026,8 @@ void CFGCompute_syn::getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *gram
     edges_dst.addOneEdge(src, grammar->getLabelValue("-a"));
 
     //'d', '-d'
-    switch(stmt->getType()){
-    case TYPE::Alloca:
-    	edges_src.addOneEdge(aux, grammar->getLabelValue("d"));
-    	edges_aux.addOneEdge(src, grammar->getLabelValue("-d"));
-    	break;
-    case TYPE::Store:
-    	edges_aux.addOneEdge(dst, grammar->getLabelValue("d"));
-    	edges_dst.addOneEdge(aux, grammar->getLabelValue("-d"));
-    	break;
-    case TYPE::Load:
-    	edges_aux.addOneEdge(src, grammar->getLabelValue("d"));
-    	edges_src.addOneEdge(aux, grammar->getLabelValue("-d"));
-    	break;
-    default:
-    	break;
-    }
+	edges_src.addOneEdge(aux, grammar->getLabelValue("d"));
+	edges_aux.addOneEdge(src, grammar->getLabelValue("-d"));
 
 	//self-loop edges
     if(!flag){
@@ -1049,25 +1037,161 @@ void CFGCompute_syn::getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *gram
 			char label = grammar->getErule(i);
 			edges_src.addOneEdge(src, label);
 			edges_dst.addOneEdge(dst, label);
-			if(stmt->isValidAux()){
-				edges_aux.addOneEdge(aux, label);
-			}
+			edges_aux.addOneEdge(aux, label);
 		}
     }
 
     //merge and sort
     edges_src.merge();
     edges_dst.merge();
-    if(stmt->isValidAux()){
-		edges_aux.merge();
-    }
+	edges_aux.merge();
 
     //remove the existing edges
 	removeExistingEdges(edges_src, src, out, m);
 	removeExistingEdges(edges_dst, dst, out, m);
-    if(stmt->isValidAux()){
-    	removeExistingEdges(edges_aux, aux, out, m);
+   	removeExistingEdges(edges_aux, aux, out, m);
+}
+
+void getDirectAddedEdges_store(PEGraph *out, StoreStmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag){
+    //'a', '-a', 'd', '-d', and self-loop edges
+    vertexid_t src = stmt->getSrc();
+    EdgeArray edges_src = EdgeArray();
+
+    vertexid_t dst = stmt->getDst();
+    EdgeArray edges_dst = EdgeArray();
+
+    vertexid_t aux = stmt->getAux();
+    EdgeArray edges_aux = EdgeArray();
+
+    //'a', '-a'
+    edges_src.addOneEdge(dst, grammar->getLabelValue("a"));
+    edges_dst.addOneEdge(src, grammar->getLabelValue("-a"));
+
+    //'d', '-d'
+	edges_aux.addOneEdge(dst, grammar->getLabelValue("d"));
+	edges_dst.addOneEdge(aux, grammar->getLabelValue("-d"));
+
+	//self-loop edges
+    if(!flag){
+//    	Logger::print_thread_info_locked("adding self-loop edges...\n", 1);
+
+		for(int i = 0; i < grammar->getNumErules(); ++i){
+			char label = grammar->getErule(i);
+			edges_src.addOneEdge(src, label);
+			edges_dst.addOneEdge(dst, label);
+			edges_aux.addOneEdge(aux, label);
+		}
     }
+
+    //merge and sort
+    edges_src.merge();
+    edges_dst.merge();
+	edges_aux.merge();
+
+    //remove the existing edges
+	removeExistingEdges(edges_src, src, out, m);
+	removeExistingEdges(edges_dst, dst, out, m);
+   	removeExistingEdges(edges_aux, aux, out, m);
+}
+
+void getDirectAddedEdges_load(PEGraph *out, LoadStmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag){
+    //'a', '-a', 'd', '-d', and self-loop edges
+    vertexid_t src = stmt->getSrc();
+    EdgeArray edges_src = EdgeArray();
+
+    vertexid_t dst = stmt->getDst();
+    EdgeArray edges_dst = EdgeArray();
+
+    vertexid_t aux = stmt->getAux();
+    EdgeArray edges_aux = EdgeArray();
+
+    //'a', '-a'
+    edges_src.addOneEdge(dst, grammar->getLabelValue("a"));
+    edges_dst.addOneEdge(src, grammar->getLabelValue("-a"));
+
+    //'d', '-d'
+    edges_aux.addOneEdge(src, grammar->getLabelValue("d"));
+    edges_src.addOneEdge(aux, grammar->getLabelValue("-d"));
+
+	//self-loop edges
+    if(!flag){
+//    	Logger::print_thread_info_locked("adding self-loop edges...\n", 1);
+
+		for(int i = 0; i < grammar->getNumErules(); ++i){
+			char label = grammar->getErule(i);
+			edges_src.addOneEdge(src, label);
+			edges_dst.addOneEdge(dst, label);
+			edges_aux.addOneEdge(aux, label);
+		}
+    }
+
+    //merge and sort
+    edges_src.merge();
+    edges_dst.merge();
+	edges_aux.merge();
+
+    //remove the existing edges
+	removeExistingEdges(edges_src, src, out, m);
+	removeExistingEdges(edges_dst, dst, out, m);
+   	removeExistingEdges(edges_aux, aux, out, m);
+}
+
+void getDirectAddedEdges_assign(PEGraph *out, AssignStmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag){
+    //'a', '-a', and self-loop edges
+    vertexid_t src = stmt->getSrc();
+    EdgeArray edges_src = EdgeArray();
+
+    vertexid_t dst = stmt->getDst();
+    EdgeArray edges_dst = EdgeArray();
+
+    //'a', '-a'
+    edges_src.addOneEdge(dst, grammar->getLabelValue("a"));
+    edges_dst.addOneEdge(src, grammar->getLabelValue("-a"));
+
+	//self-loop edges
+    if(!flag){
+//    	Logger::print_thread_info_locked("adding self-loop edges...\n", 1);
+
+		for(int i = 0; i < grammar->getNumErules(); ++i){
+			char label = grammar->getErule(i);
+			edges_src.addOneEdge(src, label);
+			edges_dst.addOneEdge(dst, label);
+		}
+    }
+
+    //merge and sort
+    edges_src.merge();
+    edges_dst.merge();
+
+    //remove the existing edges
+	removeExistingEdges(edges_src, src, out, m);
+	removeExistingEdges(edges_dst, dst, out, m);
+}
+
+void CFGCompute_syn::getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag){
+//    switch(stmt->getType()){
+    TYPE t = stmt->getType();
+    if(t == TYPE::Alloca){
+    	AllocStmt* stmt_alloc = dynamic_cast<AllocStmt*>(stmt);
+    	getDirectAddedEdges_alloc(out, stmt_alloc, grammar, m, flag);
+    }
+    else if(t == TYPE::Store){
+    	StoreStmt* stmt_store = dynamic_cast<StoreStmt*>(stmt);
+    	getDirectAddedEdges_store(out, stmt_store, grammar, m, flag);
+    }
+    else if(t == TYPE::Load){
+    	LoadStmt* stmt_load = dynamic_cast<LoadStmt*>(stmt);
+    	getDirectAddedEdges_load(out, stmt_load, grammar, m, flag);
+    }
+    else if(t == TYPE::Assign){
+    	AssignStmt* stmt_assign = dynamic_cast<AssignStmt*>(stmt);
+    	getDirectAddedEdges_assign(out, stmt_assign, grammar, m, flag);
+    }
+    else{
+    	cout << "wrong stmt type!!!" << endl;
+    	exit(EXIT_FAILURE);
+    }
+
 }
 
 void CFGCompute_syn::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar, bool flag) {

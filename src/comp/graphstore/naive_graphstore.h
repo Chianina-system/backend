@@ -5,12 +5,12 @@
  *      Author: zqzuo
  */
 
-#ifndef COMP_NAIVE_GRAPHSTORE_H_
-#define COMP_NAIVE_GRAPHSTORE_H_
+#ifndef COMP_GRAPHSTORE_NAIVE_GRAPHSTORE_H_
+#define COMP_GRAPHSTORE_NAIVE_GRAPHSTORE_H_
 
+#include "../../utility/Logger.hpp"
+#include "../../utility/FileUtil.hpp"
 #include "graphstore.h"
-#include "../utility/Logger.hpp"
-#include "../utility/FileUtil.hpp"
 //#include "cfg_compute.h"
 
 using namespace std;
@@ -290,4 +290,4 @@ private:
 
 
 
-#endif /* COMP_NAIVE_GRAPHSTORE_H_ */
+#endif /* COMP_GRAPHSTORE_NAIVE_GRAPHSTORE_H_ */

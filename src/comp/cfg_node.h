@@ -8,9 +8,19 @@
 #ifndef COMP_CFG_NODE_H_
 #define COMP_CFG_NODE_H_
 
-#include "peGraphPointer.h"
-#include "stmt.h"
+//#include "peGraphPointer.h"
 #include "../common/CommonLibs.hpp"
+#include "stmt/stmt.h"
+#include "stmt/stmt_alloc.h"
+#include "stmt/stmt_assign.h"
+#include "stmt/stmt_store.h"
+#include "stmt/stmt_load.h"
+#include "stmt/stmt_phi.h"
+#include "stmt/stmt_skip.h"
+#include "stmt/stmt_ret.h"
+#include "stmt/stmt_return.h"
+#include "stmt/stmt_call.h"
+
 
 class CFGNode{
 
@@ -28,11 +38,41 @@ public:
 
     CFGNode(std::string& line){
 		std::stringstream stream(line);
-		std::string stmt_id;
-		stream >> stmt_id;
+		std::string stmt_id, type;
+		stream >> stmt_id >> type;
 
 		this->id = atoi(stmt_id.c_str());
-		this->stmt = new Stmt(stream);
+		if (type == "assign") {
+			stmt = new AssignStmt(stream);
+		}
+		else if (type == "load") {
+			stmt = new LoadStmt(stream);
+		}
+		else if (type == "store") {
+			stmt = new StoreStmt(stream);
+		}
+		else if (type == "alloca") {
+			stmt = new AllocStmt(stream);
+		}
+		else if (type == "phi") {
+			stmt = new PhiStmt(stream);
+		}
+		else if (type == "call") {
+			stmt = new CallStmt();
+		}
+		else if (type == "return") {
+			stmt = new ReturnStmt();
+		}
+		else if (type == "ret") {
+			stmt = new RetStmt();
+		}
+		else if (type == "block") {
+			stmt = new SkipStmt();
+		}
+		else {
+			cout << "wrong stmt type!!!" << endl;
+			exit(EXIT_FAILURE);
+		}
 	}
 
     ~CFGNode(){
@@ -69,7 +109,7 @@ public:
 private:
     PEGraph_Pointer id;
 
-    Stmt* stmt;
+    Stmt* stmt = nullptr;
 
 
 };

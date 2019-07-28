@@ -5,8 +5,8 @@
  *      Author: zqzuo
  */
 
-#ifndef COMP_ART_H_
-#define COMP_ART_H_
+#ifndef COMP_GRAPHSTORE_ART_H_
+#define COMP_GRAPHSTORE_ART_H_
 
 #include "graphstore.h"
 
@@ -157,4 +157,4 @@ private:
 };
 
 
-#endif /* COMP_ART_H_ */
+#endif /* COMP_GRAPHSTORE_ART_H_ */
