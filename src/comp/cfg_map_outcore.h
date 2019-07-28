@@ -222,9 +222,6 @@ public:
         }
     }
 
-    std::vector<CFGNode*> getNodes() const override {
-        return nodes;
-    }
 
     void addOneNode(CFGNode *Node)  {
         nodes.push_back(Node);
@@ -246,9 +243,6 @@ public:
 		this->number_edges++;
     }
 
-    vertexid_t getNumberEdges() const {
-    	return number_edges;
-    }
 
 
 
@@ -260,15 +254,6 @@ private:
 	std::unordered_set<CFGNode*> mirrors;
 
 	std::unordered_set<CFGNode*> actives;
-
-
-    std::vector<CFGNode*> nodes;
-
-    vertexid_t number_edges = 0;
-
-    std::unordered_map<const CFGNode*, std::vector<CFGNode*>> predes;
-
-    std::unordered_map<const CFGNode*, std::vector<CFGNode*>> succes;
 
 
 

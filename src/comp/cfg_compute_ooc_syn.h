@@ -5,18 +5,18 @@
  *      Author: zqzuo
  */
 
-#ifndef COMP_CFG_COMPUTE_OOC_H_
-#define COMP_CFG_COMPUTE_OOC_H_
+#ifndef COMP_CFG_COMPUTE_OOC_SYN_H_
+#define COMP_CFG_COMPUTE_OOC_SYN_H_
 
 
-#include "cfg_compute.h"
 #include "cfg_map_outcore.h"
 #include "../preproc/preprocess.h"
+#include "cfg_compute_syn.h"
 
 
 using namespace std;
 
-class CFGCompute_ooc {
+class CFGCompute_ooc_syn {
 
 public:
 
@@ -180,13 +180,13 @@ public:
 	    	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
 	//        //for debugging
 	//    	StaticPrinter::print_vector(preds);
-	        PEGraph* in = CFGCompute::combine_synchronous(graphstore, preds);
+	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds);
 
 //	        //for debugging
 //	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
 	        //transfer
-	        PEGraph* out = CFGCompute::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
+	        PEGraph* out = CFGCompute_syn::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
 //	        //for debugging
 //	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
@@ -222,7 +222,9 @@ public:
 	        }
 
 	        //clean out
-	        delete old_out;
+	        if(old_out){
+	        	delete old_out;
+	        }
 
 //	        //for debugging
 //	//        Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
@@ -269,11 +271,11 @@ private:
 		if(readable){
 			ofstream myfile;
 			myfile.open(file_graphs_in, std::ofstream::out | std::ofstream::app);
-//			cout << "file is open? " << myfile.is_open() << endl;
 			if (myfile.is_open()){
 				for (auto& n : s) {
 					auto pointer = n->getOutPointer();
 					PEGraph* graph = graphstore->retrieve(pointer);
+					assert(graph != nullptr);
 					//write a pegraph into file
 			    	myfile << pointer << "\t";
 			    	graph->write_readable(myfile);
@@ -292,4 +294,4 @@ private:
 
 
 
-#endif /* COMP_CFG_COMPUTE_OOC_H_ */
+#endif /* COMP_CFG_COMPUTE_OOC_SYN_H_ */

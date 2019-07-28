@@ -152,7 +152,8 @@ public:
     		out = new PEGraph(map[graph_pointer]);
     	}
     	else{
-    		out = new PEGraph();
+//    		out = new PEGraph();
+    		out = nullptr;
     	}
 
     	//for debugging

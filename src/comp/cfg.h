@@ -23,24 +23,31 @@ class CFG{
 
 public:
 //    CFG();
-//	CFG(Partition* part);
     virtual ~CFG(){}
 
     virtual std::vector<CFGNode*> getPredesessors(const CFGNode* node) const = 0;
-    virtual std::vector<CFGNode*> getSuccessors(const CFGNode* node) const = 0;
-    virtual std::vector<CFGNode*> getNodes() const = 0;
-//    virtual std::vector<CFGNode*> getEntryNodes() const = 0;
-//    virtual void loadCFG(const string& file_cfg, const string& file_stmt) = 0;
-//    virtual void loadCFG_ooc(const string& file_cfg, const string& file_stmt, const string& file_mirrors_in, const string& file_mirrors_out, const string& file_actives) = 0;
-//    virtual void loadCFG(const string& file_cfg, const string& file_stmt, const string& file_mirrors_in, const string& file_mirrors_out) = 0;
 
+    virtual std::vector<CFGNode*> getSuccessors(const CFGNode* node) const = 0;
+
+    inline std::vector<CFGNode*> getNodes() const {
+    	return nodes;
+    }
+
+    inline vertexid_t getNumberEdges() const {
+    	return number_edges;
+    }
 
 protected:
     virtual void print(std::ostream& str) const = 0;
 
 
-private:
+    std::vector<CFGNode*> nodes;
 
+    vertexid_t number_edges = 0;
+
+    std::unordered_map<const CFGNode*, std::vector<CFGNode*>> predes;
+
+    std::unordered_map<const CFGNode*, std::vector<CFGNode*>> succes;
 
 
 };

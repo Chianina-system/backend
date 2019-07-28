@@ -13,25 +13,8 @@ using namespace std;
 
 class CFG_map : public CFG {
 
-//	friend std::ostream & operator<<(std::ostream & strm, const CFG_map& cfg){
-//		cfg.print(strm);
-//		return strm;
-//	}
-
 public:
     CFG_map(){}
-
-//    CFG_map(std::string file){
-//		std::ifstream fin;
-//		fin.open(file);
-//		if (!fin) {
-//			cout << "can't load file_cfg: " << file << endl;
-//		}
-//    }
-
-    CFG_map(const string& file_cfg, const string& file_stmt){
-
-    }
 
     ~CFG_map(){
         for (auto &node : nodes) {
@@ -137,9 +120,6 @@ public:
         }
     }
 
-    std::vector<CFGNode*> getNodes() const override {
-        return nodes;
-    }
 
     std::vector<CFGNode*> getEntryNodes() const {
     	return nodes_entry;
@@ -166,9 +146,6 @@ public:
 		this->number_edges++;
     }
 
-    vertexid_t getNumberEdges() const {
-    	return number_edges;
-    }
 
     void print(std::ostream& str) const override {
     	str << "The number of nodes in CFG: \t" << this->nodes.size() << "\n";
@@ -184,16 +161,8 @@ public:
 
 protected:
 
-    std::vector<CFGNode*> nodes;
 
     std::vector<CFGNode*> nodes_entry;
-
-    vertexid_t number_edges = 0;
-
-    std::unordered_map<const CFGNode*, std::vector<CFGNode*>> predes;
-
-    std::unordered_map<const CFGNode*, std::vector<CFGNode*>> succes;
-
 
 
 };

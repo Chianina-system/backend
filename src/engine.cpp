@@ -5,8 +5,8 @@
  *      Author: zqzuo
  */
 
-#include "utility/ResourceManager.hpp"
 #include "comp/cfg_compute_ooc_asyn.h"
+#include "utility/ResourceManager.hpp"
 using namespace std;
 
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/newtest/inlined/";
@@ -77,14 +77,14 @@ void compute_ooc(Partition partition, Context* context, int sync_mode){
 //    bool flag = context->getFlag(partition);
 //	context->setFlag(partition);
 
-    CFGCompute_ooc::load(partition, cfg, singletons, graphstore, context);
+    CFGCompute_ooc_syn::load(partition, cfg, singletons, graphstore, context);
     if(sync_mode){
-		CFGCompute_ooc::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), singletons, actives, false);
+		CFGCompute_ooc_syn::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), singletons, actives, false);
     }
     else{
     	CFGCompute_ooc_asyn::do_worklist_ooc_asynchronous(cfg, graphstore, context->getGrammar(), singletons, actives, false);
     }
-	CFGCompute_ooc::pass(partition, cfg, graphstore, actives, context);
+	CFGCompute_ooc_syn::pass(partition, cfg, graphstore, actives, context);
 
 	delete cfg;
 	delete graphstore;
@@ -135,9 +135,9 @@ void compute_inmemory(int sync_mode){
 	Singletons * singletons = new Singletons();
     Grammar *grammar = new Grammar();
 
-	CFGCompute::load(file_total, file_cfg, file_stmts, file_entries, cfg, file_singletons, singletons, graphstore, file_grammar, grammar);
+	CFGCompute_syn::load(file_total, file_cfg, file_stmts, file_entries, cfg, file_singletons, singletons, graphstore, file_grammar, grammar);
 	if(sync_mode){
-		CFGCompute::do_worklist_synchronous(cfg, graphstore, grammar, singletons, false);
+		CFGCompute_syn::do_worklist_synchronous(cfg, graphstore, grammar, singletons, false);
 	}
 	else{
 		CFGCompute_asyn::do_worklist_asynchronous(cfg, graphstore, grammar, singletons, false);

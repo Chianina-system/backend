@@ -5,8 +5,8 @@
  *      Author: zqzuo
  */
 
-#ifndef COMP_CFG_COMPUTE_H_
-#define COMP_CFG_COMPUTE_H_
+#ifndef COMP_CFG_COMPUTE_SYN_H_
+#define COMP_CFG_COMPUTE_SYN_H_
 
 #include "graphstore.h"
 #include "cfg_map.h"
@@ -24,7 +24,7 @@
 
 using namespace std;
 
-class CFGCompute {
+class CFGCompute_syn {
 
 public:
 
@@ -132,4 +132,4 @@ private:
 };
 
 
-#endif /* COMP_CFG_COMPUTE_H_ */
+#endif /* COMP_CFG_COMPUTE_SYN_H_ */

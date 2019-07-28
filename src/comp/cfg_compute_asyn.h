@@ -8,7 +8,7 @@
 #ifndef COMP_CFG_COMPUTE_ASYN_H_
 #define COMP_CFG_COMPUTE_ASYN_H_
 
-#include "cfg_compute.h"
+#include "cfg_compute_syn.h"
 
 using namespace std;
 
@@ -68,7 +68,7 @@ public:
 //	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
 	        //transfer
-	        PEGraph* out = CFGCompute::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
+	        PEGraph* out = CFGCompute_syn::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
 //	        //for debugging
 //	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
@@ -93,7 +93,9 @@ public:
 	        }
 
 	        //clean out
-	        delete old_out;
+	        if(old_out){
+	        	delete old_out;
+	        }
 	        delete out;
 
 //	        //for debugging
@@ -119,6 +121,9 @@ public:
 	        CFGNode* pred = preds[0];
 	        PEGraph_Pointer out_pointer = pred->getOutPointer();
 	        out = graphstore->retrieve_locked(out_pointer);
+	        if(!out){
+	        	out = new PEGraph();
+	        }
 	    }
 	    else{
 	        out = new PEGraph();
@@ -127,6 +132,9 @@ public:
 	            CFGNode* pred = *it;
 	            PEGraph_Pointer out_pointer = pred->getOutPointer();
 	            PEGraph* out_graph = graphstore->retrieve_locked(out_pointer);
+	            if(!out_graph){
+	            	continue;
+	            }
 	            out->merge(out_graph);
 	            delete out_graph;
 	        }

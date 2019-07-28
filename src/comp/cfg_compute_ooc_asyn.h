@@ -8,8 +8,8 @@
 #ifndef COMP_CFG_COMPUTE_OOC_ASYN_H_
 #define COMP_CFG_COMPUTE_OOC_ASYN_H_
 
-#include "cfg_compute_ooc.h"
 #include "cfg_compute_asyn.h"
+#include "cfg_compute_ooc_syn.h"
 
 class CFGCompute_ooc_asyn {
 
@@ -70,7 +70,7 @@ private:
 //	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString() + "\n", LEVEL_LOG_PEG);
 
 	        //transfer
-	        PEGraph* out = CFGCompute::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
+	        PEGraph* out = CFGCompute_syn::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
 //	        //for debugging
 //	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString() + "\n", LEVEL_LOG_PEG);
@@ -104,7 +104,9 @@ private:
 	        }
 
 	        //clean out
-	        delete old_out;
+	        if(old_out){
+				delete old_out;
+	        }
 	        delete out;
 
 //	        //for debugging
