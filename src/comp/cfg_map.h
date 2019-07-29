@@ -96,29 +96,31 @@ public:
 
     }
 
-    std::vector<CFGNode*> getPredesessors(const CFGNode* node) const override{
-        auto it = predes.find(node);
-        if(it != predes.end()){
-            return it->second;
-        }
-        else{
-        	return std::vector<CFGNode*>();
-//            perror("invalid key!");
-//            exit (EXIT_FAILURE);
-        }
-    }
-
-    std::vector<CFGNode*> getSuccessors(const CFGNode* node) const override {
-        auto it = succes.find(node);
-        if(it != succes.end()){
-            return it->second;
-        }
-        else{
-        	return std::vector<CFGNode*>();
-//            perror("invalid key!");
-//            exit (EXIT_FAILURE);
-        }
-    }
+//    std::vector<CFGNode*>* getPredesessors(const CFGNode* node) {
+//        auto it = predes.find(node);
+//        if(it != predes.end()){
+//            return &(it->second);
+//        }
+//        else{
+////        	return std::vector<CFGNode*>();
+//        	return nullptr;
+////            perror("invalid key!");
+////            exit (EXIT_FAILURE);
+//        }
+//    }
+//
+//    std::vector<CFGNode*>* getSuccessors(const CFGNode* node) {
+//        auto it = succes.find(node);
+//        if(it != succes.end()){
+//            return &(it->second);
+//        }
+//        else{
+////        	return std::vector<CFGNode*>();
+//        	return nullptr;
+////            perror("invalid key!");
+////            exit (EXIT_FAILURE);
+//        }
+//    }
 
 
     std::vector<CFGNode*> getEntryNodes() const {

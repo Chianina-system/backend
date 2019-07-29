@@ -60,7 +60,7 @@ private:
 //					+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
 
 	        //merge
-	    	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
+	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
 	//        //for debugging
 	//    	StaticPrinter::print_vector(preds);
 	        PEGraph* in = CFGCompute_asyn::combine_asynchronous(graphstore, preds);
@@ -87,18 +87,20 @@ private:
 	            graphstore->update_locked(out_pointer, out);
 
 	            //propagate
-	            std::vector<CFGNode*> successors = cfg->getSuccessors(cfg_node);
-	            for(auto it = successors.cbegin(); it != successors.cend(); ++it){
-//	                worklist->push_atomic(*it);
-	                if(!cfg->isMirror(*it)){
-	                	worklist->push_atomic(*it);
-	                }
-	//                else if(cfg->isInMirror(*it)){
-	//                	worklist_2->push_atomic(*it);
-	//                }
-	                else{
-	                	actives->push_atomic(*it);
-	                }
+	            std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
+	            if(successors){
+					for(auto it = successors->cbegin(); it != successors->cend(); ++it){
+	//	                worklist->push_atomic(*it);
+						if(!cfg->isMirror(*it)){
+							worklist->push_atomic(*it);
+						}
+		//                else if(cfg->isInMirror(*it)){
+		//                	worklist_2->push_atomic(*it);
+		//                }
+						else{
+							actives->push_atomic(*it);
+						}
+					}
 	            }
 	        }
 

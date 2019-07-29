@@ -24,11 +24,37 @@ class CFG{
 public:
     virtual ~CFG(){}
 
-    virtual std::vector<CFGNode*> getPredesessors(const CFGNode* node) const = 0;
+//    virtual std::vector<CFGNode*>* getPredesessors(const CFGNode* node) = 0;
+//
+//    virtual std::vector<CFGNode*>* getSuccessors(const CFGNode* node) = 0;
 
-    virtual std::vector<CFGNode*> getSuccessors(const CFGNode* node) const = 0;
+    std::vector<CFGNode*>* getPredesessors(const CFGNode* node) {
+        auto it = predes.find(node);
+        if(it != predes.end()){
+            return &(it->second);
+        }
+        else{
+//        	return std::vector<CFGNode*>();
+        	return nullptr;
+//            perror("invalid key!");
+//            exit (EXIT_FAILURE);
+        }
+    }
 
-    inline std::vector<CFGNode*> getNodes() const {
+    std::vector<CFGNode*>* getSuccessors(const CFGNode* node) {
+        auto it = succes.find(node);
+        if(it != succes.end()){
+            return &(it->second);
+        }
+        else{
+//        	return std::vector<CFGNode*>();
+        	return nullptr;
+//            perror("invalid key!");
+//            exit (EXIT_FAILURE);
+        }
+    }
+
+    inline std::vector<CFGNode*>& getNodes() {
     	return nodes;
     }
 

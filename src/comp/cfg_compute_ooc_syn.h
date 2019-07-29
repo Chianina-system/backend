@@ -175,7 +175,7 @@ public:
 //					+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
 
 	        //merge
-	    	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
+	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
 	//        //for debugging
 	//    	StaticPrinter::print_vector(preds);
 	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds);
@@ -199,17 +199,19 @@ public:
 
 	        if(!isEqual){
 	            //propagate
-	            std::vector<CFGNode*> successors = cfg->getSuccessors(cfg_node);
-	            for(auto it = successors.cbegin(); it != successors.cend(); ++it){
-	                if(!cfg->isMirror(*it)){
-						worklist_2->push_atomic(*it);
-	                }
-	//                else if(cfg->isInMirror(*it)){
-	//                	worklist_2->push_atomic(*it);
-	//                }
-	                else{
-	                	actives->push_atomic(*it);
-	                }
+	            std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
+	            if(successors){
+					for(auto it = successors->cbegin(); it != successors->cend(); ++it){
+						if(!cfg->isMirror(*it)){
+							worklist_2->push_atomic(*it);
+						}
+		//                else if(cfg->isInMirror(*it)){
+		//                	worklist_2->push_atomic(*it);
+		//                }
+						else{
+							actives->push_atomic(*it);
+						}
+					}
 	            }
 
 	            //store the new graph into tmp_graphstore
@@ -261,8 +263,10 @@ private:
 		for(auto& it: set){
 			CFGNode* node_dst = it;
 			auto nodes = cfg->getPredesessors(node_dst);
-			for(auto& n: nodes){
-				s.insert(n);
+			if(nodes){
+				for(auto& n: *nodes){
+					s.insert(n);
+				}
 			}
 		}
 

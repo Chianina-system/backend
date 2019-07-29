@@ -10,10 +10,10 @@
 
 //#include "../common/CommonLibs.hpp"
 #include "../comp/cfg_node.h"
-#include "grammar.h"
+#include "../preproc/grammar.h"
+#include "../preproc/singletons.h"
 #include "partition_priority/priority_array.h"
 #include "partition_priority/priority_set.h"
-#include "singletons.h"
 
 using namespace std;
 

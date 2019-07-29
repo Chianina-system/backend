@@ -1,10 +1,10 @@
 #ifndef COMP_PEGCOMPUTE_H
 #define COMP_PEGCOMPUTE_H
-#include "grammar.h"
 #include "computationset.h"
 #include "containerstomerge.h"
 #include "array/arraystomerge.h"
 #include "../common/CommonLibs.hpp"
+#include "../preproc/grammar.h"
 #include "myalgorithm.h"
 //#include "../utility/Logger.hpp"
 #include "computationset.h"

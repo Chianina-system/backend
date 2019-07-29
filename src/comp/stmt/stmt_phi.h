@@ -27,15 +27,15 @@ public:
 		stream >> dst;
 		this->dst = atoi(dst.c_str());
 
-		std::vector<std::string> vector_string;
+		std::unordered_set<std::string> set_string;
 		while(getline(stream, src, '\t')){
-			vector_string.push_back(src);
+			set_string.insert(src);
 		}
 
-		this->length = vector_string.size();
+		this->length = set_string.size();
 		this->src = new vertexid_t[this->length];
 		int i = 0;
-		for(auto& it: vector_string){
+		for(auto& it: set_string){
 			this->src[i] = atoi(it.c_str());
 			i++;
 		}

@@ -2,8 +2,8 @@
 #define COMP_EDGEARRAY_H
 
 //#include "../utility/Logger.hpp"
+#include "../preproc/grammar.h"
 #include "myalgorithm.h"
-#include "grammar.h"
 
 #define CAPACITY_VALUE 8
 

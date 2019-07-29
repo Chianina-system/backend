@@ -79,7 +79,7 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 				+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
 
         //merge
-    	std::vector<CFGNode*> preds = cfg->getPredesessors(cfg_node);
+    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
 //        //for debugging
 //    	StaticPrinter::print_vector(preds);
         PEGraph* in = combine_synchronous(graphstore, preds);
@@ -111,9 +111,11 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 
         if(!isEqual){
             //propagate
-            std::vector<CFGNode*> successors = cfg->getSuccessors(cfg_node);
-            for(auto it = successors.cbegin(); it != successors.cend(); ++it){
-                worklist_2->push_atomic(*it);
+            std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
+            if(successors){
+				for(auto it = successors->cbegin(); it != successors->cend(); ++it){
+					worklist_2->push_atomic(*it);
+				}
             }
 
             //store the new graph into tmp_graphstore
@@ -138,18 +140,18 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 }
 
 
-PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds){
+PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds){
 	//for debugging
 	Logger::print_thread_info_locked("combine starting...\n", LEVEL_LOG_FUNCTION);
 
 	PEGraph* out;
 
-    if(preds.size() == 0){//entry node
+    if(!preds || preds->size() == 0){//entry node
         //return an empty graph
         out = new PEGraph();
     }
-    else if(preds.size() == 1){
-        CFGNode* pred = preds[0];
+    else if(preds->size() == 1){
+        CFGNode* pred = preds->at(0);
         PEGraph_Pointer out_pointer = pred->getOutPointer();
         out = graphstore->retrieve(out_pointer);
         if(!out){
@@ -159,7 +161,7 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
     else{
         out = new PEGraph();
 
-        for(auto it = preds.cbegin(); it != preds.cend(); it++){
+        for(auto it = preds->cbegin(); it != preds->cend(); it++){
             CFGNode* pred = *it;
             PEGraph_Pointer out_pointer = pred->getOutPointer();
             PEGraph* out_graph = graphstore->retrieve(out_pointer);

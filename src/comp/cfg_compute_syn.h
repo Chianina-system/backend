@@ -8,11 +8,11 @@
 #ifndef COMP_CFG_COMPUTE_SYN_H_
 #define COMP_CFG_COMPUTE_SYN_H_
 
+#include "../preproc/grammar.h"
+#include "../preproc/singletons.h"
 #include "cfg_map.h"
 #include "cfg_map_outcore.h"
-#include "grammar.h"
 #include "computationset.h"
-#include "singletons.h"
 #include "../utility/StaticPrinter.h"
 #include "../utility/Logger.hpp"
 #include "concurrent_worklist/concurrent_workqueue.h"
@@ -73,7 +73,7 @@ public:
         }
     }
 
-    static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>& preds);
+    static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds);
 
 private:
     static void compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
