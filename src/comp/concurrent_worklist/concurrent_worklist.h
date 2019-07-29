@@ -5,11 +5,11 @@
  *      Author: zqzuo
  */
 
-#ifndef COMP_CONCURRENT_WORKLIST_H_
-#define COMP_CONCURRENT_WORKLIST_H_
+#ifndef COMP_CONCURRENT_WORKLIST_CONCURRENT_WORKLIST_H_
+#define COMP_CONCURRENT_WORKLIST_CONCURRENT_WORKLIST_H_
 
-#include "../common/CommonLibs.hpp"
-#include "cfg_node.h"
+#include "../../common/CommonLibs.hpp"
+#include "../cfg_node.h"
 
 template <typename T>
 class Concurrent_Worklist{
@@ -65,4 +65,4 @@ protected:
 
 
 
-#endif /* COMP_CONCURRENT_WORKLIST_H_ */
+#endif /* COMP_CONCURRENT_WORKLIST_CONCURRENT_WORKLIST_H_ */

@@ -5,8 +5,8 @@
  *      Author: dell
  */
 
-#ifndef COMP_PRIORITY_ARRAY_H_
-#define COMP_PRIORITY_ARRAY_H_
+#ifndef COMP_PARTITION_PRIORITY_PRIORITY_ARRAY_H_
+#define COMP_PARTITION_PRIORITY_PRIORITY_ARRAY_H_
 
 #include "partition_priority.h"
 
@@ -65,4 +65,4 @@ private:
 
 
 
-#endif /* COMP_PRIORITY_ARRAY_H_ */
+#endif /* COMP_PARTITION_PRIORITY_PRIORITY_ARRAY_H_ */

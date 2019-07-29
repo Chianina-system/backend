@@ -6,7 +6,6 @@
 #include "array/arraystomerge.h"
 #include "../common/CommonLibs.hpp"
 #include "myalgorithm.h"
-#include "edgesToDelete.h"
 //#include "../utility/Logger.hpp"
 #include "computationset.h"
 

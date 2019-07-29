@@ -10,7 +10,7 @@
 
 #include "../pegraph.h"
 #include "../cfg.h"
-#include "../concurrent_workset.h"
+#include "../concurrent_worklist/concurrent_workset.h"
 //#include "peGraphPointer.h"
 //#include "cfg_compute.h"
 

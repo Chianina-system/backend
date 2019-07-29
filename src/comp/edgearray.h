@@ -1,14 +1,11 @@
 #ifndef COMP_EDGEARRAY_H
 #define COMP_EDGEARRAY_H
 
-#include <ostream>
-#include "../common/CommonLibs.hpp"
+//#include "../utility/Logger.hpp"
 #include "myalgorithm.h"
-#include "../utility/Logger.hpp"
 #include "grammar.h"
 
 #define CAPACITY_VALUE 8
-//using namespace std;
 
 class EdgeArray {
 
@@ -25,7 +22,6 @@ public:
     EdgeArray();
 
     ~EdgeArray(){
-//    	cout << "deleting EdgeArray..." << endl;
     	clear();
     }
 

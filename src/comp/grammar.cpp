@@ -1,7 +1,7 @@
-#include <iostream>
-#include <fstream>
-#include <cstring>
-#include <stdio.h>
+//#include <iostream>
+//#include <fstream>
+//#include <cstring>
+//#include <stdio.h>
 #include "grammar.h"
 using std::cout;
 using std::endl;

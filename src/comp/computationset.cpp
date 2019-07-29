@@ -1,6 +1,6 @@
 #include "computationset.h"
-#include <unistd.h>
-#include <cstdlib>
+//#include <unistd.h>
+//#include <cstdlib>
 
 //ComputationSet::ComputationSet() {
 ////    firstVid = numVertices = 0;

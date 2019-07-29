@@ -20,7 +20,7 @@ class CFGCompute_ooc_syn {
 
 public:
 
-	static bool load(Partition part, CFG *cfg_, Singletons* singletons, GraphStore *graphstore, Context* context) {
+	static bool load(Partition part, CFG *cfg_, GraphStore *graphstore, Context* context) {
 		//for debugging
 		Logger::print_thread_info_locked("load starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -39,8 +39,6 @@ public:
 
 //		graphstore->init(cfg_);
 		graphstore->loadGraphStore(filename_graphs, foldername_graphs_in);
-
-		singletons->loadSingletonSet(filename_singleton);
 
 		//for debugging
 		Logger::print_thread_info_locked("load finished.\n", LEVEL_LOG_FUNCTION);

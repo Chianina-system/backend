@@ -10,13 +10,13 @@
 
 #include "cfg_map.h"
 #include "cfg_map_outcore.h"
-#include "concurrent_workset.h"
-#include "concurrent_workqueue.h"
 #include "grammar.h"
 #include "computationset.h"
 #include "singletons.h"
 #include "../utility/StaticPrinter.h"
 #include "../utility/Logger.hpp"
+#include "concurrent_worklist/concurrent_workqueue.h"
+#include "concurrent_worklist/concurrent_workset.h"
 #include "graphstore/graphstore.h"
 #include "graphstore/naive_graphstore.h"
 #include "peg_compute.h"
@@ -37,12 +37,12 @@ public:
 //    	graphstore->init(cfg_);
 //    	graphstore->loadGraphStore(file_singleton);
 
-    	singletons->loadSingletonSet(file_singleton);
-
         /* TODO: load grammar from file */
         grammar->loadGrammar(file_grammar.c_str());
 
-        return true;
+    	singletons->loadSingletonSet(file_singleton);
+
+    	return true;
     }
 
 

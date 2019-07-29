@@ -8,10 +8,10 @@
 //#include "myalgorithm.h"
 //#include "edgesToDelete.h"
 //#include "computationset.h"
+#include "concurrent_worklist/concurrent_workqueue.h"
+#include "concurrent_worklist/concurrent_workset.h"
 #include "peg_compute.h"
 //#include "concurrent_worklist.h"
-#include "concurrent_workset.h"
-#include "concurrent_workqueue.h"
 
 class PEGCompute_parallel {
 private:

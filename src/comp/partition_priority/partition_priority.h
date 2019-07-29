@@ -5,10 +5,10 @@
  *      Author: dell
  */
 
-#ifndef COMP_PARTITION_PRIORITY_H_
-#define COMP_PARTITION_PRIORITY_H_
+#ifndef COMP_PARTITION_PRIORITY_PARTITION_PRIORITY_H_
+#define COMP_PARTITION_PRIORITY_PARTITION_PRIORITY_H_
 
-#include "../common/CommonLibs.hpp"
+#include "../../common/CommonLibs.hpp"
 
 class Priority_partition {
 
@@ -24,4 +24,4 @@ public:
 };
 
 
-#endif /* COMP_PARTITION_PRIORITY_H_ */
+#endif /* COMP_PARTITION_PRIORITY_PARTITION_PRIORITY_H_ */

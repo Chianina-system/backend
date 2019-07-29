@@ -5,10 +5,9 @@
  *      Author: zqzuo
  */
 
-#ifndef COMP_CONCURRENT_WORKSET_H_
-#define COMP_CONCURRENT_WORKSET_H_
+#ifndef COMP_CONCURRENT_WORKLIST_CONCURRENT_WORKSET_H_
+#define COMP_CONCURRENT_WORKLIST_CONCURRENT_WORKSET_H_
 
-#include "../common/CommonLibs.hpp"
 #include "concurrent_worklist.h"
 
 template <typename T>

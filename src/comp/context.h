@@ -11,8 +11,9 @@
 //#include "../common/CommonLibs.hpp"
 #include "../comp/cfg_node.h"
 #include "grammar.h"
-#include "priority_set.h"
-#include "priority_array.h"
+#include "partition_priority/priority_array.h"
+#include "partition_priority/priority_set.h"
+#include "singletons.h"
 
 using namespace std;
 
@@ -36,7 +37,7 @@ public:
 //			this->priority_set.insert(partition_info(i, 0));
 //		}
 //		priority_set = new Priority_set();
-		priority_set = new Priority_array(this->number_partitions);
+		priority_list = new Priority_array(this->number_partitions);
 
 		//file path initialization
 		this->file_cfg_init = file_cfg;
@@ -47,6 +48,9 @@ public:
 
 		grammar = new Grammar();
 		grammar->loadGrammar(file_grammar.c_str());
+
+		singletons = new Singletons();
+		singletons->loadSingletonSet(file_singletons);
 	}
 
 	~Context(){
@@ -58,12 +62,16 @@ public:
 //			delete[] flag_partitions;
 //		}
 
-		if(priority_set){
-			delete priority_set;
+		if(priority_list){
+			delete priority_list;
 		}
 
 		if(grammar)
 			delete grammar;
+
+		if(singletons){
+			delete singletons;
+		}
 	}
 
 
@@ -93,11 +101,6 @@ public:
 		return number_partitions;
 	}
 
-
-//	const std::set<partition_info, partition_compare>& getPrioritySet() const {
-//		return priority_set;
-//	}
-
 	long getTotalNodes() const {
 		return total_nodes;
 	}
@@ -106,12 +109,16 @@ public:
 		return grammar;
 	}
 
+	Singletons* getSingletons() const {
+		return singletons;
+	}
+
 	bool schedule(Partition& part){
-		return priority_set->schedule(part);
+		return priority_list->schedule(part);
 	}
 
 	void update_priority(Partition part, int size){
-		priority_set->update_priority(part, size);
+		priority_list->update_priority(part, size);
 	}
 
 //	void reset_priority(Partition part){
@@ -142,7 +149,7 @@ public:
 	}
 
 	void printOutPriorityInfo(){
-		this->priority_set->printOutPriorityInfo();
+		this->priority_list->printOutPriorityInfo();
 	}
 
 //	int get_score(Partition pid){
@@ -169,10 +176,12 @@ private:
 //	bool* flag_partitions;
 
 
-	Priority_partition* priority_set;
+	Priority_partition* priority_list;
 
 	/* TODO: load grammar from file grammar->loadGrammar(filename) */
 	Grammar* grammar;
+
+	Singletons * singletons;
 
 	//the path of input files
 	string file_cfg_init;
