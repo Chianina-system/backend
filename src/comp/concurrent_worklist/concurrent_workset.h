@@ -37,7 +37,9 @@ protected:
 
     void toString_sub(std::ostringstream& strm) const {
 //		for(auto& it: set){
-//			strm << *it << ", ";
+//			if(CFGNode* node = dynamic_cast<CFGNode*>(it)){
+//				strm << *node << ", ";
+//			}
 //		}
     }
 
@@ -68,6 +70,10 @@ public:
 
     int size() const {
         return set.size();
+    }
+
+    std::set<T>* getSet(){
+    	return new std::set<T>(set.begin(), set.end());
     }
 
 

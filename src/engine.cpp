@@ -11,11 +11,11 @@ using namespace std;
 
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/newtest/inlined/";
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/testExample/inlined/";
-const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/httpd/";
+const string dir = "/home/dell/GraphFlow/GraphSSAInline/linux/mm/";
 const string file_total = dir + "total.txt";
-const string file_entries = dir + "entries.txt";
-const string file_cfg = dir + "final";
-const string file_stmts = dir + "id_stmt_info.txt";
+const string file_entries = dir + "simplify_entry.txt";
+const string file_cfg = dir + "simplify_final";
+const string file_stmts = dir + "simplify_id_stmt.txt";
 const string file_singletons = dir + "var_singleton_info.txt";
 const string file_grammar = "/home/dell/Desktop/Ouroboros-dataset-master/rules_pointsto.txt";
 
@@ -117,11 +117,11 @@ void run_ooc(int num_partitions, int sync_mode){
 		context->printOutPriorityInfo();
 	}
 
-	//for debugging
-	NaiveGraphStore *graphstore = new NaiveGraphStore();
-	readAllGraphs(graphstore, context);
-	graphstore->printOutInfo();
-	delete graphstore;
+//	//for debugging
+//	NaiveGraphStore *graphstore = new NaiveGraphStore();
+//	readAllGraphs(graphstore, context);
+//	graphstore->printOutInfo();
+//	delete graphstore;
 
 	delete context;
 }

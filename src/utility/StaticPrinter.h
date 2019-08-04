@@ -33,6 +33,17 @@ public:
 		return strm.str();
 	}
 
+	template <typename T>
+	static std::string toString_set(std::set<T*> set){
+		std::ostringstream strm;
+		strm << "[";
+		for(auto& it: set){
+			strm << *it << ", ";
+		}
+		strm << "]\n";
+		return strm.str();
+	}
+
 
 };
 

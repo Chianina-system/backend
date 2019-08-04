@@ -277,11 +277,13 @@ private:
 				for (auto& n : s) {
 					auto pointer = n->getOutPointer();
 					PEGraph* graph = graphstore->retrieve(pointer);
-					assert(graph != nullptr);
-					//write a pegraph into file
-			    	myfile << pointer << "\t";
-			    	graph->write_readable(myfile);
-			    	myfile << "\n";
+//					assert(graph != nullptr);
+					if(graph){
+						//write a pegraph into file
+						myfile << pointer << "\t";
+						graph->write_readable(myfile);
+						myfile << "\n";
+					}
 				}
 				myfile.close();
 			}

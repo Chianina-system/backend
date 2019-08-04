@@ -54,6 +54,13 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
 
         //for debugging
         Logger::print_thread_info_locked("--------------------------------------------------------------- finished ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
+//        std::set<CFGNode*>* list = dynamic_cast<Concurrent_Workset<CFGNode*>*>(worklist_1)->getSet();
+//        if(list->size() < 100){
+//			Logger::print_thread_info_locked(StaticPrinter::toString_set(*list), LEVEL_LOG_MAIN);
+//        }
+//        Logger::print_thread_info_locked("worklist size :" + to_string(list->size()) + "\n", LEVEL_LOG_MAIN);
+//        delete list;
+//        dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
     }
 
     //clean
@@ -72,11 +79,11 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag){
     CFGNode* cfg_node;
 	while(worklist_1->pop_atomic(cfg_node)){
-    	//for debugging
-    	Logger::print_thread_info_locked("----------------------- CFG Node "
-    			+ to_string(cfg_node->getCfgNodeId())
-				+ " " + cfg_node->getStmt()->toString()
-				+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
+//    	//for debugging
+//    	Logger::print_thread_info_locked("----------------------- CFG Node "
+//    			+ to_string(cfg_node->getCfgNodeId())
+//				+ " " + cfg_node->getStmt()->toString()
+//				+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
 
         //merge
     	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
@@ -132,7 +139,7 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 
         //for debugging
 //        Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
-        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
+//        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
 
 //        //for debugging
 //        Logger::print_thread_info_locked("1-> " + worklist_1->toString() + "\t2-> " + worklist_2->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);
