@@ -11,11 +11,11 @@ using namespace std;
 
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/newtest/inlined/";
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/testExample/inlined/";
-const string dir = "/home/dell/GraphFlow/GraphSSAInline/linux/mm/";
+const string dir = "/home/dell/GraphFlow/GraphSSAInline/firefox/browser/";
 const string file_total = dir + "total.txt";
-const string file_entries = dir + "simplify_entry.txt";
-const string file_cfg = dir + "simplify_final";
-const string file_stmts = dir + "simplify_id_stmt.txt";
+const string file_entries = dir + "entry.txt";
+const string file_cfg = dir + "final";
+const string file_stmts = dir + "id_stmt_info.txt";
 const string file_singletons = dir + "var_singleton_info.txt";
 const string file_grammar = "/home/dell/Desktop/Ouroboros-dataset-master/rules_pointsto.txt";
 
@@ -100,6 +100,86 @@ void readAllGraphs(NaiveGraphStore *graphstore, Context* context){
 	}
 }
 
+void loadMirrors(const string& file_mirrors_in, const string& file_mirrors_out, std::unordered_set<PEGraph_Pointer>& mirrors){
+	//handle mirrors file
+	std::ifstream fin;
+	std::string line;
+	fin.open(file_mirrors_in);
+	if (!fin) {
+		cout << "can't load file_mirrors_in: " << file_mirrors_in << endl;
+	}
+	else {
+		while (getline(fin, line)) {
+			if(line == ""){
+				continue;
+			}
+
+			PEGraph_Pointer id = atoi(line.c_str());
+			mirrors.insert(id);
+		}
+		fin.close();
+	}
+
+	fin.open(file_mirrors_out);
+	if (!fin) {
+		cout << "can't load file_mirrors_out: " << file_mirrors_out << endl;
+	}
+	else{
+		while (getline(fin, line)) {
+			if(line == ""){
+				continue;
+			}
+
+			PEGraph_Pointer id = atoi(line.c_str());
+			mirrors.insert(id);
+		}
+		fin.close();
+	}
+}
+
+void printGraphstoreInfo(Context* context){
+	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
+	long num_edges = 0;
+	int num_graphs = 0;
+	for(unsigned int partition = 0; partition < context->getNumberPartitions(); ++ partition){
+		NaiveGraphStore *graphstore = new NaiveGraphStore();
+		std::unordered_set<PEGraph_Pointer> mirrors;
+
+		const string filename_graphs = Context::file_graphstore + to_string(partition);
+		graphstore->deserialize(filename_graphs);
+
+		const string filename_mirrors_in = Context::folder_mirrors_in + to_string(partition);
+		const string filename_mirrors_out = Context::folder_mirrors_out + to_string(partition);
+		loadMirrors(filename_mirrors_in, filename_mirrors_out, mirrors);
+
+		auto map = graphstore->getMap();
+
+    	int size_graphs = 0;
+    	long size_edges = 0;
+
+    	cout << "partition " << to_string(partition) << endl;
+    	for(auto it = map.begin(); it != map.end(); ++it){
+    		if(mirrors.find(it->first) == mirrors.end()){
+				size_edges += it->second->getNumEdges();
+				size_graphs++;
+    		}
+    	}
+
+    	cout << "Number of graphs: " << size_graphs << endl;
+    	cout << "Number of edges: " << size_edges << endl;
+    	cout << endl;
+
+    	delete graphstore;
+
+    	num_edges += size_edges;
+    	num_graphs += size_graphs;
+	}
+
+	cout << "\nTotal number of graphs: " << num_graphs << endl;
+	cout << "Total number of edges: " << num_edges << endl;
+	cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
+}
+
 void run_ooc(int num_partitions, int sync_mode){
 	//preprocessing
 	Context* context = new Context(num_partitions, file_total, file_cfg, file_stmts, file_entries, file_singletons, file_grammar);
@@ -117,11 +197,12 @@ void run_ooc(int num_partitions, int sync_mode){
 		context->printOutPriorityInfo();
 	}
 
-//	//for debugging
+	//for debugging
 //	NaiveGraphStore *graphstore = new NaiveGraphStore();
 //	readAllGraphs(graphstore, context);
 //	graphstore->printOutInfo();
 //	delete graphstore;
+	printGraphstoreInfo(context);
 
 	delete context;
 }

@@ -262,6 +262,10 @@ public:
     }
 
 
+    std::unordered_map<PEGraph_Pointer, PEGraph*>& getMap() {
+    	return map;
+    }
+
 
 protected:
     void print(std::ostream& str) {
