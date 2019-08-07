@@ -7,10 +7,11 @@
 
 
 #include "cfg_compute_syn.h"
+#include "../myTimer.h"
 
 
 void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag){
-	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
+//	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
     Concurrent_Worklist<CFGNode*>* worklist_1 = new Concurrent_Workset<CFGNode*>();
 
@@ -32,7 +33,7 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
     Concurrent_Worklist<CFGNode*>* worklist_2 = new Concurrent_Workset<CFGNode*>();
     while(!worklist_1->isEmpty()){
         //for debugging
-        Logger::print_thread_info_locked("--------------------------------------------------------------- superstep starting ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
+//        Logger::print_thread_info_locked("--------------------------------------------------------------- superstep starting ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
 
         std::vector<std::thread> comp_threads;
         for (unsigned int i = 0; i < NUM_THREADS; i++)
@@ -53,7 +54,7 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
         assert(worklist_2->isEmpty());
 
         //for debugging
-        Logger::print_thread_info_locked("--------------------------------------------------------------- finished ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
+//        Logger::print_thread_info_locked("--------------------------------------------------------------- finished ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
 //        std::set<CFGNode*>* list = dynamic_cast<Concurrent_Workset<CFGNode*>*>(worklist_1)->getSet();
 //        if(list->size() < 100){
 //			Logger::print_thread_info_locked(StaticPrinter::toString_set(*list), LEVEL_LOG_MAIN);
@@ -69,9 +70,9 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
 
     delete(tmp_graphstore);
 
-    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
+//    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 //    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
-    dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
+//    dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
 }
 
 
@@ -89,13 +90,36 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
     	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
 //        //for debugging
 //    	StaticPrinter::print_vector(preds);
+        cout<<endl;
+//        cout << "-----------------------test CCFGCompute_syn::combine_synchronous -----------------------" << endl;
+        auto start_fsm = std::chrono::high_resolution_clock::now();
+        cout<<endl;
+
         PEGraph* in = combine_synchronous(graphstore, preds);
+
+        cout<<endl;
+        auto end_fsm = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+        std::cout << "Running time : CCFGCompute_syn::combine_synchronous : " << diff_fsm.count() << " s\n";
+        cout<<endl;
 
 //        //for debugging
 //        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
+//        cout<<endl;
+////        cout << "-----------------------test CFGCompute_syn::transfer -----------------------" << endl;
+//        auto start_fsm1 = std::chrono::high_resolution_clock::now();
+//        cout<<endl;
+
         //transfer
         PEGraph* out = transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
+
+
+//        cout<<endl;
+//        auto end_fsm1 = std::chrono::high_resolution_clock::now();
+//        auto diff_fsm1 = end_fsm1 - start_fsm1;
+//        std::cout << "Running time : CFGCompute_syn::transfer : " << diff_fsm1.count() << " s\n";
+//        cout<<endl;
 
 //        //for debugging
 //        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
@@ -151,6 +175,7 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
 	//for debugging
 	Logger::print_thread_info_locked("combine starting...\n", LEVEL_LOG_FUNCTION);
 
+
 	PEGraph* out;
 
     if(!preds || preds->size() == 0){//entry node
@@ -191,6 +216,8 @@ PEGraph* CFGCompute_syn::transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar *gramma
 	//for debugging
 	Logger::print_thread_info_locked("transfer-phi starting...\n", LEVEL_LOG_FUNCTION);
 
+    auto start_fsm = std::chrono::high_resolution_clock::now();
+
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
 
@@ -205,12 +232,20 @@ PEGraph* CFGCompute_syn::transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar *gramma
 	//for debugging
 	Logger::print_thread_info_locked("transfer-phi finished.\n", LEVEL_LOG_FUNCTION);
 
+    auto end_fsm = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+
+    myTimer *pTimer = myTimer::getInstance();
+    pTimer->setTimeTransfer(pTimer->getTimeTransfer()+diff_fsm.count());
+
     return out;
 }
 
 PEGraph* CFGCompute_syn::transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
 	//for debugging
 	Logger::print_thread_info_locked("transfer-copy starting...\n", LEVEL_LOG_FUNCTION);
+    auto start_fsm = std::chrono::high_resolution_clock::now();
+
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
@@ -226,12 +261,20 @@ PEGraph* CFGCompute_syn::transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar *gr
 	//for debugging
 	Logger::print_thread_info_locked("transfer-copy finished.\n", LEVEL_LOG_FUNCTION);
 
+    auto end_fsm = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+
+    myTimer *pTimer = myTimer::getInstance();
+    pTimer->setTimeTransfer(pTimer->getTimeTransfer()+diff_fsm.count());
+
     return out;
 }
 
 PEGraph* CFGCompute_syn::transfer_load(PEGraph* in, LoadStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
 	//for debugging
 	Logger::print_thread_info_locked("transfer-load starting...\n", LEVEL_LOG_FUNCTION);
+
+    auto start_fsm = std::chrono::high_resolution_clock::now();
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
@@ -247,12 +290,20 @@ PEGraph* CFGCompute_syn::transfer_load(PEGraph* in, LoadStmt* stmt,Grammar *gram
 	//for debugging
 	Logger::print_thread_info_locked("transfer-load finished.\n", LEVEL_LOG_FUNCTION);
 
+    auto end_fsm = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+
+    myTimer *pTimer = myTimer::getInstance();
+    pTimer->setTimeTransfer(pTimer->getTimeTransfer()+diff_fsm.count());
+
     return out;
 }
 
 PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, StoreStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
 	//for debugging
 	Logger::print_thread_info_locked("transfer-store starting...\n", LEVEL_LOG_FUNCTION);
+
+    auto start_fsm = std::chrono::high_resolution_clock::now();
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
@@ -281,12 +332,20 @@ PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, StoreStmt* stmt,Grammar *gr
 	//for debugging
 	Logger::print_thread_info_locked("transfer-store finished.\n", LEVEL_LOG_FUNCTION);
 
+    auto end_fsm = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+
+    myTimer *pTimer = myTimer::getInstance();
+    pTimer->setTimeTransfer(pTimer->getTimeTransfer()+diff_fsm.count());
+
     return out;
 }
 
 PEGraph* CFGCompute_syn::transfer_address(PEGraph* in, AllocStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
 	//for debugging
 	Logger::print_thread_info_locked("transfer-alloc starting...\n", LEVEL_LOG_FUNCTION);
+
+    auto start_fsm = std::chrono::high_resolution_clock::now();
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
@@ -301,6 +360,12 @@ PEGraph* CFGCompute_syn::transfer_address(PEGraph* in, AllocStmt* stmt,Grammar *
 
     //for debugging
    	Logger::print_thread_info_locked("transfer-alloc finished.\n", LEVEL_LOG_FUNCTION);
+
+    auto end_fsm = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+
+    myTimer *pTimer = myTimer::getInstance();
+    pTimer->setTimeTransfer(pTimer->getTimeTransfer()+diff_fsm.count());
 
     return out;
 }

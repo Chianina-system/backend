@@ -21,6 +21,7 @@
 #include "graphstore/naive_graphstore.h"
 #include "peg_compute.h"
 #include "peg_compute_parallel.h"
+#include "../myTimer.h"
 
 
 using namespace std;
@@ -31,6 +32,8 @@ public:
 
     static bool load(const string& file_total, const string& file_cfg, const string& file_stmt, const string& file_entries, CFG *cfg_,
     		const string& file_singleton, Singletons* singletons, GraphStore *graphstore, const string& file_grammar, Grammar * grammar){
+
+
     	CFG_map* cfg = dynamic_cast<CFG_map*>(cfg_);
     	cfg->loadCFG(file_cfg, file_stmt, file_entries);
 
@@ -42,6 +45,8 @@ public:
 
     	singletons->loadSingletonSet(file_singleton);
 
+
+
     	return true;
     }
 
@@ -49,13 +54,18 @@ public:
     static void do_worklist_synchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag); //worklist algorithm in parallel
 
     static PEGraph* transfer(PEGraph* in, Stmt* stmt, Grammar* grammar, Singletons* singletons, bool flag){
+        myTimer *pTimer = myTimer::getInstance();
+        pTimer->setCountTransfer(pTimer->getCountTransfer()+1);
+
         switch(stmt->getType()){
             case TYPE::Assign:
-                return transfer_copy(in, (AssignStmt*)stmt, grammar, singletons, flag);
+                return
+                transfer_copy(in, (AssignStmt*)stmt, grammar, singletons, flag);
             case TYPE::Load:
                 return transfer_load(in, (LoadStmt*)stmt, grammar, singletons, flag);
             case TYPE::Store:
-                return transfer_store(in, (StoreStmt*)stmt, grammar, singletons, flag);
+                return
+                transfer_store(in, (StoreStmt*)stmt, grammar, singletons, flag);
             case TYPE::Alloca:
                 return transfer_address(in, (AllocStmt*)stmt, grammar, singletons, flag);
             case TYPE::Phi:
@@ -71,6 +81,7 @@ public:
             default:
                 return nullptr;
         }
+
     }
 
     static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds);

@@ -7,10 +7,13 @@
 
 #include "comp/cfg_compute_ooc_asyn.h"
 #include "utility/ResourceManager.hpp"
+#include "myTimer.h"
+
 using namespace std;
 
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/newtest/inlined/";
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/testExample/inlined/";
+
 const string dir = "/home/dell/GraphFlow/GraphSSAInline/firefox/browser/";
 const string file_total = dir + "total.txt";
 const string file_entries = dir + "entry.txt";
@@ -19,13 +22,23 @@ const string file_stmts = dir + "id_stmt_info.txt";
 const string file_singletons = dir + "var_singleton_info.txt";
 const string file_grammar = "/home/dell/Desktop/Ouroboros-dataset-master/rules_pointsto.txt";
 
+//const string dir = "/home/dell/GraphFlow/GraphSSAInline/httpd/";
+//const string file_total = dir + "total.txt";
+//const string file_entries = dir + "entry.txt";
+//const string file_cfg = dir + "final";
+//const string file_stmts = dir + "id_stmt_info.txt";
+//const string file_singletons = dir + "var_singleton_info.txt";
+//const string file_grammar = "/home/dell/Desktop/Ouroboros-dataset-master/rules_pointsto.txt";
+
 /* function declaration */
 void run_inmemory(int);
 void run_ooc(int, int);
 
-
+//myTimer* myTimer::m_instance = nullptr;
+std::atomic<myTimer*> myTimer::m_instance;
 int main(int argc, char* argv[]) {
-	if(argc != 2 && argc != 3){
+
+    if(argc != 2 && argc != 3){
 		cout << "Usage: ./backend mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1)" << endl;
 		return 0;
 	}
@@ -48,9 +61,11 @@ int main(int argc, char* argv[]) {
 		run_inmemory(1);
 	}
 
+    cout<<endl;
 	auto end_fsm = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
 	std::cout << "Running time : " << diff_fsm.count() << " s\n";
+    cout<<endl;
 
 	//print out resource usage
 	std::cout << "\n\n";
@@ -214,7 +229,20 @@ void compute_inmemory(int sync_mode){
 	Singletons * singletons = new Singletons();
     Grammar *grammar = new Grammar();
 
+    cout<<endl;
+//    cout << "-----------------------test CFGCompute_syn::load -----------------------" << endl;
+    auto start_fsm = std::chrono::high_resolution_clock::now();
+    cout<<endl;
+
 	CFGCompute_syn::load(file_total, file_cfg, file_stmts, file_entries, cfg, file_singletons, singletons, graphstore, file_grammar, grammar);
+
+    cout<<endl;
+    auto end_fsm = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+    std::cout << "Running time : CFGCompute_syn::load : " << diff_fsm.count() << " s\n";
+    cout<<endl;
+
+
 	if(sync_mode){
 		CFGCompute_syn::do_worklist_synchronous(cfg, graphstore, grammar, singletons, false);
 	}

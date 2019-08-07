@@ -178,13 +178,21 @@ public:
 	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
 	//        //for debugging
 	//    	StaticPrinter::print_vector(preds);
+
+
+
 	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds);
+
 
 //	        //for debugging
 //	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
+
+
 	        //transfer
 	        PEGraph* out = CFGCompute_syn::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
+
+
 
 //	        //for debugging
 //	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
