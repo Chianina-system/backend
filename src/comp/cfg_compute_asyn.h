@@ -75,8 +75,17 @@ public:
 
 	        //update and propagate
 	        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-	        PEGraph* old_out = graphstore->retrieve_locked(out_pointer);
-	        bool isEqual = out->equals(old_out);
+
+            auto start_fsm = std::chrono::high_resolution_clock::now();
+
+            PEGraph* old_out = graphstore->retrieve_locked(out_pointer);
+
+            auto end_fsm = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+            myTimer::addDurationRetrieve(diff_fsm.count());
+            myTimer::addCountRetrieve();
+
+            bool isEqual = out->equals(old_out);
 
 //	        //for debugging
 //	        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", LEVEL_LOG_INFO);
@@ -122,8 +131,17 @@ public:
 	    else if(preds->size() == 1){
 	        CFGNode* pred = preds->at(0);
 	        PEGraph_Pointer out_pointer = pred->getOutPointer();
-	        out = graphstore->retrieve_locked(out_pointer);
-	        if(!out){
+
+            auto start_fsm = std::chrono::high_resolution_clock::now();
+
+            out = graphstore->retrieve_locked(out_pointer);
+
+            auto end_fsm = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+            myTimer::addDurationRetrieve(diff_fsm.count());
+            myTimer::addCountRetrieve();
+
+            if(!out){
 	        	out = new PEGraph();
 	        }
 	    }
@@ -133,8 +151,16 @@ public:
 	        for(auto it = preds->cbegin(); it != preds->cend(); it++){
 	            CFGNode* pred = *it;
 	            PEGraph_Pointer out_pointer = pred->getOutPointer();
-	            PEGraph* out_graph = graphstore->retrieve_locked(out_pointer);
-	            if(!out_graph){
+
+                auto start_fsm = std::chrono::high_resolution_clock::now();
+
+                PEGraph* out_graph = graphstore->retrieve_locked(out_pointer);
+
+                auto end_fsm = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+                myTimer::addDurationRetrieve(diff_fsm.count());
+                myTimer::addCountRetrieve();
+                if(!out_graph){
 	            	continue;
 	            }
 	            out->merge(out_graph);

@@ -199,8 +199,19 @@ public:
 
 	        //update and propagate
 	        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
+
+            auto start_fsm = std::chrono::high_resolution_clock::now();
+
 	        PEGraph* old_out = graphstore->retrieve(out_pointer);
-	        bool isEqual = out->equals(old_out);
+
+            auto end_fsm = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+            myTimer::addDurationRetrieve(diff_fsm.count());
+            myTimer::addCountRetrieve();
+
+
+
+            bool isEqual = out->equals(old_out);
 
 //	        //for debugging
 //	        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", LEVEL_LOG_INFO);
@@ -284,7 +295,14 @@ private:
 			if (myfile.is_open()){
 				for (auto& n : s) {
 					auto pointer = n->getOutPointer();
-					PEGraph* graph = graphstore->retrieve(pointer);
+
+                    auto start_fsm = std::chrono::high_resolution_clock::now();
+
+                    PEGraph* graph = graphstore->retrieve(pointer);
+                    auto end_fsm = std::chrono::high_resolution_clock::now();
+                    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+                    myTimer::addDurationRetrieve(diff_fsm.count());
+                    myTimer::addCountRetrieve();
 //					assert(graph != nullptr);
 					if(graph){
 						//write a pegraph into file

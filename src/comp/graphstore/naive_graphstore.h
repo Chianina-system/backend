@@ -11,6 +11,7 @@
 #include "../../utility/Logger.hpp"
 #include "../../utility/FileUtil.hpp"
 #include "graphstore.h"
+#include "../../myTimer.h"
 //#include "cfg_compute.h"
 
 using namespace std;
@@ -165,7 +166,15 @@ public:
     //deep copy; locked version for asynchronous mode
     void update_locked(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
     	std::lock_guard<std::mutex> lockGuard(mutex);
-    	update(graph_pointer, pegraph);
+
+        auto start_fsm = std::chrono::high_resolution_clock::now();
+
+        update(graph_pointer, pegraph);
+
+        auto end_fsm = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+        myTimer::addDurationUpdate(diff_fsm.count());
+        myTimer::addCountUpdate();
     }
 
     //deep copy
@@ -194,7 +203,15 @@ public:
     	vertexid_t id = -1;
     	while(worklist->pop_atomic(id)){
     		assert(current->map.find(id) != current->map.end());
+
+            auto start_fsm = std::chrono::high_resolution_clock::now();
+
     		current->update(id, another->map.at(id));
+
+            auto end_fsm = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+            myTimer::addDurationUpdate(diff_fsm.count());
+            myTimer::addCountUpdate();
     	}
     }
 
@@ -225,8 +242,16 @@ public:
     void update_graphs_sequential(GraphStore* another){
     	NaiveGraphStore* another_graphstore = dynamic_cast<NaiveGraphStore*>(another);
     	for(auto& it: another_graphstore->map){
-    		update(it.first, it.second);
-    	}
+
+            auto start_fsm = std::chrono::high_resolution_clock::now();
+
+            update(it.first, it.second);
+
+            auto end_fsm = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+            myTimer::addDurationUpdate(diff_fsm.count());
+            myTimer::addCountUpdate();
+        }
     }
 
     void update_graphs(GraphStore* another){

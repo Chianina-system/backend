@@ -107,9 +107,9 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
         cout<<endl;
 //        myTimer timer = myTimer();
         myTimer::addDurationCombineSynchronous(diff_fsm.count());
-        std::cout << "test duration : CFGCompute_syn::combine_synchronous : " << myTimer::duration_combine_synchronous<< " s"<< endl;
+//        std::cout << "test duration : CFGCompute_syn::combine_synchronous : " << myTimer::duration_combine_synchronous<< " s"<< endl;
         myTimer::addCountCombineSynchronous();
-        std::cout << "test count : CFGCompute_syn::combine_synchronous : " << myTimer::count_combine_synchronous<< " times"<< endl;
+//        std::cout << "test count : CFGCompute_syn::combine_synchronous : " << myTimer::count_combine_synchronous<< " times"<< endl;
 
 
 //        cout << "-----------------------test transfer -----------------------" << endl;
@@ -124,16 +124,23 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
         auto end_fsm1 = std::chrono::high_resolution_clock::now();
         auto diff_fsm1 = end_fsm1 - start_fsm1;
         myTimer::addDurationTransfer(diff_fsm.count());
-        std::cout << "test duration : CFGCompute_syn::transfer : " << myTimer::duration_transfer<< " s" << endl;
+//        std::cout << "test duration : CFGCompute_syn::transfer : " << myTimer::duration_transfer<< " s" << endl;
         myTimer::addCountTransfer();
-        std::cout << "test count : CFGCompute_syn::transfer : " << myTimer::count_transfer<< " times"<< endl;
+//        std::cout << "test count : CFGCompute_syn::transfer : " << myTimer::count_transfer<< " times"<< endl;
 
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
 
+
+        auto start_fsm2 = std::chrono::high_resolution_clock::now();
+
         //TODO##
         PEGraph* old_out = graphstore->retrieve(out_pointer);
+        auto end_fsm2 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> diff_fsm2 = end_fsm2 - start_fsm2;
+        myTimer::addDurationRetrieve(diff_fsm.count());
+        myTimer::addCountRetrieve();
 
         bool isEqual = out->equals(old_out);
 
@@ -194,7 +201,17 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
     else if(preds->size() == 1){
         CFGNode* pred = preds->at(0);
         PEGraph_Pointer out_pointer = pred->getOutPointer();
+
+
+        auto start_fsm = std::chrono::high_resolution_clock::now();
+
         out = graphstore->retrieve(out_pointer);
+
+        auto end_fsm = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+        myTimer::addDurationRetrieve(diff_fsm.count());
+        myTimer::addCountRetrieve();
+
         if(!out){
         	out = new PEGraph();
         }
@@ -205,7 +222,17 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
         for(auto it = preds->cbegin(); it != preds->cend(); it++){
             CFGNode* pred = *it;
             PEGraph_Pointer out_pointer = pred->getOutPointer();
+
+
+            auto start_fsm = std::chrono::high_resolution_clock::now();
+
             PEGraph* out_graph = graphstore->retrieve(out_pointer);
+
+            auto end_fsm = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+            myTimer::addDurationRetrieve(diff_fsm.count());
+            myTimer::addCountRetrieve();
+
             if(!out_graph){
             	continue;
             }

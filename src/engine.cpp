@@ -41,6 +41,12 @@ float myTimer::duration_combine_synchronous=0;
 int myTimer::count_transfer=0;
 float myTimer::duration_transfer=0;
 
+int myTimer::count_retrieve = 0;
+float myTimer::duration_retrieve = 0;
+
+int myTimer::count_update = 0;
+float myTimer::duration_update = 0;
+
 //int myTimer::count_peg_compute_add=0;
 //float myTimer::duration_peg_compute_add=0;
 
@@ -76,10 +82,22 @@ int main(int argc, char* argv[]) {
     cout<<endl;
 
 
-    //for debugging time
+    std::cout << "test duration : CFGCompute_syn::combine_synchronous : " << myTimer::duration_combine_synchronous<< " s"<< endl;
+    std::cout << "test count : CFGCompute_syn::combine_synchronous : " << myTimer::count_combine_synchronous<< " times"<< endl;
+
+    std::cout << "test duration : CFGCompute_syn::transfer : " << myTimer::duration_transfer<< " s"<< endl;
+    std::cout << "test count : CFGCompute_syn::transfer : " << myTimer::count_transfer<< " times"<< endl;
+
+    std::cout << "test duration : NaiveGraphStore::retrieve : " << myTimer::duration_retrieve<< " s"<< endl;
+    std::cout << "test count : NaiveGraphStore::retrieve : " << myTimer::count_retrieve<< " times"<< endl;
+
+    std::cout << "test duration : NaiveGraphStore::update : " << myTimer::duration_update << " s"<< endl;
+    std::cout << "test count : NaiveGraphStore::update : " << myTimer::count_update << " times"<< endl;
 
 
-	//print out resource usage
+
+
+    //print out resource usage
 	std::cout << "\n\n";
 	std::cout << "------------------------------ resource usage ------------------------------" << std::endl;
 	std::cout << rm.result() << std::endl;

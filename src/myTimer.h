@@ -24,6 +24,14 @@ public:
     static int count_transfer;
     static float duration_transfer;
 
+    static int count_retrieve;
+    static float duration_retrieve;
+
+    static int count_update;
+    static float duration_update;
+
+
+
 
 
 //    static int count_transfer;
@@ -54,6 +62,13 @@ public:
     static void addDurationPegComputeDeleted(double duration);
 
 
+    static void addDurationRetrieve(double duration);
+
+    static void addCountRetrieve();
+
+    static void addDurationUpdate(double duration);
+
+    static void addCountUpdate();
 };
 
 

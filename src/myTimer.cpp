@@ -21,6 +21,22 @@ void myTimer::addDurationTransfer(double duration) {
     duration_transfer += duration;
 }
 
+void myTimer::addDurationRetrieve(double duration) {
+    duration_retrieve += duration;
+}
+
+void myTimer::addCountRetrieve() {
+    count_retrieve++;
+}
+
+void myTimer::addDurationUpdate(double duration) {
+    duration_update += duration;
+}
+
+void myTimer::addCountUpdate() {
+    count_update++;
+}
+
 
 
 
