@@ -54,8 +54,6 @@ public:
     static void do_worklist_synchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag); //worklist algorithm in parallel
 
     static PEGraph* transfer(PEGraph* in, Stmt* stmt, Grammar* grammar, Singletons* singletons, bool flag){
-        myTimer *pTimer = myTimer::getInstance();
-        pTimer->setCountTransfer(pTimer->getCountTransfer()+1);
 
         switch(stmt->getType()){
             case TYPE::Assign:

@@ -100,8 +100,15 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
         cout<<endl;
         auto end_fsm = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
-        std::cout << "Running time : CCFGCompute_syn::combine_synchronous : " << diff_fsm.count() << " s\n";
+//        std::cout << "Running time : CCFGCompute_syn::combine_synchronous : " << diff_fsm.count() << " s\n";
         cout<<endl;
+        myTimer timer = myTimer();
+//        timer.(diff_fsm.count());
+//        std::cout << "test timer : CCFGCompute_syn::combine_synchronous : " << timer.getCountCombineSynchronous()<< " s\n";
+
+        timer.addCountCombineSynchronous(1);
+        std::cout << "test count : CCFGCompute_syn::combine_synchronous : " << timer.getCountCombineSynchronous()<< " times";
+
 
 //        //for debugging
 //        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
@@ -235,8 +242,6 @@ PEGraph* CFGCompute_syn::transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar *gramma
     auto end_fsm = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
 
-    myTimer *pTimer = myTimer::getInstance();
-    pTimer->setTimeTransfer(pTimer->getTimeTransfer()+diff_fsm.count());
 
     return out;
 }
@@ -264,8 +269,6 @@ PEGraph* CFGCompute_syn::transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar *gr
     auto end_fsm = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
 
-    myTimer *pTimer = myTimer::getInstance();
-    pTimer->setTimeTransfer(pTimer->getTimeTransfer()+diff_fsm.count());
 
     return out;
 }
@@ -293,8 +296,6 @@ PEGraph* CFGCompute_syn::transfer_load(PEGraph* in, LoadStmt* stmt,Grammar *gram
     auto end_fsm = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
 
-    myTimer *pTimer = myTimer::getInstance();
-    pTimer->setTimeTransfer(pTimer->getTimeTransfer()+diff_fsm.count());
 
     return out;
 }
@@ -335,8 +336,6 @@ PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, StoreStmt* stmt,Grammar *gr
     auto end_fsm = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
 
-    myTimer *pTimer = myTimer::getInstance();
-    pTimer->setTimeTransfer(pTimer->getTimeTransfer()+diff_fsm.count());
 
     return out;
 }
@@ -363,9 +362,6 @@ PEGraph* CFGCompute_syn::transfer_address(PEGraph* in, AllocStmt* stmt,Grammar *
 
     auto end_fsm = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
-
-    myTimer *pTimer = myTimer::getInstance();
-    pTimer->setTimeTransfer(pTimer->getTimeTransfer()+diff_fsm.count());
 
     return out;
 }

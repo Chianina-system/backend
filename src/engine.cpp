@@ -35,7 +35,11 @@ void run_inmemory(int);
 void run_ooc(int, int);
 
 //myTimer* myTimer::m_instance = nullptr;
-std::atomic<myTimer*> myTimer::m_instance;
+int myTimer::count_combine_synchronous;
+int myTimer::count_transfer;
+float myTimer::time_combine_synchronous;
+float myTimer::time_transfer;
+
 int main(int argc, char* argv[]) {
 
     if(argc != 2 && argc != 3){
@@ -66,6 +70,10 @@ int main(int argc, char* argv[]) {
 	std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
 	std::cout << "Running time : " << diff_fsm.count() << " s\n";
     cout<<endl;
+
+
+    //for debugging time
+
 
 	//print out resource usage
 	std::cout << "\n\n";

@@ -6,34 +6,25 @@
 #define BACKEND_MYTIMER_H
 
 
-#include <atomic>
-
 class myTimer {
 private:
-    int count_combine_synchronous;
-    int count_transfer;
-    float time_combine_synchronous;
-    float time_transfer;
-    myTimer(int countCombineSynchronous = 0, int countTransfer= 0, float timeCombineSynchronous= 0, float timeTransfer= 0);
-    myTimer(const myTimer& other);
-
-
+    static int count_combine_synchronous;
+    static int count_transfer;
+    static float time_combine_synchronous;
+    static float time_transfer;
 
 public:
-    static myTimer* getInstance();
-    //C++ 11版本之后的跨平台实现 (volatile)
-    static std::atomic<myTimer*> m_instance;
-    static std::mutex m_mutex;
+    myTimer();
 
-    int getCountCombineSynchronous() ;
+    int getCountCombineSynchronous() const;
 
     void setCountCombineSynchronous(int countCombineSynchronous);
 
-    int getCountTransfer() ;
+    int getCountTransfer() const;
 
     void setCountTransfer(int countTransfer);
 
-    float getTimeCombineSynchronous() ;
+    float getTimeCombineSynchronous() const;
 
     void setTimeCombineSynchronous(float timeCombineSynchronous);
 
@@ -41,9 +32,9 @@ public:
 
     void setTimeTransfer(float timeTransfer);
 
+    void addCountCombineSynchronous(float time);
+
 };
-
-
 
 
 
