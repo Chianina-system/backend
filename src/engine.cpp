@@ -36,9 +36,13 @@ void run_ooc(int, int);
 
 //myTimer* myTimer::m_instance = nullptr;
 int myTimer::count_combine_synchronous=0;
-int myTimer::count_transfer=0;
 float myTimer::duration_combine_synchronous=0;
+
+int myTimer::count_transfer=0;
 float myTimer::duration_transfer=0;
+
+//int myTimer::count_peg_compute_add=0;
+//float myTimer::duration_peg_compute_add=0;
 
 int main(int argc, char* argv[]) {
 
@@ -114,13 +118,6 @@ void compute_ooc(Partition partition, Context* context, int sync_mode){
 
 //	//for debugging
 //	Logger::print_thread_info_locked("compute finished.\n", LEVEL_LOG_FUNCTION);
-}
-
-void readAllGraphs(NaiveGraphStore *graphstore, Context* context){
-	for(unsigned int partition = 0; partition < context->getNumberPartitions(); ++ partition){
-		const string filename_graphs = Context::file_graphstore + to_string(partition);
-		graphstore->deserialize(filename_graphs);
-	}
 }
 
 void loadMirrors(const string& file_mirrors_in, const string& file_mirrors_out, std::unordered_set<PEGraph_Pointer>& mirrors){

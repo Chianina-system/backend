@@ -44,7 +44,10 @@ do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Sin
             t.join();
 
         //synchronize and communicate
+
+        //TODO##
         graphstore->update_graphs(tmp_graphstore);
+
         tmp_graphstore->clear();
 
         //update worklists
@@ -104,9 +107,9 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
         cout<<endl;
 //        myTimer timer = myTimer();
         myTimer::addDurationCombineSynchronous(diff_fsm.count());
-        std::cout << "test duration : CFGCompute_syn::combine_synchronous : " << myTimer::getDurationCombineSynchronous()<< " s"<< endl;
+        std::cout << "test duration : CFGCompute_syn::combine_synchronous : " << myTimer::duration_combine_synchronous<< " s"<< endl;
         myTimer::addCountCombineSynchronous();
-        std::cout << "test count : CFGCompute_syn::combine_synchronous : " << myTimer::getCountCombineSynchronous()<< " times"<< endl;
+        std::cout << "test count : CFGCompute_syn::combine_synchronous : " << myTimer::count_combine_synchronous<< " times"<< endl;
 
 
 //        cout << "-----------------------test transfer -----------------------" << endl;
@@ -121,14 +124,17 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
         auto end_fsm1 = std::chrono::high_resolution_clock::now();
         auto diff_fsm1 = end_fsm1 - start_fsm1;
         myTimer::addDurationTransfer(diff_fsm.count());
-        std::cout << "test duration : CFGCompute_syn::transfer : " << myTimer::getDurationTransfer()<< " s" << endl;
+        std::cout << "test duration : CFGCompute_syn::transfer : " << myTimer::duration_transfer<< " s" << endl;
         myTimer::addCountTransfer();
-        std::cout << "test count : CFGCompute_syn::transfer : " << myTimer::getCountTransfer()<< " times"<< endl;
+        std::cout << "test count : CFGCompute_syn::transfer : " << myTimer::count_transfer<< " times"<< endl;
 
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
+
+        //TODO##
         PEGraph* old_out = graphstore->retrieve(out_pointer);
+
         bool isEqual = out->equals(old_out);
 
 //        //for debugging
@@ -152,6 +158,7 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
             }
 
             //store the new graph into tmp_graphstore
+            //TODO##
             tmp_graphstore->addOneGraph_atomic(out_pointer, out);
         }
         else{
