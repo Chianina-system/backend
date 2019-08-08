@@ -92,7 +92,7 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 //        //for debugging
 //    	StaticPrinter::print_vector(preds);
         cout<<endl;
-//        cout << "-----------------------test CCFGCompute_syn::combine_synchronous -----------------------" << endl;
+//        cout << "-----------------------test CFGCompute_syn::combine_synchronous -----------------------" << endl;
         auto start_fsm = std::chrono::high_resolution_clock::now();
         cout<<endl;
 
@@ -109,7 +109,7 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
         std::cout << "test count : CFGCompute_syn::combine_synchronous : " << timer.getCountCombineSynchronous()<< " times"<< endl;
 
 
-//        //for debugging
+//        cout << "-----------------------test transfer -----------------------" << endl;
 
         auto start_fsm1 = std::chrono::high_resolution_clock::now();
 
@@ -323,6 +323,8 @@ PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, StoreStmt* stmt,Grammar *gr
 //    cout << *out << endl;
 
     // the GEN set
+
+    //TODO##
     peg_compute_add(out,stmt,grammar, flag);
 
 	//for debugging
@@ -664,6 +666,7 @@ void CFGCompute_syn::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid
 	}
 
     // execute the edge addition operation. the oldsSet is out - m, the deltasSet is m
+    //TODO##
     peg_compute_delete(out, grammar, &m);
 
     /* remove edges */
@@ -1285,6 +1288,8 @@ void CFGCompute_syn::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar,
 //    cout << *compset << endl;
 
     // start GEN
+
+    //TODO##
     if(IS_PEGCOMPUTE_PARALLEL_ADD){
 		PEGCompute_parallel::startCompute_add(compset, grammar);
     }

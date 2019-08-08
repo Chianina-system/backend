@@ -62,8 +62,7 @@ public:
             case TYPE::Load:
                 return transfer_load(in, (LoadStmt*)stmt, grammar, singletons, flag);
             case TYPE::Store:
-                return
-                transfer_store(in, (StoreStmt*)stmt, grammar, singletons, flag);
+                return transfer_store(in, (StoreStmt*)stmt, grammar, singletons, flag);
             case TYPE::Alloca:
                 return transfer_address(in, (AllocStmt*)stmt, grammar, singletons, flag);
             case TYPE::Phi:

@@ -18,7 +18,11 @@ private:
     static int count_peg_compute_add;
     static float duration_peg_compute_add;
 
+    peg_compute_add
+    startCompute_add
 
+    peg_compute_delete
+    startCompute_delete
 
 public:
     myTimer();
