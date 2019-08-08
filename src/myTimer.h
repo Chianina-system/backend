@@ -9,30 +9,58 @@
 class myTimer {
 private:
     static int count_combine_synchronous;
+    static float duration_combine_synchronous;
+
+
     static int count_transfer;
-    static float time_combine_synchronous;
-    static float time_transfer;
+    static float duration_transfer;
+
+    static int count_peg_compute_add;
+    static float duration_peg_compute_add;
+
+
 
 public:
     myTimer();
 
-    int getCountCombineSynchronous() const;
+    static int getCountCombineSynchronous();
 
-    void setCountCombineSynchronous(int countCombineSynchronous);
+    static void setCountCombineSynchronous(int countCombineSynchronous);
 
-    int getCountTransfer() const;
+    static float getDurationCombineSynchronous();
 
-    void setCountTransfer(int countTransfer);
+    static void setDurationCombineSynchronous(float durationCombineSynchronous);
 
-    float getTimeCombineSynchronous() const;
+    void addCountCombineSynchronous();
 
-    void setTimeCombineSynchronous(float timeCombineSynchronous);
+    void addDurationCombineSynchronous(double duration);
 
-    float getTimeTransfer() ;
 
-    void setTimeTransfer(float timeTransfer);
+    static int getCountTransfer();
 
-    void addCountCombineSynchronous(float time);
+    static void setCountTransfer(int countTransfer);
+
+    static float getDurationTransfer();
+
+    static void setDurationTransfer(float durationTransfer);
+
+    void addCountTransfer();
+
+    void addDurationTransfer(double duration);
+
+
+    static int getCountPegComputeAdd();
+
+    static void setCountPegComputeAdd(int countPegComputeAdd);
+
+    static float getDurationPegComputeAdd();
+
+    static void setDurationPegComputeAdd(float durationPegComputeAdd);
+
+    void addCountPegComputeAdd();
+
+    void addDurationPegComputeAdd(double duration);
+
 
 };
 

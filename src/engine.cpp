@@ -35,10 +35,10 @@ void run_inmemory(int);
 void run_ooc(int, int);
 
 //myTimer* myTimer::m_instance = nullptr;
-int myTimer::count_combine_synchronous;
-int myTimer::count_transfer;
-float myTimer::time_combine_synchronous;
-float myTimer::time_transfer;
+int myTimer::count_combine_synchronous=0;
+int myTimer::count_transfer=0;
+float myTimer::duration_combine_synchronous=0;
+float myTimer::duration_transfer=0;
 
 int main(int argc, char* argv[]) {
 

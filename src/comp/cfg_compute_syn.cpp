@@ -10,7 +10,8 @@
 #include "../myTimer.h"
 
 
-void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag){
+void CFGCompute_syn::
+do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag){
 //	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
     Concurrent_Worklist<CFGNode*>* worklist_1 = new Concurrent_Workset<CFGNode*>();
@@ -100,36 +101,30 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
         cout<<endl;
         auto end_fsm = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
-//        std::cout << "Running time : CCFGCompute_syn::combine_synchronous : " << diff_fsm.count() << " s\n";
         cout<<endl;
         myTimer timer = myTimer();
-//        timer.(diff_fsm.count());
-//        std::cout << "test timer : CCFGCompute_syn::combine_synchronous : " << timer.getCountCombineSynchronous()<< " s\n";
-
-        timer.addCountCombineSynchronous(1);
-        std::cout << "test count : CCFGCompute_syn::combine_synchronous : " << timer.getCountCombineSynchronous()<< " times";
+        timer.addDurationCombineSynchronous(diff_fsm.count());
+        std::cout << "test duration : CFGCompute_syn::combine_synchronous : " << timer.getDurationCombineSynchronous()<< " s"<< endl;
+        timer.addCountCombineSynchronous();
+        std::cout << "test count : CFGCompute_syn::combine_synchronous : " << timer.getCountCombineSynchronous()<< " times"<< endl;
 
 
 //        //for debugging
-//        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
-//        cout<<endl;
-////        cout << "-----------------------test CFGCompute_syn::transfer -----------------------" << endl;
-//        auto start_fsm1 = std::chrono::high_resolution_clock::now();
-//        cout<<endl;
+        auto start_fsm1 = std::chrono::high_resolution_clock::now();
+
 
         //transfer
         PEGraph* out = transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
-
 //        cout<<endl;
-//        auto end_fsm1 = std::chrono::high_resolution_clock::now();
-//        auto diff_fsm1 = end_fsm1 - start_fsm1;
-//        std::cout << "Running time : CFGCompute_syn::transfer : " << diff_fsm1.count() << " s\n";
-//        cout<<endl;
+        auto end_fsm1 = std::chrono::high_resolution_clock::now();
+        auto diff_fsm1 = end_fsm1 - start_fsm1;
+        timer.addDurationTransfer(diff_fsm.count());
+        std::cout << "test duration : CFGCompute_syn::transfer : " << timer.getDurationTransfer()<< " s" << endl;
+        timer.addCountTransfer();
+        std::cout << "test count : CFGCompute_syn::transfer : " << timer.getCountTransfer()<< " times"<< endl;
 
-//        //for debugging
-//        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
