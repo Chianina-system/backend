@@ -18,11 +18,11 @@ private:
     static int count_peg_compute_add;
     static float duration_peg_compute_add;
 
-    peg_compute_add
-    startCompute_add
-
-    peg_compute_delete
-    startCompute_delete
+//    peg_compute_add
+//    startCompute_add
+//
+//    peg_compute_delete
+//    startCompute_delete
 
 public:
     myTimer();
@@ -35,9 +35,9 @@ public:
 
     static void setDurationCombineSynchronous(float durationCombineSynchronous);
 
-    void addCountCombineSynchronous();
+    static void addCountCombineSynchronous();
 
-    void addDurationCombineSynchronous(double duration);
+    static void addDurationCombineSynchronous(double duration);
 
 
     static int getCountTransfer();
@@ -48,9 +48,9 @@ public:
 
     static void setDurationTransfer(float durationTransfer);
 
-    void addCountTransfer();
+    static void addCountTransfer();
 
-    void addDurationTransfer(double duration);
+    static void addDurationTransfer(double duration);
 
 
     static int getCountPegComputeAdd();

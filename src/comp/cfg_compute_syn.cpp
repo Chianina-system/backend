@@ -102,11 +102,11 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
         auto end_fsm = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
         cout<<endl;
-        myTimer timer = myTimer();
-        timer.addDurationCombineSynchronous(diff_fsm.count());
-        std::cout << "test duration : CFGCompute_syn::combine_synchronous : " << timer.getDurationCombineSynchronous()<< " s"<< endl;
-        timer.addCountCombineSynchronous();
-        std::cout << "test count : CFGCompute_syn::combine_synchronous : " << timer.getCountCombineSynchronous()<< " times"<< endl;
+//        myTimer timer = myTimer();
+        myTimer::addDurationCombineSynchronous(diff_fsm.count());
+        std::cout << "test duration : CFGCompute_syn::combine_synchronous : " << myTimer::getDurationCombineSynchronous()<< " s"<< endl;
+        myTimer::addCountCombineSynchronous();
+        std::cout << "test count : CFGCompute_syn::combine_synchronous : " << myTimer::getCountCombineSynchronous()<< " times"<< endl;
 
 
 //        cout << "-----------------------test transfer -----------------------" << endl;
@@ -120,10 +120,10 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 //        cout<<endl;
         auto end_fsm1 = std::chrono::high_resolution_clock::now();
         auto diff_fsm1 = end_fsm1 - start_fsm1;
-        timer.addDurationTransfer(diff_fsm.count());
-        std::cout << "test duration : CFGCompute_syn::transfer : " << timer.getDurationTransfer()<< " s" << endl;
-        timer.addCountTransfer();
-        std::cout << "test count : CFGCompute_syn::transfer : " << timer.getCountTransfer()<< " times"<< endl;
+        myTimer::addDurationTransfer(diff_fsm.count());
+        std::cout << "test duration : CFGCompute_syn::transfer : " << myTimer::getDurationTransfer()<< " s" << endl;
+        myTimer::addCountTransfer();
+        std::cout << "test count : CFGCompute_syn::transfer : " << myTimer::getCountTransfer()<< " times"<< endl;
 
 
         //update and propagate
