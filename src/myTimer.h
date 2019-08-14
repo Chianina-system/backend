@@ -31,18 +31,11 @@ public:
     static float duration_update;
 
 
+    static int count_peg_compute_add;
+    static float duration_peg_compute_add;
 
-
-
-//    static int count_transfer;
-//    static float duration_transfer;
-
-
-//    static int count_peg_compute_add;
-//    static float duration_peg_compute_add;
-//
-//    static int count_peg_compute_delete;
-//    static float duration_peg_compute_delete;
+    static int count_peg_compute_delete;
+    static float duration_peg_compute_delete;
 
 
     static void addCountCombineSynchronous();

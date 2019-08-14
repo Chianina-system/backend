@@ -37,33 +37,18 @@ void myTimer::addCountUpdate() {
     count_update++;
 }
 
+void myTimer::addCountPegComputeAdd() {
+    count_peg_compute_add++;
+}
 
+void myTimer::addDurationPegComputeAdd(double duration) {
+    duration_peg_compute_add += duration;
+}
 
+void myTimer::addCountPegComputeDeleted() {
+    count_peg_compute_delete++;
+}
 
-//void myTimer::addCountPegComputeAdd() {
-//    count_peg_compute_add++;
-//}
-//
-//void myTimer::addDurationPegComputeAdd(double duration) {
-//    duration_peg_compute_add += duration;
-//}
-//
-//void myTimer::addCountPegComputeDeleted() {
-//    count_peg_compute_delete++;
-//}
-//
-//void myTimer::addDurationPegComputeDeleted(double duration) {
-//    duration_peg_compute_delete += duration;
-//
-//}
-
-
-//
-//void myTimer::addCountPegComputeAdd() {
-//    count_peg_compute_add++;
-//}
-//
-//void myTimer::addDurationPegComputeAdd(double duration) {
-//    duration_peg_compute_add += duration;
-//
-//}
+void myTimer::addDurationPegComputeDeleted(double duration) {
+    duration_peg_compute_delete += duration;
+}
