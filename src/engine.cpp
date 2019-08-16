@@ -14,21 +14,21 @@ using namespace std;
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/newtest/inlined/";
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/testExample/inlined/";
 
-const string dir = "/home/dell/GraphFlow/GraphSSAInline/firefox/browser/";
-const string file_total = dir + "total.txt";
-const string file_entries = dir + "entry.txt";
-const string file_cfg = dir + "final";
-const string file_stmts = dir + "id_stmt_info.txt";
-const string file_singletons = dir + "var_singleton_info.txt";
-const string file_grammar = "/home/dell/Desktop/Ouroboros-dataset-master/rules_pointsto.txt";
-
-//const string dir = "/home/dell/GraphFlow/GraphSSAInline/httpd/";
+//const string dir = "/home/dell/GraphFlow/GraphSSAInline/firefox/browser/";
 //const string file_total = dir + "total.txt";
 //const string file_entries = dir + "entry.txt";
 //const string file_cfg = dir + "final";
 //const string file_stmts = dir + "id_stmt_info.txt";
 //const string file_singletons = dir + "var_singleton_info.txt";
 //const string file_grammar = "/home/dell/Desktop/Ouroboros-dataset-master/rules_pointsto.txt";
+
+const string dir = "/home/dell/GraphFlow/GraphSSAInline/httpd/";
+const string file_total = dir + "total.txt";
+const string file_entries = dir + "entry.txt";
+const string file_cfg = dir + "final";
+const string file_stmts = dir + "id_stmt_info.txt";
+const string file_singletons = dir + "var_singleton_info.txt";
+const string file_grammar = "/home/dell/Desktop/Ouroboros-dataset-master/rules_pointsto.txt";
 
 /* function declaration */
 void run_inmemory(int);
