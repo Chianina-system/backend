@@ -39,6 +39,7 @@ public:
     inline vertexid_t *getEdges() const{return edges;}
     inline label_t* getLabels() const{return labels;}
     inline int getSize() const{return size;}
+    inline int getCapacity() const {return capacity;}
     inline bool isEmpty(){ return size == 0;}
 
     void set(int size,vertexid_t *edges,label_t *labels);
@@ -47,7 +48,7 @@ public:
 //    void setRealNumEdges(int realNumEdges);
 
     void addOneEdge(vertexid_t edge,label_t label);
-    void addEdges(int len, vertexid_t* _edges, label_t* _labels);
+
     void merge();
 
     bool equals(EdgeArray* another) const ;
@@ -60,6 +61,25 @@ public:
     		os << edges[i] << "\t";
     		os << (int)labels[i] << "\t";
     	}
+    }
+
+    void load_unreadable(std::stringstream& in){
+        int _capacity = -1, _size = -1;
+        vertexid_t edge;
+        label_t label;
+
+        in.read(reinterpret_cast<char *>(&_capacity), sizeof(_capacity));
+        in.read(reinterpret_cast<char *>(&_size), sizeof(_size));
+        this->capacity = _capacity;
+        this->size = _size;
+        this->edges = new vertexid_t[_size];
+        this->labels = new label_t[_size];
+        for (int i = 0; i < _size; ++i) {
+            in.read(reinterpret_cast<char *>(&edge), sizeof(edge));
+            in.read(reinterpret_cast<char *>(&label), sizeof(label));
+            this->edges[i] = edge;
+            this->labels[i] = label;
+        }
     }
 
     void load_readable(std::stringstream& stream){
@@ -89,12 +109,13 @@ public:
     }
 
 
+    void write_unreadable(std::ostringstream &out);
+
 private:
     vertexid_t *edges = nullptr;
     label_t *labels = nullptr;
     int size = 0;
     int capacity = 0;
-
 
 
 };

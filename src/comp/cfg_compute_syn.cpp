@@ -38,7 +38,8 @@ do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Sin
 
         std::vector<std::thread> comp_threads;
         for (unsigned int i = 0; i < NUM_THREADS; i++)
-            comp_threads.push_back(std::thread( [=] {compute_synchronous(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore, singletons, flag);}));
+            comp_threads.push_back(std::thread( [=] {
+                compute(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore, singletons, flag);}));
 
         for (auto &t : comp_threads)
             t.join();
@@ -80,8 +81,9 @@ do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Sin
 }
 
 
-void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
-		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag){
+void CFGCompute_syn::compute(CFG *cfg, GraphStore *graphstore, Concurrent_Worklist<CFGNode *> *worklist_1,
+                             Concurrent_Worklist<CFGNode *> *worklist_2,
+                             Grammar *grammar, GraphStore *tmp_graphstore, Singletons *singletons, bool flag){
     CFGNode* cfg_node;
 	while(worklist_1->pop_atomic(cfg_node)){
 //    	//for debugging
@@ -689,27 +691,27 @@ void CFGCompute_syn::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid
     // vertices <- must_alias(x); put *x into this set as well
 	must_alias(x, out, vertices_changed, grammar, vertices_affected, singletons);
 
-    //get all the direct assign edges into m
+    //get all the direct assign edges into mapToDelete
     //TODO: can be optimized by checking only the adjacent list of vertex in vertices_changed?
-    std::unordered_map<vertexid_t, EdgeArray> m;
-	getDirectAssignEdges(out, vertices_changed, grammar, &m);
+    std::unordered_map<vertexid_t, EdgeArray> mapToDelete;
+	getDirectAssignEdges(out, vertices_changed, grammar, &mapToDelete);
 
 //	//for debugging
-//	if(!m.empty()){
-//		cout << m.size() << endl;
+//	if(!mapToDelete.empty()){
+//		cout << mapToDelete.size() << endl;
 //		cout << "\n\n\n";
 //	}
 
-	if(m.empty()){
+	if(mapToDelete.empty()){
 		//for debugging
 		Logger::print_thread_info_locked("strong-update finished.\n", LEVEL_LOG_FUNCTION);
 		return;
 	}
 
-    // execute the edge addition operation. the oldsSet is out - m, the deltasSet is m
+    // execute the edge addition operation. the oldsSet is out - mapToDelete, the deltasSet is mapToDelete
 
     auto start_fsm = std::chrono::high_resolution_clock::now();
-    peg_compute_delete(out, grammar, &m);
+    peg_compute_delete(out, grammar, &mapToDelete);
     auto end_fsm = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
 
@@ -718,7 +720,7 @@ void CFGCompute_syn::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid
 
 
     /* remove edges */
-    for(auto it = m.begin(); it!= m.end(); it++){
+    for(auto it = mapToDelete.begin(); it!= mapToDelete.end(); it++){
     	if(it->second.isEmpty()){
     		continue;
     	}
@@ -972,79 +974,43 @@ void CFGCompute_syn::must_alias(vertexid_t x, PEGraph *out, std::set<vertexid_t>
 		}
 	}
 
-
-	//	//x must be a singleton variable
-//	assert(singletons->isSingleton(x));
-//
-//	/* if there exists one and only one variable o,which
-//	 * refers to a singleton memory location,such that x and
-//	 * y are both memory aliases of o,then x and y are Must-alias
-//	 */
-//    int numEdges = out->getNumEdges(x);
-//    vertexid_t * edges = out->getEdges(x);
-//    label_t *labels = out->getLabels(x);
-//
-//    int numOfSingleTon = 0;
-//	if(singletons->isSingleton(x)){
-//		++numOfSingleTon;
-//	}
-//    for(int i = 0;i < numEdges;++i) {
-//        if(grammar->isMemoryAlias(labels[i])){
-//        	vertices_changed.insert(edges[i]);
-//        	if(singletons->isSingleton(edges[i])){
-//        		++numOfSingleTon;
-//        	}
-//        }
-//    }
-//
-//    //check the number of singletons
-//    if(numOfSingleTon == 0){
-//    	perror("invalid number of singletons!");
-//    	vertices_changed.clear();
-//    }
-////    else if(numOfSingleTon == 1){
-////
-////    }
-//    else if(numOfSingleTon > 1){
-//    	vertices_changed.clear();
-//    }
-//	vertices_changed.insert(x);
-//
-//	//add *x into vertices as well
-//	for(auto it = vertices_changed.begin(); it != vertices_changed.end(); ++it){
-//		vertexid_t x = *it;
-//
-//	    int numEdges = out->getNumEdges(x);
-//	    vertexid_t * edges = out->getEdges(x);
-//	    label_t *labels = out->getLabels(x);
-//
-//	    for(int i = 0;i < numEdges;++i) {
-//	        if(grammar->isDereference(labels[i])){
-//	        	vertices_changed.insert(edges[i]);
-//	        }
-//
-//	        if(grammar->isDereference_reverse(labels[i])){
-//	        	vertices_affected.insert(edges[i]);
-//	        }
-//	    }
-//	}
 }
 
-void CFGCompute_syn::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m) {
+void CFGCompute_syn::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* mapToDelete) {
 	//for debugging
 	Logger::print_thread_info_locked("peg-compute-delete starting...\n", LEVEL_LOG_FUNCTION);
 
     // add assgin edge based on stmt, (out,assign edge) -> compset
     ComputationSet *compset = new ComputationSet();
-    compset->init_delete(out, m);
+    compset->init_delete(out, mapToDelete);
 
     // start GEN
     long number_deleted = 0;
     if(IS_PEGCOMPUTE_PARALLEL_DELETE){
-		number_deleted = PEGCompute_parallel::startCompute_delete(compset, grammar, m);
+        auto start_fsm = std::chrono::high_resolution_clock::now();
+
+        number_deleted = PEGCompute_parallel::startCompute_delete(compset, grammar, mapToDelete);
+
+        auto end_fsm = std::chrono::high_resolution_clock::now();
+        auto diff_fsm = end_fsm - start_fsm;
+
+        myTimer::count_startCompute_delete++;
+        myTimer::duration_startCompute_delete+=diff_fsm.count();
+
     }
     else{
-    	number_deleted = PEGCompute::startCompute_delete(compset, grammar, m);
+
+        auto start_fsm = std::chrono::high_resolution_clock::now();
+
+        number_deleted = PEGCompute::startCompute_delete(compset, grammar, mapToDelete);
+
+        auto end_fsm = std::chrono::high_resolution_clock::now();
+        auto diff_fsm = end_fsm - start_fsm;
+
+        myTimer::count_startCompute_delete++;
+        myTimer::duration_startCompute_delete+=diff_fsm.count();
+
+
     }
     Logger::print_thread_info_locked("number of edges deleted: " + std::to_string(number_deleted) + "\n", LEVEL_LOG_INFO);
 
@@ -1339,10 +1305,28 @@ void CFGCompute_syn::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar,
 
     //TODO##
     if(IS_PEGCOMPUTE_PARALLEL_ADD){
-		PEGCompute_parallel::startCompute_add(compset, grammar);
+        auto start_fsm = std::chrono::high_resolution_clock::now();
+
+        PEGCompute_parallel::startCompute_add(compset, grammar);
+
+        auto end_fsm = std::chrono::high_resolution_clock::now();
+        auto diff_fsm = end_fsm - start_fsm;
+
+        myTimer::count_startCompute_delete++;
+        myTimer::duration_startCompute_delete+=diff_fsm.count();
+
     }
     else{
-	    PEGCompute::startCompute_add(compset, grammar);
+        auto start_fsm = std::chrono::high_resolution_clock::now();
+
+        PEGCompute::startCompute_add(compset, grammar);
+
+        auto end_fsm = std::chrono::high_resolution_clock::now();
+        auto diff_fsm = end_fsm - start_fsm;
+
+        myTimer::count_startCompute_add++;
+        myTimer::duration_startCompute_delete+=diff_fsm.count();
+
     }
 //    Logger::print_thread_info_locked("number of edges added: " + to_string(number_added) + "\n");
 
@@ -1367,28 +1351,3 @@ void CFGCompute_syn::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar,
 	//for debugging
 	Logger::print_thread_info_locked("peg-compute-add finished.\n", LEVEL_LOG_FUNCTION);
 }
-
-//// 使用tab键分割
-//bool CFGCompute::load(const string& file_cfg, const string& file_stmt, CFG *cfg, const string& file_singleton, Singletons* singletons, GraphStore *graphstore, const string& file_grammar, Grammar * grammar) {
-//	cfg->loadCFG(file_cfg, file_stmt);
-//	cout << *cfg;
-//
-//	graphstore->loadGraphStore(file_singleton);
-//	cout << *graphstore << endl;
-//
-//	singletons->loadSingletonSet(file_singleton);
-//	cout << *singletons << endl;
-//
-//    /* TODO: load grammar from file
-//     * grammar->loadGrammar(filename);
-//     */
-//    grammar->loadGrammar(file_grammar.c_str());
-//
-//    return true;
-//}
-
-
-
-
-
-

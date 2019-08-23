@@ -96,6 +96,17 @@ void PEGraph::setEdgeArray(vertexid_t index, int numEdges, vertexid_t *edges, la
     this->graph[index].set(numEdges,edges,labels);
 }
 
+void PEGraph::write_unreadable(std::ostringstream &out) {
+    auto size = graph.bucket_count();
+    out.write(reinterpret_cast<char *>(&size), sizeof(size));
+    for(auto& it: graph){
+        vertexid_t vertexid = it.first;
+        out.write(reinterpret_cast<char *>(&vertexid), sizeof(vertexid));
+        it.second.write_unreadable(out);
+    }
+
+}
+
 //const std::set<vertexid_t> &PEGraph::getSingletonSet() const {
 //    return singletonSet;
 //}

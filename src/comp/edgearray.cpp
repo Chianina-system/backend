@@ -142,28 +142,6 @@ void EdgeArray::addOneEdge(vertexid_t edge, label_t label) {
 //    this->realNumEdges = realNumEdges;
 //}
 
-void EdgeArray::addEdges(int len, vertexid_t *_edges, label_t *_labels) {
-    if (len == 0) return;
-    if (len == 1){
-        addOneEdge(_edges[0], _labels[0]);
-        return;
-    }
-    int realSize = size + len;
-    while (realSize >= capacity){
-        capacity *= 2;
-    }
-    myalgo::myrealloc(edges, size, capacity);
-    myalgo::myrealloc(labels, size, capacity);
-    for (int i = size; i < realSize; ++i) {
-        edges[i] = _edges[i-size];
-        labels[i] = _labels[i-size];
-    }
-    for (int i = realSize; i < capacity; ++i) {
-        edges[i] = -1;
-        labels[i] = (char) 127;
-    }
-}
-
 void EdgeArray::merge() {
     // sort edges
     myalgo::quickSort(edges, labels, 0, size - 1);
@@ -201,6 +179,15 @@ bool EdgeArray::equals(EdgeArray* another) const {
 	}
 
 	return true;
+}
+
+void EdgeArray::write_unreadable(std::ostringstream &out) {
+    out.write(reinterpret_cast<char *>(&capacity), sizeof(capacity));
+    out.write(reinterpret_cast<char *>(&size), sizeof(size));
+    for (int i = 0; i < size; i++) {
+        out.write(reinterpret_cast<char *>(&edges[i]), sizeof(edges[i]));
+        out.write(reinterpret_cast<char *>(&labels[i]), sizeof(labels[i]));
+    }
 }
 
 

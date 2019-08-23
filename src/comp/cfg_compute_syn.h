@@ -84,8 +84,9 @@ public:
     static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds);
 
 private:
-    static void compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
-    		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag);
+    static void compute(CFG *cfg, GraphStore *graphstore, Concurrent_Worklist<CFGNode *> *worklist_1,
+                        Concurrent_Worklist<CFGNode *> *worklist_2,
+                        Grammar *grammar, GraphStore *tmp_graphstore, Singletons *singletons, bool flag);
 
     static PEGraph* transfer_call(PEGraph* in){
     	return in;
@@ -133,7 +134,7 @@ private:
 
     static void peg_compute_add(PEGraph *out,Stmt* stmt,Grammar* grammar, bool flag);
 
-    static void peg_compute_delete(PEGraph *out,Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* m);
+    static void peg_compute_delete(PEGraph *out,Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* mapToDelete);
 	static void getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& vertices_changed, Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* m);
 	static void getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag);
 	static void getDirectAddedEdges_phi(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag);
