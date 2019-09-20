@@ -139,6 +139,9 @@ public:
 //        doSerialize(out);
 //    }
 
+/* unreadable(使用二进制)序列化参考:
+ * http://zxi.mytechroad.com/blog/tree/leetcode-297-serialize-and-deserialize-binary-tree/
+ * */
     void serialize(const string &file) {
         ofstream myfile;
         myfile.open(file, std::ofstream::out);
@@ -168,7 +171,9 @@ public:
         }
     }
 
-
+/* unreadable(使用二进制)序列化参考:
+ * http://zxi.mytechroad.com/blog/tree/leetcode-297-serialize-and-deserialize-binary-tree/
+ * */
     void deserialize(const string &file) {
         if (readable) {
             load_onebyone(file);

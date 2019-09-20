@@ -273,6 +273,9 @@ private:
         ofstream myfile;
         myfile.open(file_actives, std::ofstream::out | std::ofstream::app);
         if (myfile.is_open()) {
+            /* unreadable(使用二进制)序列化参考:
+ * http://zxi.mytechroad.com/blog/tree/leetcode-297-serialize-and-deserialize-binary-tree/
+ * */
             if (readable) {
                 for (auto &it: set) {
                     myfile << it->getCfgNodeId() << "\n";
@@ -306,6 +309,9 @@ private:
             }
         }
 
+        /* unreadable(使用二进制)序列化参考:
+ * http://zxi.mytechroad.com/blog/tree/leetcode-297-serialize-and-deserialize-binary-tree/
+ * */
         if (readable) {
             ofstream myfile;
             myfile.open(file_graphs_in, std::ofstream::out | std::ofstream::app);
