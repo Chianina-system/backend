@@ -8,12 +8,12 @@
 #ifndef COMP_PEGRAPH_H_
 #define COMP_PEGRAPH_H_
 
-#include <monster_test_generated.h>
 #include "../common/CommonLibs.hpp"
 #include "edgearray.h"
 #include "myalgorithm.h"
 #include "../utility/Logger.hpp"
 //#include "cfg_compute.h"
+#include "graphstore/itemset_graph.h"
 
 class PEGraph {
 
@@ -26,6 +26,8 @@ public:
     }
 
     PEGraph(PEGraph *p);
+
+    PEGraph(ItemsetGraph* graph);
 
 	static void print_graph_map(std::ostream & strm, const std::unordered_map<vertexid_t, EdgeArray> graph) {
 		int size = 0;
@@ -153,19 +155,6 @@ public:
 		}
     }
 
-    void load_unreadable(std::stringstream& in){
-        int size = -1;
-        in.read(reinterpret_cast<char *>(&size), sizeof(size));
-        for (int i = 0; i < size; ++i) {
-            int src = -1;
-            in.read(reinterpret_cast<char *>(&src), sizeof(src));
-            this->graph[src] = EdgeArray();
-            this->graph[src].load_unreadable(in);
-        }
-    }
-
-
-    void write_unreadable(std::ostringstream &out);
 
 private:
     std::unordered_map<vertexid_t, EdgeArray> graph;

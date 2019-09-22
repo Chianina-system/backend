@@ -30,11 +30,19 @@ public:
 
     virtual ~GraphStore(){}
 
-    virtual PEGraph* retrieve_locked(PEGraph_Pointer graph_pointer) = 0;
+    //deep copy; locked version for asynchronous mode
+    PEGraph* retrieve_locked(PEGraph_Pointer graph_pointer){
+    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	return retrieve(graph_pointer);
+    }
 
     virtual PEGraph* retrieve(PEGraph_Pointer graph_pointer) = 0;
 
-    virtual void update_locked(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
+    //deep copy; locked version for asynchronous mode
+    void update_locked(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
+    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	update(graph_pointer, pegraph);
+    }
 
     virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
 
@@ -42,11 +50,23 @@ public:
 
 //    virtual void init(CFG* cfg) = 0;
 
+    //shallow copy
     virtual void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph* graph) = 0;
 
-    virtual void update_graphs(GraphStore* another) = 0;
+//    virtual void update_graphs(GraphStore* another) = 0;
 
-    virtual void clearEntryOnly() = 0;
+    virtual void update_graphs_sequential(GraphStore* another) = 0;
+
+    virtual void update_graphs_parallel(GraphStore* another) = 0;
+
+    void update_graphs(GraphStore* another){
+//    	update_graphs_sequential(another); // sequential
+    	update_graphs_parallel(another); // in parallel
+    }
+
+
+
+//    virtual void clearEntryOnly() = 0;
 
     virtual void clear() = 0;
 

@@ -7,12 +7,10 @@
 
 
 #include "cfg_compute_syn.h"
-#include "../myTimer.h"
 
 
-void CFGCompute_syn::
-do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag){
-//	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
+void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag){
+	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
     Concurrent_Worklist<CFGNode*>* worklist_1 = new Concurrent_Workset<CFGNode*>();
 
@@ -34,21 +32,17 @@ do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Sin
     Concurrent_Worklist<CFGNode*>* worklist_2 = new Concurrent_Workset<CFGNode*>();
     while(!worklist_1->isEmpty()){
         //for debugging
-//        Logger::print_thread_info_locked("--------------------------------------------------------------- superstep starting ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
+        Logger::print_thread_info_locked("--------------------------------------------------------------- superstep starting ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
 
         std::vector<std::thread> comp_threads;
         for (unsigned int i = 0; i < NUM_THREADS; i++)
-            comp_threads.push_back(std::thread( [=] {
-                compute(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore, singletons, flag);}));
+            comp_threads.push_back(std::thread( [=] {compute_synchronous(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore, singletons, flag);}));
 
         for (auto &t : comp_threads)
             t.join();
 
         //synchronize and communicate
-
-        //TODO##
         graphstore->update_graphs(tmp_graphstore);
-
         tmp_graphstore->clear();
 
         //update worklists
@@ -59,7 +53,7 @@ do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Sin
         assert(worklist_2->isEmpty());
 
         //for debugging
-//        Logger::print_thread_info_locked("--------------------------------------------------------------- finished ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
+        Logger::print_thread_info_locked("--------------------------------------------------------------- finished ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
 //        std::set<CFGNode*>* list = dynamic_cast<Concurrent_Workset<CFGNode*>*>(worklist_1)->getSet();
 //        if(list->size() < 100){
 //			Logger::print_thread_info_locked(StaticPrinter::toString_set(*list), LEVEL_LOG_MAIN);
@@ -75,15 +69,14 @@ do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Sin
 
     delete(tmp_graphstore);
 
-//    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
+    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 //    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
-//    dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
+    dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
 }
 
 
-void CFGCompute_syn::compute(CFG *cfg, GraphStore *graphstore, Concurrent_Worklist<CFGNode *> *worklist_1,
-                             Concurrent_Worklist<CFGNode *> *worklist_2,
-                             Grammar *grammar, GraphStore *tmp_graphstore, Singletons *singletons, bool flag){
+void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
+		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag){
     CFGNode* cfg_node;
 	while(worklist_1->pop_atomic(cfg_node)){
 //    	//for debugging
@@ -96,54 +89,20 @@ void CFGCompute_syn::compute(CFG *cfg, GraphStore *graphstore, Concurrent_Workli
     	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
 //        //for debugging
 //    	StaticPrinter::print_vector(preds);
-        cout<<endl;
-//        cout << "-----------------------test CFGCompute_syn::combine_synchronous -----------------------" << endl;
-        auto start_fsm = std::chrono::high_resolution_clock::now();
-        cout<<endl;
-
         PEGraph* in = combine_synchronous(graphstore, preds);
 
-        cout<<endl;
-        auto end_fsm = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
-        cout<<endl;
-//        myTimer timer = myTimer();
-        myTimer::addDurationCombineSynchronous(diff_fsm.count());
-//        std::cout << "test duration : CFGCompute_syn::combine_synchronous : " << myTimer::duration_combine_synchronous<< " s"<< endl;
-        myTimer::addCountCombineSynchronous();
-//        std::cout << "test count : CFGCompute_syn::combine_synchronous : " << myTimer::count_combine_synchronous<< " times"<< endl;
-
-
-//        cout << "-----------------------test transfer -----------------------" << endl;
-
-        auto start_fsm1 = std::chrono::high_resolution_clock::now();
-
+//        //for debugging
+//        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
         //transfer
         PEGraph* out = transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
-//        cout<<endl;
-        auto end_fsm1 = std::chrono::high_resolution_clock::now();
-        auto diff_fsm1 = end_fsm1 - start_fsm1;
-        myTimer::addDurationTransfer(diff_fsm.count());
-//        std::cout << "test duration : CFGCompute_syn::transfer : " << myTimer::duration_transfer<< " s" << endl;
-        myTimer::addCountTransfer();
-//        std::cout << "test count : CFGCompute_syn::transfer : " << myTimer::count_transfer<< " times"<< endl;
-
+//        //for debugging
+//        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-
-
-        auto start_fsm2 = std::chrono::high_resolution_clock::now();
-
-        //TODO##
         PEGraph* old_out = graphstore->retrieve(out_pointer);
-        auto end_fsm2 = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> diff_fsm2 = end_fsm2 - start_fsm2;
-        myTimer::addDurationRetrieve(diff_fsm.count());
-        myTimer::addCountRetrieve();
-
         bool isEqual = out->equals(old_out);
 
 //        //for debugging
@@ -167,7 +126,6 @@ void CFGCompute_syn::compute(CFG *cfg, GraphStore *graphstore, Concurrent_Workli
             }
 
             //store the new graph into tmp_graphstore
-            //TODO##
             tmp_graphstore->addOneGraph_atomic(out_pointer, out);
         }
         else{
@@ -193,7 +151,6 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
 	//for debugging
 	Logger::print_thread_info_locked("combine starting...\n", LEVEL_LOG_FUNCTION);
 
-
 	PEGraph* out;
 
     if(!preds || preds->size() == 0){//entry node
@@ -203,17 +160,7 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
     else if(preds->size() == 1){
         CFGNode* pred = preds->at(0);
         PEGraph_Pointer out_pointer = pred->getOutPointer();
-
-
-        auto start_fsm = std::chrono::high_resolution_clock::now();
-
         out = graphstore->retrieve(out_pointer);
-
-        auto end_fsm = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
-        myTimer::addDurationRetrieve(diff_fsm.count());
-        myTimer::addCountRetrieve();
-
         if(!out){
         	out = new PEGraph();
         }
@@ -224,17 +171,7 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
         for(auto it = preds->cbegin(); it != preds->cend(); it++){
             CFGNode* pred = *it;
             PEGraph_Pointer out_pointer = pred->getOutPointer();
-
-
-            auto start_fsm = std::chrono::high_resolution_clock::now();
-
             PEGraph* out_graph = graphstore->retrieve(out_pointer);
-
-            auto end_fsm = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
-            myTimer::addDurationRetrieve(diff_fsm.count());
-            myTimer::addCountRetrieve();
-
             if(!out_graph){
             	continue;
             }
@@ -254,31 +191,26 @@ PEGraph* CFGCompute_syn::transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar *gramma
 	//for debugging
 	Logger::print_thread_info_locked("transfer-phi starting...\n", LEVEL_LOG_FUNCTION);
 
-
 //    PEGraph* out = new PEGraph(in);
-    PEGraph* out = in;
+	PEGraph* out = in;
 
     // the KILL set
     std::set<vertexid_t> vertices_changed;
     std::set<vertexid_t> vertices_affected;
     strong_update(stmt->getDst(),out,vertices_changed,grammar,vertices_affected, singletons);
 
-    auto start_fsm = std::chrono::high_resolution_clock::now();
     // the GEN set
     peg_compute_add(out,stmt,grammar, flag);
 
-    auto end_fsm = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+	//for debugging
+	Logger::print_thread_info_locked("transfer-phi finished.\n", LEVEL_LOG_FUNCTION);
 
-    myTimer::addCountPegComputeAdd();
-    myTimer::addDurationPegComputeAdd(diff_fsm.count());
     return out;
 }
 
 PEGraph* CFGCompute_syn::transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
 	//for debugging
 	Logger::print_thread_info_locked("transfer-copy starting...\n", LEVEL_LOG_FUNCTION);
-
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
@@ -288,22 +220,18 @@ PEGraph* CFGCompute_syn::transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar *gr
     std::set<vertexid_t> vertices_affected;
     strong_update(stmt->getDst(),out,vertices_changed,grammar,vertices_affected, singletons);
 
-    auto start_fsm = std::chrono::high_resolution_clock::now();
     // the GEN set
     peg_compute_add(out,stmt,grammar, flag);
 
-    auto end_fsm = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+	//for debugging
+	Logger::print_thread_info_locked("transfer-copy finished.\n", LEVEL_LOG_FUNCTION);
 
-    myTimer::addCountPegComputeAdd();
-    myTimer::addDurationPegComputeAdd(diff_fsm.count());
     return out;
 }
 
 PEGraph* CFGCompute_syn::transfer_load(PEGraph* in, LoadStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
 	//for debugging
 	Logger::print_thread_info_locked("transfer-load starting...\n", LEVEL_LOG_FUNCTION);
-
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
@@ -313,15 +241,12 @@ PEGraph* CFGCompute_syn::transfer_load(PEGraph* in, LoadStmt* stmt,Grammar *gram
     std::set<vertexid_t> vertices_affected;
     strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected, singletons);
 
-    auto start_fsm = std::chrono::high_resolution_clock::now();
     // the GEN set
     peg_compute_add(out,stmt,grammar, flag);
 
-    auto end_fsm = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+	//for debugging
+	Logger::print_thread_info_locked("transfer-load finished.\n", LEVEL_LOG_FUNCTION);
 
-    myTimer::addCountPegComputeAdd();
-    myTimer::addDurationPegComputeAdd(diff_fsm.count());
     return out;
 }
 
@@ -351,23 +276,17 @@ PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, StoreStmt* stmt,Grammar *gr
 //    cout << *out << endl;
 
     // the GEN set
-
-    auto start_fsm = std::chrono::high_resolution_clock::now();
-    // the GEN set
     peg_compute_add(out,stmt,grammar, flag);
 
-    auto end_fsm = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
+	//for debugging
+	Logger::print_thread_info_locked("transfer-store finished.\n", LEVEL_LOG_FUNCTION);
 
-    myTimer::addCountPegComputeAdd();
-    myTimer::addDurationPegComputeAdd(diff_fsm.count());
     return out;
 }
 
 PEGraph* CFGCompute_syn::transfer_address(PEGraph* in, AllocStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
 	//for debugging
 	Logger::print_thread_info_locked("transfer-alloc starting...\n", LEVEL_LOG_FUNCTION);
-
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
@@ -377,17 +296,11 @@ PEGraph* CFGCompute_syn::transfer_address(PEGraph* in, AllocStmt* stmt,Grammar *
     std::set<vertexid_t> vertices_affected;
 	strong_update(stmt->getDst(), out, vertices_changed, grammar, vertices_affected, singletons);
 
-
-
-    auto start_fsm = std::chrono::high_resolution_clock::now();
     // the GEN set
-    peg_compute_add(out,stmt,grammar, flag);
+    peg_compute_add(out, stmt, grammar, flag);
 
-    auto end_fsm = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
-
-    myTimer::addCountPegComputeAdd();
-    myTimer::addDurationPegComputeAdd(diff_fsm.count());
+    //for debugging
+   	Logger::print_thread_info_locked("transfer-alloc finished.\n", LEVEL_LOG_FUNCTION);
 
     return out;
 }
@@ -539,14 +452,7 @@ void CFGCompute_syn::strong_update_store_aux(vertexid_t aux, vertexid_t x, PEGra
 	}
 
     // execute the edge addition operation. the oldsSet is out - m, the deltasSet is m
-    auto start_fsm = std::chrono::high_resolution_clock::now();
     peg_compute_delete(out, grammar, &m);
-    auto end_fsm = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
-
-    myTimer::addCountPegComputeDeleted();
-    myTimer::addDurationPegComputeDeleted(diff_fsm.count());
-
 
 //    //for debugging
 //	cout << m.size() << endl;
@@ -627,14 +533,7 @@ void CFGCompute_syn::strong_update_store_dst(vertexid_t x, PEGraph *out, std::se
 	}
 
     // execute the edge addition operation. the oldsSet is out - m, the deltasSet is m
-    auto start_fsm = std::chrono::high_resolution_clock::now();
     peg_compute_delete(out, grammar, &m);
-    auto end_fsm = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
-
-    myTimer::addCountPegComputeDeleted();
-    myTimer::addDurationPegComputeDeleted(diff_fsm.count());
-
 
     /* remove edges */
     for(auto it = m.begin(); it!= m.end(); it++){
@@ -691,36 +590,28 @@ void CFGCompute_syn::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid
     // vertices <- must_alias(x); put *x into this set as well
 	must_alias(x, out, vertices_changed, grammar, vertices_affected, singletons);
 
-    //get all the direct assign edges into mapToDelete
+    //get all the direct assign edges into m
     //TODO: can be optimized by checking only the adjacent list of vertex in vertices_changed?
-    std::unordered_map<vertexid_t, EdgeArray> mapToDelete;
-	getDirectAssignEdges(out, vertices_changed, grammar, &mapToDelete);
+    std::unordered_map<vertexid_t, EdgeArray> m;
+	getDirectAssignEdges(out, vertices_changed, grammar, &m);
 
 //	//for debugging
-//	if(!mapToDelete.empty()){
-//		cout << mapToDelete.size() << endl;
+//	if(!m.empty()){
+//		cout << m.size() << endl;
 //		cout << "\n\n\n";
 //	}
 
-	if(mapToDelete.empty()){
+	if(m.empty()){
 		//for debugging
 		Logger::print_thread_info_locked("strong-update finished.\n", LEVEL_LOG_FUNCTION);
 		return;
 	}
 
-    // execute the edge addition operation. the oldsSet is out - mapToDelete, the deltasSet is mapToDelete
-
-    auto start_fsm = std::chrono::high_resolution_clock::now();
-    peg_compute_delete(out, grammar, &mapToDelete);
-    auto end_fsm = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
-
-    myTimer::addCountPegComputeDeleted();
-    myTimer::addDurationPegComputeDeleted(diff_fsm.count());
-
+    // execute the edge addition operation. the oldsSet is out - m, the deltasSet is m
+    peg_compute_delete(out, grammar, &m);
 
     /* remove edges */
-    for(auto it = mapToDelete.begin(); it!= mapToDelete.end(); it++){
+    for(auto it = m.begin(); it!= m.end(); it++){
     	if(it->second.isEmpty()){
     		continue;
     	}
@@ -974,43 +865,79 @@ void CFGCompute_syn::must_alias(vertexid_t x, PEGraph *out, std::set<vertexid_t>
 		}
 	}
 
+
+	//	//x must be a singleton variable
+//	assert(singletons->isSingleton(x));
+//
+//	/* if there exists one and only one variable o,which
+//	 * refers to a singleton memory location,such that x and
+//	 * y are both memory aliases of o,then x and y are Must-alias
+//	 */
+//    int numEdges = out->getNumEdges(x);
+//    vertexid_t * edges = out->getEdges(x);
+//    label_t *labels = out->getLabels(x);
+//
+//    int numOfSingleTon = 0;
+//	if(singletons->isSingleton(x)){
+//		++numOfSingleTon;
+//	}
+//    for(int i = 0;i < numEdges;++i) {
+//        if(grammar->isMemoryAlias(labels[i])){
+//        	vertices_changed.insert(edges[i]);
+//        	if(singletons->isSingleton(edges[i])){
+//        		++numOfSingleTon;
+//        	}
+//        }
+//    }
+//
+//    //check the number of singletons
+//    if(numOfSingleTon == 0){
+//    	perror("invalid number of singletons!");
+//    	vertices_changed.clear();
+//    }
+////    else if(numOfSingleTon == 1){
+////
+////    }
+//    else if(numOfSingleTon > 1){
+//    	vertices_changed.clear();
+//    }
+//	vertices_changed.insert(x);
+//
+//	//add *x into vertices as well
+//	for(auto it = vertices_changed.begin(); it != vertices_changed.end(); ++it){
+//		vertexid_t x = *it;
+//
+//	    int numEdges = out->getNumEdges(x);
+//	    vertexid_t * edges = out->getEdges(x);
+//	    label_t *labels = out->getLabels(x);
+//
+//	    for(int i = 0;i < numEdges;++i) {
+//	        if(grammar->isDereference(labels[i])){
+//	        	vertices_changed.insert(edges[i]);
+//	        }
+//
+//	        if(grammar->isDereference_reverse(labels[i])){
+//	        	vertices_affected.insert(edges[i]);
+//	        }
+//	    }
+//	}
 }
 
-void CFGCompute_syn::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* mapToDelete) {
+void CFGCompute_syn::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m) {
 	//for debugging
 	Logger::print_thread_info_locked("peg-compute-delete starting...\n", LEVEL_LOG_FUNCTION);
 
     // add assgin edge based on stmt, (out,assign edge) -> compset
     ComputationSet *compset = new ComputationSet();
-    compset->init_delete(out, mapToDelete);
+    compset->init_delete(out, m);
 
     // start GEN
     long number_deleted = 0;
     if(IS_PEGCOMPUTE_PARALLEL_DELETE){
-        auto start_fsm = std::chrono::high_resolution_clock::now();
-
-        number_deleted = PEGCompute_parallel::startCompute_delete(compset, grammar, mapToDelete);
-
-        auto end_fsm = std::chrono::high_resolution_clock::now();
-        auto diff_fsm = end_fsm - start_fsm;
-
-        myTimer::count_startCompute_delete++;
-        myTimer::duration_startCompute_delete+=diff_fsm.count();
-
+		number_deleted = PEGCompute_parallel::startCompute_delete(compset, grammar, m);
     }
     else{
-
-        auto start_fsm = std::chrono::high_resolution_clock::now();
-
-        number_deleted = PEGCompute::startCompute_delete(compset, grammar, mapToDelete);
-
-        auto end_fsm = std::chrono::high_resolution_clock::now();
-        auto diff_fsm = end_fsm - start_fsm;
-
-        myTimer::count_startCompute_delete++;
-        myTimer::duration_startCompute_delete+=diff_fsm.count();
-
-
+    	number_deleted = PEGCompute::startCompute_delete(compset, grammar, m);
     }
     Logger::print_thread_info_locked("number of edges deleted: " + std::to_string(number_deleted) + "\n", LEVEL_LOG_INFO);
 
@@ -1302,31 +1229,11 @@ void CFGCompute_syn::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar,
 //    cout << *compset << endl;
 
     // start GEN
-
-    //TODO##
     if(IS_PEGCOMPUTE_PARALLEL_ADD){
-        auto start_fsm = std::chrono::high_resolution_clock::now();
-
-        PEGCompute_parallel::startCompute_add(compset, grammar);
-
-        auto end_fsm = std::chrono::high_resolution_clock::now();
-        auto diff_fsm = end_fsm - start_fsm;
-
-        myTimer::count_startCompute_delete++;
-        myTimer::duration_startCompute_delete+=diff_fsm.count();
-
+		PEGCompute_parallel::startCompute_add(compset, grammar);
     }
     else{
-        auto start_fsm = std::chrono::high_resolution_clock::now();
-
-        PEGCompute::startCompute_add(compset, grammar);
-
-        auto end_fsm = std::chrono::high_resolution_clock::now();
-        auto diff_fsm = end_fsm - start_fsm;
-
-        myTimer::count_startCompute_add++;
-        myTimer::duration_startCompute_delete+=diff_fsm.count();
-
+	    PEGCompute::startCompute_add(compset, grammar);
     }
 //    Logger::print_thread_info_locked("number of edges added: " + to_string(number_added) + "\n");
 
@@ -1351,3 +1258,28 @@ void CFGCompute_syn::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar,
 	//for debugging
 	Logger::print_thread_info_locked("peg-compute-add finished.\n", LEVEL_LOG_FUNCTION);
 }
+
+//// 使用tab键分割
+//bool CFGCompute::load(const string& file_cfg, const string& file_stmt, CFG *cfg, const string& file_singleton, Singletons* singletons, GraphStore *graphstore, const string& file_grammar, Grammar * grammar) {
+//	cfg->loadCFG(file_cfg, file_stmt);
+//	cout << *cfg;
+//
+//	graphstore->loadGraphStore(file_singleton);
+//	cout << *graphstore << endl;
+//
+//	singletons->loadSingletonSet(file_singleton);
+//	cout << *singletons << endl;
+//
+//    /* TODO: load grammar from file
+//     * grammar->loadGrammar(filename);
+//     */
+//    grammar->loadGrammar(file_grammar.c_str());
+//
+//    return true;
+//}
+
+
+
+
+
+

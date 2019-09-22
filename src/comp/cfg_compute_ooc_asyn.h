@@ -76,16 +76,7 @@ private:
 
 	        //update and propagate
 	        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-
-            auto start_fsm = std::chrono::high_resolution_clock::now();
-
-            PEGraph* old_out = graphstore->retrieve_locked(out_pointer);
-
-            auto end_fsm = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
-            myTimer::addDurationRetrieve(diff_fsm.count());
-            myTimer::addCountRetrieve();
-
+	        PEGraph* old_out = graphstore->retrieve_locked(out_pointer);
 	        bool isEqual = out->equals(old_out);
 
 //	        //for debugging

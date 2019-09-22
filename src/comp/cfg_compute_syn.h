@@ -19,9 +19,9 @@
 #include "concurrent_worklist/concurrent_workset.h"
 #include "graphstore/graphstore.h"
 #include "graphstore/naive_graphstore.h"
+#include "graphstore/itemset_graphstore.h"
 #include "peg_compute.h"
 #include "peg_compute_parallel.h"
-#include "../myTimer.h"
 
 
 using namespace std;
@@ -32,8 +32,6 @@ public:
 
     static bool load(const string& file_total, const string& file_cfg, const string& file_stmt, const string& file_entries, CFG *cfg_,
     		const string& file_singleton, Singletons* singletons, GraphStore *graphstore, const string& file_grammar, Grammar * grammar){
-
-
     	CFG_map* cfg = dynamic_cast<CFG_map*>(cfg_);
     	cfg->loadCFG(file_cfg, file_stmt, file_entries);
 
@@ -45,8 +43,6 @@ public:
 
     	singletons->loadSingletonSet(file_singleton);
 
-
-
     	return true;
     }
 
@@ -54,11 +50,9 @@ public:
     static void do_worklist_synchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag); //worklist algorithm in parallel
 
     static PEGraph* transfer(PEGraph* in, Stmt* stmt, Grammar* grammar, Singletons* singletons, bool flag){
-
         switch(stmt->getType()){
             case TYPE::Assign:
-                return
-                transfer_copy(in, (AssignStmt*)stmt, grammar, singletons, flag);
+                return transfer_copy(in, (AssignStmt*)stmt, grammar, singletons, flag);
             case TYPE::Load:
                 return transfer_load(in, (LoadStmt*)stmt, grammar, singletons, flag);
             case TYPE::Store:
@@ -78,15 +72,13 @@ public:
             default:
                 return nullptr;
         }
-
     }
 
     static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds);
 
 private:
-    static void compute(CFG *cfg, GraphStore *graphstore, Concurrent_Worklist<CFGNode *> *worklist_1,
-                        Concurrent_Worklist<CFGNode *> *worklist_2,
-                        Grammar *grammar, GraphStore *tmp_graphstore, Singletons *singletons, bool flag);
+    static void compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
+    		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag);
 
     static PEGraph* transfer_call(PEGraph* in){
     	return in;
@@ -134,7 +126,7 @@ private:
 
     static void peg_compute_add(PEGraph *out,Stmt* stmt,Grammar* grammar, bool flag);
 
-    static void peg_compute_delete(PEGraph *out,Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* mapToDelete);
+    static void peg_compute_delete(PEGraph *out,Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* m);
 	static void getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& vertices_changed, Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* m);
 	static void getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag);
 	static void getDirectAddedEdges_phi(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag);

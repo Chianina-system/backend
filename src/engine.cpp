@@ -7,22 +7,11 @@
 
 #include "comp/cfg_compute_ooc_asyn.h"
 #include "utility/ResourceManager.hpp"
-#include "myTimer.h"
-
 using namespace std;
 
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/newtest/inlined/";
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/testExample/inlined/";
-
-//const string dir = "/home/dell/GraphFlow/GraphSSAInline/firefox/browser/";
-//const string file_total = dir + "total.txt";
-//const string file_entries = dir + "entry.txt";
-//const string file_cfg = dir + "final";
-//const string file_stmts = dir + "id_stmt_info.txt";
-//const string file_singletons = dir + "var_singleton_info.txt";
-//const string file_grammar = "/home/dell/Desktop/Ouroboros-dataset-master/rules_pointsto.txt";
-
-const string dir = "/home/dell/GraphFlow/GraphSSAInline/httpd/";
+const string dir = "/home/dell/GraphFlow/GraphSSAInline/firefox/browser/";
 const string file_total = dir + "total.txt";
 const string file_entries = dir + "entry.txt";
 const string file_cfg = dir + "final";
@@ -34,28 +23,9 @@ const string file_grammar = "/home/dell/Desktop/Ouroboros-dataset-master/rules_p
 void run_inmemory(int);
 void run_ooc(int, int);
 
-//myTimer* myTimer::m_instance = nullptr;
-int myTimer::count_combine_synchronous=0;
-float myTimer::duration_combine_synchronous=0;
-
-int myTimer::count_transfer=0;
-float myTimer::duration_transfer=0;
-
-int myTimer::count_retrieve = 0;
-float myTimer::duration_retrieve = 0;
-
-int myTimer::count_update = 0;
-float myTimer::duration_update = 0;
-
-int myTimer::count_peg_compute_add=0;
-float myTimer::duration_peg_compute_add=0;
-
-int myTimer::count_peg_compute_delete=0;
-float myTimer::duration_peg_compute_delete=0;
 
 int main(int argc, char* argv[]) {
-
-    if(argc != 2 && argc != 3){
+	if(argc != 2 && argc != 3){
 		cout << "Usage: ./backend mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1)" << endl;
 		return 0;
 	}
@@ -78,34 +48,11 @@ int main(int argc, char* argv[]) {
 		run_inmemory(1);
 	}
 
-    cout<<endl;
 	auto end_fsm = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
 	std::cout << "Running time : " << diff_fsm.count() << " s\n";
-    cout<<endl;
 
-
-    std::cout << "test duration : CFGCompute_syn::combine_synchronous : " << myTimer::duration_combine_synchronous<< " s"<< endl;
-    std::cout << "test count : CFGCompute_syn::combine_synchronous : " << myTimer::count_combine_synchronous<< " times"<< endl;
-
-    std::cout << "test duration : CFGCompute_syn::transfer : " << myTimer::duration_transfer<< " s"<< endl;
-    std::cout << "test count : CFGCompute_syn::transfer : " << myTimer::count_transfer<< " times"<< endl;
-
-    std::cout << "test duration : NaiveGraphStore::retrieve : " << myTimer::duration_retrieve<< " s"<< endl;
-    std::cout << "test count : NaiveGraphStore::retrieve : " << myTimer::count_retrieve<< " times"<< endl;
-
-    std::cout << "test duration : NaiveGraphStore::update : " << myTimer::duration_update << " s"<< endl;
-    std::cout << "test count : NaiveGraphStore::update : " << myTimer::count_update << " times"<< endl;
-
-    std::cout << "test duration : CFGCompute_syn::peg_compute_add : " << myTimer::duration_peg_compute_add << " s"<< endl;
-    std::cout << "test count : CFGCompute_syn::peg_compute_add : " << myTimer::count_peg_compute_add << " times"<< endl;
-
-    std::cout << "test duration : CFGCompute_syn::peg_compute_delete : " << myTimer::duration_peg_compute_delete << " s"<< endl;
-    std::cout << "test count : CFGCompute_syn::peg_compute_delete : " << myTimer::count_peg_compute_delete << " times"<< endl;
-
-
-
-    //print out resource usage
+	//print out resource usage
 	std::cout << "\n\n";
 	std::cout << "------------------------------ resource usage ------------------------------" << std::endl;
 	std::cout << rm.result() << std::endl;
@@ -144,6 +91,13 @@ void compute_ooc(Partition partition, Context* context, int sync_mode){
 
 //	//for debugging
 //	Logger::print_thread_info_locked("compute finished.\n", LEVEL_LOG_FUNCTION);
+}
+
+void readAllGraphs(NaiveGraphStore *graphstore, Context* context){
+	for(unsigned int partition = 0; partition < context->getNumberPartitions(); ++ partition){
+		const string filename_graphs = Context::file_graphstore + to_string(partition);
+		graphstore->deserialize(filename_graphs);
+	}
 }
 
 void loadMirrors(const string& file_mirrors_in, const string& file_mirrors_out, std::unordered_set<PEGraph_Pointer>& mirrors){
@@ -260,20 +214,7 @@ void compute_inmemory(int sync_mode){
 	Singletons * singletons = new Singletons();
     Grammar *grammar = new Grammar();
 
-    cout<<endl;
-//    cout << "-----------------------test CFGCompute_syn::load -----------------------" << endl;
-    auto start_fsm = std::chrono::high_resolution_clock::now();
-    cout<<endl;
-
 	CFGCompute_syn::load(file_total, file_cfg, file_stmts, file_entries, cfg, file_singletons, singletons, graphstore, file_grammar, grammar);
-
-    cout<<endl;
-    auto end_fsm = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
-    std::cout << "Running time : CFGCompute_syn::load : " << diff_fsm.count() << " s\n";
-    cout<<endl;
-
-
 	if(sync_mode){
 		CFGCompute_syn::do_worklist_synchronous(cfg, graphstore, grammar, singletons, false);
 	}

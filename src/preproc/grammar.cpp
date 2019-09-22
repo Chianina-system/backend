@@ -59,7 +59,7 @@ bool Grammar::loadGrammar(const char *filename) {
                 ;
         }
     }
-//    test();
+    test();
     fin.close();
     return true;
 }
