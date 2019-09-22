@@ -22,8 +22,14 @@ public:
 	ItemsetGraphStore(){}
 
     ~ItemsetGraphStore(){
+    	//delete ItemsetGraph in graphs
     	for(auto it = graphs.begin(); it != graphs.end(); ++it){
     		delete it->second;
+    	}
+
+    	//delete ItemsetGraph in intToItemset
+    	for(auto it = intToItemset.begin(); it != intToItemset.end(); ++it){
+    		delete *it;
     	}
     }
 
@@ -48,8 +54,43 @@ public:
 		return out;
     }
 
-    PEGraph* convertToPEGraph(ItemsetGraph* graph){
+    bool isItemset(int id_edge){
+    	return id_edge < 0;
+    }
 
+
+    PEGraph* convertToPEGraph(ItemsetGraph* graph){
+    	//collect all the edges
+    	vector<int> edges;
+    	vector<ItemsetGraph*> itemset_graphs;
+    	itemset_graphs.push_back(graph);
+    	while(!itemset_graphs.empty()){
+    		ItemsetGraph* g = itemset_graphs.back();
+    		itemset_graphs.pop_back();
+			for(int i = 0; i < g->getLength(); ++i){
+				int id_edge = g->getEdgeId(i);
+				if(isItemset(id_edge)){
+					itemset_graphs.push_back(intToItemset[0 - id_edge - 1]);
+				}
+				else{
+					edges.push_back(id_edge);
+				}
+			}
+    	}
+
+    	//construct pegraph
+    	PEGraph* peg = new PEGraph();
+    	for(auto it = edges.begin(); it != edges.end(); ++it){
+    		int edge_id = *it;
+    		Edge edge = intToEdge[edge_id];
+    		auto m = peg->getGraph();
+    		if(m.find(edge.getSrcId()) == m.end()){
+    			m[edge.getSrcId()] = EdgeArray();
+    		}
+  			m[edge.getSrcId()].addOneEdge(edge.getDstId(), edge.getLabel());
+    	}
+
+    	return peg;
     }
 
     void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
@@ -209,12 +250,12 @@ public:
 //
 //    }
 
-    void clear() {
-    	for(auto it = graphs.begin(); it != graphs.end(); ){
-    		delete it->second;
-    		it = graphs.erase(it);
-    	}
-    }
+//    void clear() {
+//    	for(auto it = graphs.begin(); it != graphs.end(); ){
+//    		delete it->second;
+//    		it = graphs.erase(it);
+//    	}
+//    }
 
 
 
@@ -222,19 +263,11 @@ private:
 	//private members
 	vector<Edge> intToEdge;
 	unordered_map<Edge, int> edgeToInt;
-//	unordered_map<int, Edge> intToEdge;
 
 	unordered_map<PEGraph_Pointer, ItemsetGraph*> graphs;
 
+	//a vector storing all the ItemsetGraph
 	vector<ItemsetGraph*> intToItemset;
-//	unordered_map<int, ItemsetGraph> idToGraph;
-//	unordered_map<ItemsetGraph, int> graphToId;
-
-
-	//private functions
-
-
-
 
 
 };

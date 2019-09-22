@@ -68,7 +68,7 @@ public:
 
 //    virtual void clearEntryOnly() = 0;
 
-    virtual void clear() = 0;
+//    virtual void clear() = 0;
 
 //    virtual void deserialize(const string& file) = 0;
 //

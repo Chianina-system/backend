@@ -30,6 +30,18 @@ public:
 		}
 	}
 
+	inline int* getEdgeIds() const {
+		return edge_ids;
+	}
+
+	inline int getEdgeId(int index) const {
+		assert(index < len);
+		return edge_ids[index];
+	}
+
+	inline int getLength() const {
+		return len;
+	}
 
 private:
 	int* edge_ids = nullptr;

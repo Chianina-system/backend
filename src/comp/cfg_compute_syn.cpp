@@ -27,7 +27,7 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
     }
 
     //initiate a temp graphstore to maintain all the updated graphs
-    GraphStore* tmp_graphstore = new NaiveGraphStore();
+    NaiveGraphStore* tmp_graphstore = new NaiveGraphStore();
 
     Concurrent_Worklist<CFGNode*>* worklist_2 = new Concurrent_Workset<CFGNode*>();
     while(!worklist_1->isEmpty()){

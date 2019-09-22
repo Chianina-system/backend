@@ -30,6 +30,16 @@ public:
 		return srcId == other.srcId && dstId == other.dstId && label == other.label;
 	}
 
+	inline vertexid_t getDstId() const {
+		return dstId;
+	}
+
+	inline label_t getLabel() const {
+		return label;
+	}
+
+
+
 private:
 	vertexid_t srcId;
 	vertexid_t dstId;
