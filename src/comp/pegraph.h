@@ -27,7 +27,7 @@ public:
 
     PEGraph(PEGraph *p);
 
-    PEGraph(ItemsetGraph* graph);
+//    PEGraph(ItemsetGraph* graph);
 
 	static void print_graph_map(std::ostream & strm, const std::unordered_map<vertexid_t, EdgeArray> graph) {
 		int size = 0;

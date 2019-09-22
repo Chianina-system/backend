@@ -23,9 +23,9 @@ PEGraph::PEGraph(PEGraph *p) {
 //	Logger::print_thread_info_locked("pegraph copy finished.\n", LEVEL_LOG_FUNCTION);
 }
 
-PEGraph::PEGraph(ItemsetGraph* graph){
-
-}
+//PEGraph::PEGraph(ItemsetGraph* graph){
+//
+//}
 
 void PEGraph::merge(PEGraph * graph_toMerge){
 	for (auto it = graph_toMerge->getGraph().begin(); it != graph_toMerge->getGraph().end(); it++) {

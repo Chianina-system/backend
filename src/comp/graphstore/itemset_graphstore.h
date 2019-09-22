@@ -35,7 +35,8 @@ public:
 		PEGraph *out;
 
 		if (graphs.find(graph_pointer) != graphs.end()) {
-			out = new PEGraph(graphs[graph_pointer]);
+//			out = new PEGraph(graphs[graph_pointer]);
+			out = convertToPEGraph(graphs[graph_pointer]);
 		}
 		else {
 			out = nullptr;
@@ -45,6 +46,10 @@ public:
 //		Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
 
 		return out;
+    }
+
+    PEGraph* convertToPEGraph(ItemsetGraph* graph){
+
     }
 
     void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
@@ -215,14 +220,14 @@ public:
 
 private:
 	//private members
+	vector<Edge> intToEdge;
 	unordered_map<Edge, int> edgeToInt;
 //	unordered_map<int, Edge> intToEdge;
-	vector<Edge> intToEdge;
 
 	unordered_map<PEGraph_Pointer, ItemsetGraph*> graphs;
 
-//	unordered_map<int, ItemsetGraph> idToGraph;
 	vector<ItemsetGraph*> intToItemset;
+//	unordered_map<int, ItemsetGraph> idToGraph;
 //	unordered_map<ItemsetGraph, int> graphToId;
 
 
