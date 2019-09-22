@@ -9,11 +9,11 @@
 #include "utility/ResourceManager.hpp"
 using namespace std;
 
-//const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/newtest/inlined/";
+const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/newtest/inlined/";
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/testExample/inlined/";
-const string dir = "/home/dell/GraphFlow/GraphSSAInline/firefox/browser/";
+//const string dir = "/home/dell/GraphFlow/GraphSSAInline/firefox/browser/";
 const string file_total = dir + "total.txt";
-const string file_entries = dir + "entry.txt";
+const string file_entries = dir + "entries.txt";
 const string file_cfg = dir + "final";
 const string file_stmts = dir + "id_stmt_info.txt";
 const string file_singletons = dir + "var_singleton_info.txt";
@@ -210,7 +210,8 @@ void run_ooc(int num_partitions, int sync_mode){
 
 void compute_inmemory(int sync_mode){
 	CFG *cfg = new CFG_map();
-	GraphStore *graphstore = new NaiveGraphStore();
+//	GraphStore *graphstore = new NaiveGraphStore();
+	GraphStore* graphstore = new ItemsetGraphStore();
 	Singletons * singletons = new Singletons();
     Grammar *grammar = new Grammar();
 

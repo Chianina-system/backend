@@ -11,6 +11,12 @@
 #include "../../common/CommonLibs.hpp"
 
 class Edge {
+
+	friend std::ostream & operator<<(std::ostream & strm, const Edge & edge) {
+		strm << edge.srcId << ", " << edge.dstId << ", " << (int)edge.label << endl;
+		return strm;
+	}
+
 public:
 	Edge(vertexid_t src, vertexid_t dst, label_t l){
 		srcId = src;

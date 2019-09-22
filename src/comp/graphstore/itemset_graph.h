@@ -10,6 +10,13 @@
 
 class ItemsetGraph {
 
+	friend std::ostream & operator<<(std::ostream & strm, const ItemsetGraph & itemsetGraph) {
+		strm << "ItemsetGraph<<<<\n---------------------" << endl;
+		strm << "size=" << itemsetGraph.len << endl;
+		strm << "---------------------" << endl;
+		return strm;
+	}
+
 public:
 
 	ItemsetGraph(){

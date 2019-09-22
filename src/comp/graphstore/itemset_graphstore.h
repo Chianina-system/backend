@@ -42,7 +42,11 @@ public:
 
 		if (graphs.find(graph_pointer) != graphs.end()) {
 //			out = new PEGraph(graphs[graph_pointer]);
+
+			//for debugging
+			cout << *graphs[graph_pointer] << endl;
 			out = convertToPEGraph(graphs[graph_pointer]);
+			cout << *out << endl;
 		}
 		else {
 			out = nullptr;
@@ -77,19 +81,26 @@ public:
 				}
 			}
     	}
+//    	cout << edges.size() << endl;
+    	cout << "size of intToEdge: " << intToEdge.size() << endl;
 
     	//construct pegraph
     	PEGraph* peg = new PEGraph();
+   		auto m = peg->getGraph();
     	for(auto it = edges.begin(); it != edges.end(); ++it){
     		int edge_id = *it;
     		Edge edge = intToEdge[edge_id];
-    		auto m = peg->getGraph();
+
+    		//for debugging
+    		cout << edge << endl;
+
     		if(m.find(edge.getSrcId()) == m.end()){
     			m[edge.getSrcId()] = EdgeArray();
     		}
   			m[edge.getSrcId()].addOneEdge(edge.getDstId(), edge.getLabel());
     	}
 
+    	cout << *peg << endl;
     	return peg;
     }
 
@@ -100,7 +111,12 @@ public:
 		if (graphs.find(graph_pointer) != graphs.end()) {
 			delete graphs[graph_pointer];
 		}
+
+		//for debugging
+//		cout << *pegraph << endl;
 		graphs[graph_pointer] = convertToSetGraph(pegraph);
+//		cout << *graphs[graph_pointer] << endl;
+//		cout << *convertToPEGraph(graphs[graph_pointer]) << endl;
 
 //		//for debugging
 //		Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
@@ -257,7 +273,22 @@ public:
 //    	}
 //    }
 
+protected:
+    void print(std::ostream& str) {
+    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	str << "The number of graphs is: " << graphs.size() << "\n";
+    	for(auto it = graphs.begin(); it != graphs.end(); ++it){
+    		str << ">>>>" << it->first << " " << *(it->second) << endl;
+    	}
+    }
 
+    void toString_sub(std::ostringstream& str) {
+    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	str << "The number of graphs is: " << graphs.size() << "\n";
+    	for(auto it = graphs.begin(); it != graphs.end(); ++it){
+    		str << ">>>>" << it->first << " " << *(it->second) << endl;
+    	}
+    }
 
 private:
 	//private members

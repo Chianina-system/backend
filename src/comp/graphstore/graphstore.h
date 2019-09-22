@@ -60,8 +60,8 @@ public:
     virtual void update_graphs_parallel(GraphStore* another) = 0;
 
     void update_graphs(GraphStore* another){
-//    	update_graphs_sequential(another); // sequential
-    	update_graphs_parallel(another); // in parallel
+    	update_graphs_sequential(another); // sequential
+//    	update_graphs_parallel(another); // in parallel
     }
 
 
