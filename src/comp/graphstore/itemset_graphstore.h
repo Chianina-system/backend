@@ -151,6 +151,7 @@ public:
     }
 
     void compressEdges(vector<int>& edges_vector){
+    	//TODO
 
     }
 
