@@ -22,7 +22,6 @@ EdgeArray::EdgeArray(const EdgeArray& array){
 		edges = NULL;
 		labels = NULL;
 	}
-
 }
 
 //copy assign operator
@@ -35,8 +34,8 @@ EdgeArray& EdgeArray::operator=(const EdgeArray& array){
 	if(size){
 		this->edges = new vertexid_t[size];
 		this->labels = new label_t[size];
-        memcpy(this->edges,array.edges,sizeof(vertexid_t)*size);
-        memcpy(this->labels,array.labels,sizeof(label_t)*size);
+        memcpy(this->edges, array.edges, sizeof(vertexid_t)*size);
+        memcpy(this->labels, array.labels, sizeof(label_t)*size);
 	}
 	else{
 		edges = NULL;

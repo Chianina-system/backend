@@ -42,11 +42,7 @@ public:
 
 		if (graphs.find(graph_pointer) != graphs.end()) {
 //			out = new PEGraph(graphs[graph_pointer]);
-
-			//for debugging
-			cout << *graphs[graph_pointer] << endl;
 			out = convertToPEGraph(graphs[graph_pointer]);
-			cout << *out << endl;
 		}
 		else {
 			out = nullptr;
@@ -82,25 +78,25 @@ public:
 			}
     	}
 //    	cout << edges.size() << endl;
-    	cout << "size of intToEdge: " << intToEdge.size() << endl;
+//    	cout << "size of intToEdge: " << intToEdge.size() << endl;
 
     	//construct pegraph
     	PEGraph* peg = new PEGraph();
-   		auto m = peg->getGraph();
     	for(auto it = edges.begin(); it != edges.end(); ++it){
     		int edge_id = *it;
     		Edge edge = intToEdge[edge_id];
 
-    		//for debugging
-    		cout << edge << endl;
+//    		//for debugging
+//    		cout << edge << endl;
 
-    		if(m.find(edge.getSrcId()) == m.end()){
-    			m[edge.getSrcId()] = EdgeArray();
+    		if(peg->getGraph().find(edge.getSrcId()) == peg->getGraph().end()){
+    			peg->getGraph()[edge.getSrcId()] = EdgeArray();
     		}
-  			m[edge.getSrcId()].addOneEdge(edge.getDstId(), edge.getLabel());
+    		peg->getGraph()[edge.getSrcId()].addOneEdge(edge.getDstId(), edge.getLabel());
     	}
 
-    	cout << *peg << endl;
+//    	cout << *peg << endl;
+//    	cout << peg->getGraph().size() << endl;
     	return peg;
     }
 
@@ -127,6 +123,27 @@ public:
     	this->deserialize(file);
 
     	this->load_onebyone(file_in);
+    }
+
+    void serialize(const string& file){
+    	if(readable){
+    		ofstream myfile;
+    		myfile.open(file, std::ofstream::out);
+    		if (myfile.is_open()){
+    			for (auto& n : graphs) {
+    				//write a pegraph into file
+    		    	myfile << n.first << "\t";
+    		    	PEGraph* out = convertToPEGraph(n.second);
+    		    	out->write_readable(myfile);
+    		    	delete out;
+    		    	myfile << "\n";
+    			}
+    			myfile.close();
+    		}
+    	}
+    	else{
+
+    	}
     }
 
     void deserialize(const string& file){
@@ -168,6 +185,7 @@ public:
 				pegraph->load_readable(stream);
 				//since the file is appended, we just use the recent updated pegraph
 				ItemsetGraph *graph = convertToSetGraph(pegraph);
+				delete pegraph;
 				if (graphs.find(graph_pointer) != graphs.end()) {
 					delete graphs[graph_pointer];
 				}
@@ -186,8 +204,7 @@ public:
 
     ItemsetGraph* convertToSetGraph(PEGraph* pegraph){
     	vector<int> edges_vector;
-    	unordered_map<vertexid_t, EdgeArray> g = pegraph->getGraph();
-    	for(auto& it : g){
+    	for(auto& it : pegraph->getGraph()){
     		vertexid_t src = it.first;
     		int size = it.second.getSize();
     		vertexid_t* dsts = it.second.getEdges();
@@ -217,21 +234,33 @@ public:
 
     }
 
-    //shallow copy
-    void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph* graph) {
-    	cout << "shouldn't call this function!" << endl;
-    	exit (EXIT_FAILURE);
-    }
+//    //shallow copy
+//    void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph* graph) {
+//    	cout << "shouldn't call this function!" << endl;
+//    	exit (EXIT_FAILURE);
+//    }
 
     static void update_parallel(ItemsetGraphStore* current, NaiveGraphStore* another, Concurrent_Worklist<vertexid_t>* worklist){
+    	//for debugging
+    	Logger::print_thread_info_locked("update-parallel starting...\n", LEVEL_LOG_FUNCTION);
+
     	vertexid_t id = -1;
     	while(worklist->pop_atomic(id)){
+//    		//for debugging
+//    		Logger::print_thread_info_locked("graph id = " + to_string(id) + "\n", LEVEL_LOG_FUNCTION);
+
     		assert(current->graphs.find(id) != current->graphs.end());
-    		current->update(id, another->getMap().at(id));
+    		current->update_locked(id, another->getMap().at(id));
     	}
+
+    	//for debugging
+    	Logger::print_thread_info_locked("update-parallel finished.\n", LEVEL_LOG_FUNCTION);
     }
 
     void update_graphs_parallel(GraphStore* another){
+    	//for debugging
+    	Logger::print_thread_info_locked("update-graphs-parallel starting...\n", LEVEL_LOG_FUNCTION);
+
 	    //initiate concurrent worklist
 	    Concurrent_Worklist<vertexid_t>* worklist = new Concurrent_Workset<vertexid_t>();
 	    NaiveGraphStore* another_graphstore = dynamic_cast<NaiveGraphStore*>(another);
@@ -253,6 +282,9 @@ public:
 
 	    //clean
 	    delete(worklist);
+
+    	//for debugging
+    	Logger::print_thread_info_locked("update-graphs-parallel finished.\n", LEVEL_LOG_FUNCTION);
     }
 
     void update_graphs_sequential(GraphStore* another){
@@ -272,6 +304,21 @@ public:
 //    		it = graphs.erase(it);
 //    	}
 //    }
+
+    void printOutInfo(){
+    	int size_graphs = graphs.size();
+    	long size_edges = 0;
+
+    	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
+
+    	for(auto it = graphs.begin(); it != graphs.end(); ++it){
+    		cout << it->first << "\t" << it->second->getNumEdges() << endl;
+    		size_edges += it->second->getNumEdges();
+    	}
+
+    	cout << "Number of graphs: " << size_graphs << endl;
+    	cout << "Number of edges: " << size_edges << endl;
+    }
 
 protected:
     void print(std::ostream& str) {

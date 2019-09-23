@@ -184,7 +184,7 @@ public:
 //    	Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
     }
 
-
+    //shallow copy
     void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph* graph){
     	std::lock_guard<std::mutex> lockGuard(mutex);
     	this->map[pointer] = graph;

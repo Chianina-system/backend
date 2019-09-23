@@ -50,8 +50,8 @@ public:
 
 //    virtual void init(CFG* cfg) = 0;
 
-    //shallow copy
-    virtual void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph* graph) = 0;
+//    //shallow copy
+//    virtual void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph* graph) = 0;
 
 //    virtual void update_graphs(GraphStore* another) = 0;
 
@@ -60,19 +60,26 @@ public:
     virtual void update_graphs_parallel(GraphStore* another) = 0;
 
     void update_graphs(GraphStore* another){
-    	update_graphs_sequential(another); // sequential
-//    	update_graphs_parallel(another); // in parallel
+    	//for debugging
+    	Logger::print_thread_info_locked("update-graphs starting...\n", LEVEL_LOG_FUNCTION);
+
+//    	update_graphs_sequential(another); // sequential
+    	update_graphs_parallel(another); // in parallel
+
+    	//for debugging
+    	Logger::print_thread_info_locked("update-graphs finished.\n", LEVEL_LOG_FUNCTION);
     }
 
+    virtual void printOutInfo() = 0;
 
 
 //    virtual void clearEntryOnly() = 0;
 
 //    virtual void clear() = 0;
 
-//    virtual void deserialize(const string& file) = 0;
-//
-//    virtual void serialize(const string& file) = 0;
+    virtual void deserialize(const string& file) = 0;
+
+    virtual void serialize(const string& file) = 0;
 
 //    virtual void printOutInfo() = 0;
 

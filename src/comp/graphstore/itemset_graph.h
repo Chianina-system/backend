@@ -20,14 +20,31 @@ class ItemsetGraph {
 public:
 
 	ItemsetGraph(){
-		edge_ids = nullptr;
+		edge_ids = NULL;
 		len = 0;
 	}
 
 	ItemsetGraph(std::vector<int>& edge_vector){
 		len = edge_vector.size();
-		edge_ids = new int[len];
-		std::copy(edge_vector.begin(), edge_vector.end(), edge_ids);
+		if(len){
+			edge_ids = new int[len];
+	//		std::copy(edge_vector.begin(), edge_vector.end(), edge_ids);
+			memcpy(edge_ids, edge_vector.data(), sizeof(int)*len);
+		}
+		else{
+			edge_ids = NULL;
+		}
+	}
+
+	ItemsetGraph(const ItemsetGraph& graph){
+		len = graph.len;
+		if(len){
+			edge_ids = new int[len];
+	        memcpy(edge_ids, graph.edge_ids, sizeof(int)*len);
+		}
+		else{
+			edge_ids = NULL;
+		}
 	}
 
 	~ItemsetGraph(){
@@ -35,6 +52,25 @@ public:
 			delete[] edge_ids;
 			len = 0;
 		}
+	}
+
+    //copy assign operator
+	ItemsetGraph& operator=(const ItemsetGraph& graph) {
+		len = graph.len;
+		if(len){
+			edge_ids = new int[len];
+	        memcpy(edge_ids, graph.edge_ids, sizeof(int)*len);
+		}
+		else{
+			edge_ids = NULL;
+		}
+
+		return *this;
+    }
+
+
+	int getNumEdges(){
+		return len;
 	}
 
 	inline int* getEdgeIds() const {
@@ -51,7 +87,7 @@ public:
 	}
 
 private:
-	int* edge_ids = nullptr;
+	int* edge_ids = NULL;
 	int len;
 
 

@@ -49,15 +49,12 @@ public:
 
 	static void pass(Partition partition, CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* actives, Context* context){
 		//for debugging
-		Logger::print_thread_info_locked("pass starting...\n", LEVEL_LOG_FUNCTION);
+		Logger::print_thread_info_locked("pass starting...\n", 1);
 
 		//store all the graphs into file
 		const string filename_graphs = Context::file_graphstore + to_string(partition);
-		NaiveGraphStore* graphstore_naive = dynamic_cast<NaiveGraphStore*>(graphstore);
-		graphstore_naive->serialize(filename_graphs);
-
-//		//for debugging
-//		cout << actives->size() << endl;
+//		NaiveGraphStore* graphstore_naive = dynamic_cast<NaiveGraphStore*>(graphstore);
+		graphstore->serialize(filename_graphs);
 
 		//divide all the activated nodes into multiple partitions
 		std::unordered_map<Partition, std::unordered_set<CFGNode*>> map;
@@ -73,9 +70,6 @@ public:
 			}
 		}
 
-	//	//for debugging
-	//	cout << map.size() << endl;
-
 		//get the corresponding partition
 		for(auto it = map.begin(); it != map.end(); ++it){
 			Partition part = it->first;
@@ -87,6 +81,7 @@ public:
 			//write graphs_in
 			const string file_graphs_in = Context::folder_graphs_in + std::to_string(part);
 			store_graphs_in(file_graphs_in, cfg, graphstore, it->second);
+
 //			if(!FileUtil::file_exists(folder_in)){
 //				if(mkdir(folder_in.c_str(), 0777) == -1){
 //			        cout << "can't create folder: " << folder_in << endl;
@@ -101,7 +96,7 @@ public:
 		}
 
 		//for debugging
-		Logger::print_thread_info_locked("pass finished.\n", LEVEL_LOG_FUNCTION);
+		Logger::print_thread_info_locked("pass finished.\n", 1);
 	}
 
 
@@ -215,7 +210,8 @@ public:
 	            }
 
 	            //store the new graph into tmp_graphstore
-	            tmp_graphstore->addOneGraph_atomic(out_pointer, out);
+//	            tmp_graphstore->addOneGraph_atomic(out_pointer, out);
+	            dynamic_cast<NaiveGraphStore*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
 	        }
 	        else{
 				delete out;
@@ -282,6 +278,7 @@ private:
 						//write a pegraph into file
 						myfile << pointer << "\t";
 						graph->write_readable(myfile);
+						delete graph;
 						myfile << "\n";
 					}
 				}

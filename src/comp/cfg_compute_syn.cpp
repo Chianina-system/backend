@@ -62,7 +62,7 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
 //        Logger::print_thread_info_locked("worklist size :" + to_string(list->size()) + "\n", LEVEL_LOG_MAIN);
 //        delete list;
 
-//        dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
+//        graphstore->printOutInfo();
     }
 
     //clean
@@ -73,19 +73,22 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
 
     Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 //    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
-//    dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
+    graphstore->printOutInfo();
 }
 
 
 void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
 		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag){
+	//for debugging
+	Logger::print_thread_info_locked("compute-synchronous starting...\n", LEVEL_LOG_FUNCTION);
+
     CFGNode* cfg_node;
 	while(worklist_1->pop_atomic(cfg_node)){
-    	//for debugging
-    	Logger::print_thread_info_locked("----------------------- CFG Node "
-    			+ to_string(cfg_node->getCfgNodeId())
-				+ " " + cfg_node->getStmt()->toString()
-				+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
+//    	//for debugging
+//    	Logger::print_thread_info_locked("----------------------- CFG Node "
+//    			+ to_string(cfg_node->getCfgNodeId())
+//				+ " " + cfg_node->getStmt()->toString()
+//				+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
 
         //merge
     	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
@@ -93,14 +96,14 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 //    	StaticPrinter::print_vector(preds);
         PEGraph* in = combine_synchronous(graphstore, preds);
 
-        //for debugging
-        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
+//        //for debugging
+//        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
         //transfer
         PEGraph* out = transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
-        //for debugging
-        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
+//        //for debugging
+//        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
@@ -128,7 +131,8 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
             }
 
             //store the new graph into tmp_graphstore
-            tmp_graphstore->addOneGraph_atomic(out_pointer, out);
+//            tmp_graphstore->addOneGraph_atomic(out_pointer, out);
+            dynamic_cast<NaiveGraphStore*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
         }
         else{
 			delete out;
@@ -140,12 +144,15 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
         }
 
         //for debugging
-        Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
-        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
+//        Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
+//        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
 
 //        //for debugging
 //        Logger::print_thread_info_locked("1-> " + worklist_1->toString() + "\t2-> " + worklist_2->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);
     }
+
+	//for debugging
+	Logger::print_thread_info_locked("compute-synchronous finished.\n", LEVEL_LOG_FUNCTION);
 }
 
 
