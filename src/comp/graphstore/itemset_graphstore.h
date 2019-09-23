@@ -229,6 +229,9 @@ public:
     	return graph;
     }
 
+    /*
+     *encode or compress the graph representation by replacing certain frequent subsets of edge ids with the unique itemset ids
+     */
     void compressEdges(vector<int>& edges_vector){
     	//TODO
 
@@ -319,6 +322,26 @@ public:
     	cout << "Number of graphs: " << size_graphs << endl;
     	cout << "Number of edges: " << size_edges << endl;
     }
+
+
+    /*
+     *mine a set of frequent itemsets to construct the itemset base for encoding
+     *precondition: the current intToItemset is empty
+     *              or would like to reconstruct the base from scratch
+     */
+    void constructItemsetBase(){
+    	//TODO
+
+    }
+
+    /*
+     *update the existing itemset base by adding extra frequent itemsets
+     */
+    void updateItemsetBase(){
+    	//TODO
+
+    }
+
 
 protected:
     void print(std::ostream& str) {
