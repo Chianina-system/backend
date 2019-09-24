@@ -342,6 +342,13 @@ public:
 
     }
 
+    /*
+     * reconstruct the entire itemset base
+     */
+    void reconstructItemsetBase(){
+
+    }
+
 
 protected:
     void print(std::ostream& str) {
