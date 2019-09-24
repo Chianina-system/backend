@@ -14,6 +14,9 @@
 
 using namespace std;
 
+const string inputFile = "../lib/file/input_itemsets.txt";
+const string outFile = "../lib/file/out_itemsets.txt";
+
 class ItemsetGraphStore : public GraphStore {
 
 
@@ -325,13 +328,97 @@ public:
 
 
     /*
+     * write graphs into a file for itemset mining later where
+     * each graph as a line separated by " "
+     */
+    void writeToFile() {
+		ofstream myfile;
+		myfile.open(inputFile, std::ofstream::out);
+		if (myfile.is_open()) {
+			for (auto &n : graphs) {
+//				n.second->write_for_mining(myfile);
+				if(!n.second->isEmpty()){
+					for(int i = 0; i < n.second->getLength(); i++){
+						myfile << n.second->getEdgeId(i) << " ";
+					}
+					myfile << "\n";
+				}
+			}
+			myfile.close();
+		}
+    }
+
+    //从挖掘结果中选取频繁项集挖掘的结果,目前的策略是简单选取前10行
+    void readFromFile() {
+        ifstream myfile;
+        myfile.open(outFile);
+        if (!myfile) {
+            cout << "can't load file: " << outFile << endl;
+            exit(EXIT_FAILURE);
+        }
+
+        //get all the frequent itemset and the corresponding frequency info
+        multimap<int, ItemsetGraph*> frequency_graph_map;
+		string line;
+		while (getline(myfile, line)) {
+			if(line == ""){
+				continue;
+			}
+
+			set<int> itemset;
+			int frequency;
+			std::stringstream stream(line);
+			do{
+				std::string id = "";
+				stream >> id;
+				if(id[0] != '('){
+					itemset.insert(atoi(id.c_str()));
+				}
+				else {
+					string word = "";
+					for(auto c: id){
+						if(c != '(' && c != ')'){
+							word = word + c;
+						}
+					}
+					frequency = atoi(word.c_str());
+				}
+			}
+			while(stream);
+
+			//transfer itemset into array
+			ItemsetGraph* g = new ItemsetGraph(itemset);
+			frequency_graph_map.insert(std::pair<int, ItemsetGraph*>(frequency, g));
+		}
+		myfile.close();
+
+//		//filter to obtain top-k disjoint frequent itemsets
+//		int k = 5;
+//		get_disjoint_itemset(frequency_graph_map, k);
+
+		for(auto it : frequency_graph_map){
+			intToItemset.push_back(it.second);
+		}
+    }
+
+    void get_disjoint_itemset(multimap<int, ItemsetGraph*>& frequency_graph_map, int k){
+
+    }
+
+
+    /*
      *mine a set of frequent itemsets to construct the itemset base for encoding
      *precondition: the current intToItemset is empty
      *              or would like to reconstruct the base from scratch
      */
     void constructItemsetBase(){
-    	//TODO
+        writeToFile();
 
+        std::string option = "-tc -s30";
+        std::string command = "../lib/eclat " + option + " " + inputFile + " " + outFile;
+        system(command.c_str());
+
+        readFromFile();
     }
 
     /*

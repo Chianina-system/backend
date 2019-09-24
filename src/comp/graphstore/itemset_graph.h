@@ -28,8 +28,18 @@ public:
 		len = edge_vector.size();
 		if(len){
 			edge_ids = new int[len];
-	//		std::copy(edge_vector.begin(), edge_vector.end(), edge_ids);
 			memcpy(edge_ids, edge_vector.data(), sizeof(int)*len);
+		}
+		else{
+			edge_ids = NULL;
+		}
+	}
+
+	ItemsetGraph(std::set<int>& edge_set){
+		len = edge_set.size();
+		if(len){
+			edge_ids = new int[len];
+			std::copy(edge_set.begin(), edge_set.end(), edge_ids);
 		}
 		else{
 			edge_ids = NULL;
@@ -85,6 +95,18 @@ public:
 	inline int getLength() const {
 		return len;
 	}
+
+	inline bool isEmpty(){
+		return len == 0;
+	}
+
+//	// write an itemset_graph into a line separated by " " for itemset mining later
+//	void write_for_mining(std::ofstream& os){
+//		for(int i = 0; i < len; i++){
+//			os << edge_ids[i] << " ";
+//		}
+//	}
+
 
 private:
 	int* edge_ids = NULL;
