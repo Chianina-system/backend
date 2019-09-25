@@ -405,6 +405,9 @@ void findDeletedEdges(EdgeArray & edgesToDelete, vertexid_t src, std::set<vertex
 			deleted.addOneEdge(dst, label);
 		}
 	}
+
+	//		//seems not necessary since the original EdgeArray in edgesToDelete is already sorted
+	//		deleted.merge();
 }
 
 void CFGCompute_syn::getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& vertices_changed, Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* m) {
@@ -423,6 +426,8 @@ void CFGCompute_syn::getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& ve
 				(*m)[it->first].addOneEdge(edges[j], labels[j]);
 			}
 		}
+//		//seems not necessary since the original EdgeArray in out is already sorted
+//		(*m)[it->first].merge();
 	}
 
 

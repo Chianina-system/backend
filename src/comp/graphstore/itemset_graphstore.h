@@ -70,10 +70,10 @@ public:
     	while(!itemset_graphs.empty()){
     		ItemsetGraph* g = itemset_graphs.back();
     		itemset_graphs.pop_back();
-			for(int i = 0; i < g->getLength(); ++i){
+			for(unsigned int i = 0; i < g->getLength(); ++i){
 				int id_edge = g->getEdgeId(i);
 				if(isItemset(id_edge)){
-					itemset_graphs.push_back(intToItemset[0 - id_edge - 1]);
+					itemset_graphs.push_back(intToItemset[getItemsetIndex(id_edge)]);
 				}
 				else{
 					edges.push_back(id_edge);
@@ -96,6 +96,10 @@ public:
     			peg->getGraph()[edge.getSrcId()] = EdgeArray();
     		}
     		peg->getGraph()[edge.getSrcId()].addOneEdge(edge.getDstId(), edge.getLabel());
+    	}
+    	//sort all the edgeArrays in peg
+    	for(auto it = peg->getGraph().begin(); it != peg->getGraph().end(); ++ it){
+			(*it).second.sort();
     	}
 
 //    	cout << *peg << endl;
@@ -206,7 +210,7 @@ public:
     }
 
     ItemsetGraph* convertToSetGraph(PEGraph* pegraph){
-    	vector<int> edges_vector;
+    	set<int> edges_set;
     	for(auto& it : pegraph->getGraph()){
     		vertexid_t src = it.first;
     		int size = it.second.getSize();
@@ -215,29 +219,82 @@ public:
     		for(int i = 0; i < size; ++i){
     			Edge edge(src, dsts[i], labels[i]);
     			if(edgeToInt.find(edge) != edgeToInt.end()){
-    				edges_vector.push_back(edgeToInt[edge]);
+    				edges_set.insert(edgeToInt[edge]);
     			}
     			else{
     				intToEdge.push_back(edge);
     				int id = intToEdge.size() - 1;
-    				edges_vector.push_back(id);
+    				edges_set.insert(id);
     				edgeToInt[edge] = id;
     			}
     		}
 		}
 
     	//TODO: replace edge set with frequent itemset
-    	compressEdges(edges_vector);
-    	ItemsetGraph *graph = new ItemsetGraph(edges_vector);
+    	compressEdges(edges_set);
+    	ItemsetGraph *graph = new ItemsetGraph(edges_set);
     	return graph;
     }
 
     /*
      *encode or compress the graph representation by replacing certain frequent subsets of edge ids with the unique itemset ids
      */
-    void compressEdges(vector<int>& edges_vector){
+    void compressEdges(set<int>& edges_set){
     	//TODO
+    	for(unsigned i = 0; i < intToItemset.size(); i++){
+    		if(edges_set.size() < intToItemset.at(intToItemset.size() - 1)->getLength()){
+    			break;
+    		}
+    		subsume(edges_set, intToItemset[i], getItemsetId(i));
+    	}
+    }
 
+    int getItemsetId(unsigned index){
+    	return 0 - (index + 1);
+    }
+
+    unsigned getItemsetIndex(int id_itemset){
+    	return 0 - (id_itemset + 1);
+    }
+
+    bool subsume(set<int>& edges_set, ItemsetGraph* itemset, int id_itemset){
+    	//first, determine if the itemset is a subset of edges_set; note that both are sorted
+    	unsigned int i = 0;
+    	for(auto it = edges_set.begin(); it != edges_set.end() && i < itemset->getLength(); ){
+    		if(*it < itemset->getEdgeId(i)){
+    			it++;
+    		}
+    		else if(*it == itemset->getEdgeId(i)){
+    			it++;
+    			i++;
+    		}
+    		else if(*it > itemset->getEdgeId(i)){
+    			return false;
+    		}
+    	}
+    	if(i < itemset->getLength()){
+    		return false;
+    	}
+
+    	//second, if so, replace the itemset in edges_set with the itemset id
+    	i = 0;
+    	for(auto it = edges_set.begin(); it != edges_set.end() && i < itemset->getLength(); ){
+    		if(*it < itemset->getEdgeId(i)){
+    			it++;
+    		}
+    		else if(*it == itemset->getEdgeId(i)){
+    			it = edges_set.erase(it);
+    			i++;
+    		}
+    		else if(*it > itemset->getEdgeId(i)){
+                cout << "wrong condition!" << outFile << endl;
+                exit(EXIT_FAILURE);
+    		}
+    	}
+    	assert(i == itemset->getLength());
+
+    	edges_set.insert(id_itemset);
+    	return true;
     }
 
 //    //shallow copy
@@ -338,7 +395,7 @@ public:
 			for (auto &n : graphs) {
 //				n.second->write_for_mining(myfile);
 				if(!n.second->isEmpty()){
-					for(int i = 0; i < n.second->getLength(); i++){
+					for(unsigned int i = 0; i < n.second->getLength(); i++){
 						myfile << n.second->getEdgeId(i) << " ";
 					}
 					myfile << "\n";
@@ -348,7 +405,7 @@ public:
 		}
     }
 
-    //从挖掘结果中选取频繁项集挖掘的结果,目前的策略是简单选取前10行
+    //
     void readFromFile() {
         ifstream myfile;
         myfile.open(outFile);
@@ -388,6 +445,7 @@ public:
 
 			//transfer itemset into array
 			ItemsetGraph* g = new ItemsetGraph(itemset);
+			//sort itemsets in the ascending order of frequency
 			frequency_graph_map.insert(std::pair<int, ItemsetGraph*>(frequency, g));
 		}
 		myfile.close();
@@ -396,14 +454,14 @@ public:
 //		int k = 5;
 //		get_disjoint_itemset(frequency_graph_map, k);
 
-		for(auto it : frequency_graph_map){
-			intToItemset.push_back(it.second);
+		for(auto it = frequency_graph_map.cbegin(); it != frequency_graph_map.cend(); ++ it){
+			intToItemset.push_back((*it).second);
 		}
     }
 
-    void get_disjoint_itemset(multimap<int, ItemsetGraph*>& frequency_graph_map, int k){
-
-    }
+//    void get_disjoint_itemset(multimap<int, ItemsetGraph*>& frequency_graph_map, int k){
+//
+//    }
 
 
     /*
@@ -414,7 +472,7 @@ public:
     void constructItemsetBase(){
         writeToFile();
 
-        std::string option = "-tc -s30";
+        std::string option = "-tc -s30 -m5";
         std::string command = "../lib/eclat " + option + " " + inputFile + " " + outFile;
         system(command.c_str());
 

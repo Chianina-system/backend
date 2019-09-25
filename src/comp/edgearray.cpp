@@ -178,6 +178,11 @@ void EdgeArray::merge() {
     delete[] _labels;
 }
 
+void EdgeArray::sort(){
+    // sort edges
+    myalgo::quickSort(edges, labels, 0, size - 1);
+}
+
 bool EdgeArray::equals(EdgeArray* another) const {
 	if(!another){
 		return false;

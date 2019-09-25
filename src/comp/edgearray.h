@@ -49,6 +49,7 @@ public:
     void addOneEdge(vertexid_t edge,label_t label);
     void addEdges(int len, vertexid_t* _edges, label_t* _labels);
     void merge();
+    void sort();
 
     bool equals(EdgeArray* another) const ;
 

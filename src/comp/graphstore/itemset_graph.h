@@ -79,7 +79,7 @@ public:
     }
 
 
-	int getNumEdges(){
+	unsigned int getNumEdges(){
 		return len;
 	}
 
@@ -87,12 +87,12 @@ public:
 		return edge_ids;
 	}
 
-	inline int getEdgeId(int index) const {
+	inline int getEdgeId(unsigned int index) const {
 		assert(index < len);
 		return edge_ids[index];
 	}
 
-	inline int getLength() const {
+	inline unsigned int getLength() const {
 		return len;
 	}
 
@@ -110,7 +110,7 @@ public:
 
 private:
 	int* edge_ids = NULL;
-	int len;
+	unsigned int len;
 
 
 
