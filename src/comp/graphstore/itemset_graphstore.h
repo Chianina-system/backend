@@ -108,6 +108,24 @@ public:
     	return peg;
     }
 
+    void update_convert_locked(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
+//		//for debugging
+//		Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
+
+		if (graphs.find(graph_pointer) != graphs.end()) {
+			delete graphs[graph_pointer];
+		}
+
+		//for debugging
+//		cout << *pegraph << endl;
+		graphs[graph_pointer] = convertToSetGraph_locked(pegraph);
+//		cout << *graphs[graph_pointer] << endl;
+//		cout << *convertToPEGraph(graphs[graph_pointer]) << endl;
+
+//		//for debugging
+//		Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
+    }
+
     void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
 //		//for debugging
 //		Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
@@ -245,15 +263,7 @@ public:
     		label_t* labels = it.second.getLabels();
     		for(int i = 0; i < size; ++i){
     			Edge edge(src, dsts[i], labels[i]);
-    			if(edgeToInt.find(edge) != edgeToInt.end()){
-    				edges_set.insert(edgeToInt[edge]);
-    			}
-    			else{
-    		    	intToEdge.push_back(edge);
-    		    	int id = intToEdge.size() - 1;
-    		    	edgeToInt[edge] = id;
-    		    	edges_set.insert(id);
-    			}
+    			addNewEdgeToEdgeset(edge, edges_set);
     		}
 		}
 
@@ -263,13 +273,40 @@ public:
     	return graph;
     }
 
-    void addNewEdgeToEdgeset(Edge& edge, set<int>& edges_set){
-    	std::lock_guard<std::mutex> lockGuard(mutex);
+    ItemsetGraph* convertToSetGraph_locked(PEGraph* pegraph){
+    	set<int> edges_set;
+    	for(auto& it : pegraph->getGraph()){
+    		vertexid_t src = it.first;
+    		int size = it.second.getSize();
+    		vertexid_t* dsts = it.second.getEdges();
+    		label_t* labels = it.second.getLabels();
+    		for(int i = 0; i < size; ++i){
+    			Edge edge(src, dsts[i], labels[i]);
+    			addNewEdgeToEdgeset_locked(edge, edges_set);
+    		}
+		}
 
-    	intToEdge.push_back(edge);
-    	int id = intToEdge.size() - 1;
-    	edgeToInt[edge] = id;
-    	edges_set.insert(id);
+    	//TODO: replace edge set with frequent itemset
+    	compressEdges(edges_set);
+    	ItemsetGraph *graph = new ItemsetGraph(edges_set);
+    	return graph;
+    }
+
+    void addNewEdgeToEdgeset_locked(Edge& edge, set<int>& edges_set){
+    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	addNewEdgeToEdgeset(edge, edges_set);
+    }
+
+    void addNewEdgeToEdgeset(Edge& edge, set<int>& edges_set){
+		if(edgeToInt.find(edge) != edgeToInt.end()){
+			edges_set.insert(edgeToInt[edge]);
+		}
+		else{
+	    	intToEdge.push_back(edge);
+	    	int id = intToEdge.size() - 1;
+	    	edgeToInt[edge] = id;
+	    	edges_set.insert(id);
+		}
     }
 
     /*
@@ -348,8 +385,8 @@ public:
 //    		//for debugging
 //    		Logger::print_thread_info_locked("graph id = " + to_string(id) + "\n", LEVEL_LOG_FUNCTION);
 
-//    		assert(current->graphs.find(id) != current->graphs.end());
-    		current->update_locked(id, another->getMap().at(id));
+    		assert(current->graphs.find(id) != current->graphs.end());
+    		current->update_convert_locked(id, another->getMap().at(id));
     	}
 
     	//for debugging
@@ -366,10 +403,10 @@ public:
 	    for(auto& it: another_graphstore->getMap()){
 	        worklist->push_atomic(it.first);
 
-//			//initialize the graphstore
-//	        if(graphs.find(it.first) == graphs.end()){
-//	        	graphs[it.first] = new ItemsetGraph();
-//	        }
+			//initialize the graphstore
+	        if(graphs.find(it.first) == graphs.end()){
+	        	graphs[it.first] = new ItemsetGraph();
+	        }
 	    }
 
 		std::vector<std::thread> comp_threads;

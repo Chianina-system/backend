@@ -11,41 +11,47 @@ using namespace std;
 
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/newtest/inlined/";
 //const string dir = "/home/dell/Desktop/Ouroboros-dataset-master/testExample/inlined/";
-const string dir = "/home/dell/GraphFlow/GraphSSAInline/firefox/browser/";
-const string file_total = dir + "total.txt";
-const string file_entries = dir + "entry.txt";
-const string file_cfg = dir + "final";
-const string file_stmts = dir + "id_stmt_info.txt";
-const string file_singletons = dir + "var_singleton_info.txt";
+//const string dir = "/home/dell/GraphFlow/GraphSSAInline/firefox/browser/";
+//const string file_total = dir + "total.txt";
+//const string file_entries = dir + "entry.txt";
+//const string file_cfg = dir + "final";
+//const string file_stmts = dir + "id_stmt_info.txt";
+//const string file_singletons = dir + "var_singleton_info.txt";
 const string file_grammar = "/home/dell/Desktop/Ouroboros-dataset-master/rules_pointsto.txt";
 
 /* function declaration */
-void run_inmemory(int, int);
-void run_ooc(int, int, int);
+void run_inmemory(int, int, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);
+void run_ooc(int, int, int, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);
 
 
 int main(int argc, char* argv[]) {
-	if(argc != 3 && argc != 4){
-		cout << "Usage: ./backend graphstore_mode(0: naive; 1: itemset) computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1)" << endl;
+	if(argc != 8 && argc != 9){
+		cout << "Usage: ./backend file_total file_entries file_cfg file_stmts file_singletons graphstore_mode(0: naive; 1: itemset) computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1)" << endl;
 		return 0;
 	}
 
-	if(argc == 3){
-		if(atoi(argv[2]) != 0){
-			cout << "Usage: ./backend graphstore_mode(0: naive; 1: itemset) computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1)" << endl;
+	if(argc == 8){
+		if(atoi(argv[7]) != 0){
+			cout << "Usage: ./backend file_total file_entries file_cfg file_stmts file_singletons graphstore_mode(0: naive; 1: itemset) computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1)" << endl;
 			return 0;
 		}
 	}
+
+	const string file_total = argv[1];
+	const string file_entries = argv[2];
+	const string file_cfg = argv[3];
+	const string file_stmts = argv[4];
+	const string file_singletons = argv[5];
 
 	ResourceManager rm;
 	// get running time (wall time)
 	auto start_fsm = std::chrono::high_resolution_clock::now();
 
-	if(atoi(argv[2])){
-		run_ooc(atoi(argv[1]), atoi(argv[3]), 1);
+	if(atoi(argv[7])){
+		run_ooc(atoi(argv[6]), atoi(argv[8]), 1, file_total, file_entries, file_cfg, file_stmts, file_singletons);
 	}
 	else{
-		run_inmemory(atoi(argv[1]), 1);
+		run_inmemory(atoi(argv[6]), 1, file_total, file_entries, file_cfg, file_stmts, file_singletons);
 	}
 
 	auto end_fsm = std::chrono::high_resolution_clock::now();
@@ -187,7 +193,7 @@ void printGraphstoreInfo(Context* context){
 	cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
 }
 
-void run_ooc(int graphstore_mode, int num_partitions, int sync_mode){
+void run_ooc(int graphstore_mode, int num_partitions, int sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
 	//preprocessing
 	Context* context = new Context(num_partitions, file_total, file_cfg, file_stmts, file_entries, file_singletons, file_grammar);
 	Preprocess::process(*context);
@@ -215,7 +221,7 @@ void run_ooc(int graphstore_mode, int num_partitions, int sync_mode){
 }
 
 
-void compute_inmemory(int graphstore_mode, int sync_mode){
+void compute_inmemory(int graphstore_mode, int sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
 	CFG *cfg = new CFG_map();
 	Singletons * singletons = new Singletons();
     Grammar *grammar = new Grammar();
@@ -241,8 +247,8 @@ void compute_inmemory(int graphstore_mode, int sync_mode){
 	delete singletons;
 }
 
-void run_inmemory(int graphstore_mode, int sync_mode){
-	compute_inmemory(graphstore_mode, sync_mode);
+void run_inmemory(int graphstore_mode, int sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
+	compute_inmemory(graphstore_mode, sync_mode, file_total, file_entries, file_cfg, file_stmts, file_singletons);
 }
 
 
