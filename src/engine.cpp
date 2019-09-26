@@ -65,8 +65,8 @@ int main(int argc, char* argv[]) {
 
 
 void compute_ooc(Partition partition, Context* context, int sync_mode, int graphstore_mode){
-//	//for debugging
-//	Logger::print_thread_info_locked("compute starting...\n", LEVEL_LOG_FUNCTION);
+	//for debugging
+	Logger::print_thread_info_locked("----------------------- Partition " + to_string(partition) + " starting -----------------------\n", LEVEL_LOG_MAIN);
 
 	CFG *cfg = new CFG_map_outcore();
     Concurrent_Worklist<CFGNode*>* actives = new Concurrent_Workset<CFGNode*>();
@@ -96,8 +96,8 @@ void compute_ooc(Partition partition, Context* context, int sync_mode, int graph
 	delete graphstore;
 	delete actives;
 
-//	//for debugging
-//	Logger::print_thread_info_locked("compute finished.\n", LEVEL_LOG_FUNCTION);
+	//for debugging
+	Logger::print_thread_info_locked("----------------------- Partition " + to_string(partition) + " finished -----------------------\n", LEVEL_LOG_MAIN);
 }
 
 void readAllGraphs(NaiveGraphStore *graphstore, Context* context){

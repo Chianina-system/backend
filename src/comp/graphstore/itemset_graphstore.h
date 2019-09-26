@@ -16,6 +16,7 @@ using namespace std;
 
 const string inputFile = "../lib/file/input_itemsets.txt";
 const string outFile = "../lib/file/out_itemsets.txt";
+const bool serialize_peg_mode = true;
 
 class ItemsetGraphStore : public GraphStore {
 
@@ -126,26 +127,42 @@ public:
     }
 
     void loadGraphStore(const string& file, const string& file_in) {
-    	//graphstore file
-    	this->deserialize(file);
+    	if(serialize_peg_mode){
+			//graphstore file
+			this->deserialize(file);
 
-    	this->load_onebyone(file_in);
+			//load in-graphs
+			this->load_onebyone(file_in);
+
+			//construct itemset base
+			this->constructItemsetBase();
+    	}
+    	else{
+    		this->deserialize(file);
+    		this->load_onebyone(file_in);
+    	}
+
     }
 
     void serialize(const string& file){
     	if(readable){
-    		ofstream myfile;
-    		myfile.open(file, std::ofstream::out);
-    		if (myfile.is_open()){
-    			for (auto& n : graphs) {
-    				//write a pegraph into file
-    		    	myfile << n.first << "\t";
-    		    	PEGraph* out = convertToPEGraph(n.second);
-    		    	out->write_readable(myfile);
-    		    	delete out;
-    		    	myfile << "\n";
-    			}
-    			myfile.close();
+    		if(serialize_peg_mode){
+				ofstream myfile;
+				myfile.open(file, std::ofstream::out);
+				if (myfile.is_open()){
+					for (auto& n : graphs) {
+						//write a pegraph into file
+						myfile << n.first << "\t";
+						PEGraph* out = convertToPEGraph(n.second);
+						out->write_readable(myfile);
+						delete out;
+						myfile << "\n";
+					}
+					myfile.close();
+				}
+    		}
+    		else{//direct written in the itemset format
+    			store_itemsetGraphstore(file);
     		}
     	}
     	else{
@@ -155,15 +172,25 @@ public:
 
     void deserialize(const string& file){
     	if(readable){
-//    		load_itemsetGraphstore(file);
-    		load_onebyone(file);
+    		if(serialize_peg_mode){
+				load_onebyone(file);
+    		}
+    		else{
+				load_itemsetGraphstore(file);
+    		}
     	}
     	else{
 
     	}
     }
 
+    //load the graphstore in the itemset format
     void load_itemsetGraphstore(const string& file){
+
+    }
+
+
+    void store_itemsetGraphstore(const string& file){
 
     }
 
@@ -222,10 +249,10 @@ public:
     				edges_set.insert(edgeToInt[edge]);
     			}
     			else{
-    				intToEdge.push_back(edge);
-    				int id = intToEdge.size() - 1;
-    				edges_set.insert(id);
-    				edgeToInt[edge] = id;
+    		    	intToEdge.push_back(edge);
+    		    	int id = intToEdge.size() - 1;
+    		    	edgeToInt[edge] = id;
+    		    	edges_set.insert(id);
     			}
     		}
 		}
@@ -234,6 +261,15 @@ public:
     	compressEdges(edges_set);
     	ItemsetGraph *graph = new ItemsetGraph(edges_set);
     	return graph;
+    }
+
+    void addNewEdgeToEdgeset(Edge& edge, set<int>& edges_set){
+    	std::lock_guard<std::mutex> lockGuard(mutex);
+
+    	intToEdge.push_back(edge);
+    	int id = intToEdge.size() - 1;
+    	edgeToInt[edge] = id;
+    	edges_set.insert(id);
     }
 
     /*
@@ -312,7 +348,7 @@ public:
 //    		//for debugging
 //    		Logger::print_thread_info_locked("graph id = " + to_string(id) + "\n", LEVEL_LOG_FUNCTION);
 
-    		assert(current->graphs.find(id) != current->graphs.end());
+//    		assert(current->graphs.find(id) != current->graphs.end());
     		current->update_locked(id, another->getMap().at(id));
     	}
 
@@ -330,10 +366,10 @@ public:
 	    for(auto& it: another_graphstore->getMap()){
 	        worklist->push_atomic(it.first);
 
-			//initialize the graphstore
-	        if(graphs.find(it.first) == graphs.end()){
-	        	graphs[it.first] = new ItemsetGraph();
-	        }
+//			//initialize the graphstore
+//	        if(graphs.find(it.first) == graphs.end()){
+//	        	graphs[it.first] = new ItemsetGraph();
+//	        }
 	    }
 
 		std::vector<std::thread> comp_threads;
@@ -391,6 +427,10 @@ public:
     void writeToFile() {
 		ofstream myfile;
 		myfile.open(inputFile, std::ofstream::out);
+//		//for debugging
+//		cout << inputFile << endl;
+//		cout << myfile.is_open() << endl;
+
 		if (myfile.is_open()) {
 			for (auto &n : graphs) {
 //				n.second->write_for_mining(myfile);
@@ -411,52 +451,62 @@ public:
         myfile.open(outFile);
         if (!myfile) {
             cout << "can't load file: " << outFile << endl;
-            exit(EXIT_FAILURE);
+//            exit(EXIT_FAILURE);
         }
-
-        //get all the frequent itemset and the corresponding frequency info
-        multimap<int, ItemsetGraph*> frequency_graph_map;
-		string line;
-		while (getline(myfile, line)) {
-			if(line == ""){
-				continue;
-			}
-
-			set<int> itemset;
-			int frequency;
-			std::stringstream stream(line);
-			do{
-				std::string id = "";
-				stream >> id;
-				if(id[0] != '('){
-					itemset.insert(atoi(id.c_str()));
+        else{
+			//get all the frequent itemset and the corresponding frequency info
+			multimap<int, ItemsetGraph*> frequency_graph_map;
+			string line;
+			while (getline(myfile, line)) {
+				if(line == ""){
+					continue;
 				}
-				else {
-					string word = "";
-					for(auto c: id){
-						if(c != '(' && c != ')'){
-							word = word + c;
-						}
+
+				set<int> itemset;
+				int frequency;
+				std::stringstream stream(line);
+				do{
+					std::string id = "";
+					stream >> id;
+
+					if(id == ""){
+						continue;
 					}
-					frequency = atoi(word.c_str());
+
+					if(id[0] != '('){
+						itemset.insert(atoi(id.c_str()));
+					}
+					else {
+						string word = "";
+						for(auto c: id){
+							if(c != '(' && c != ')'){
+								word = word + c;
+							}
+						}
+						frequency = atoi(word.c_str());
+					}
 				}
+				while(stream);
+
+				//transfer itemset into array
+				ItemsetGraph* g = new ItemsetGraph(itemset);
+				//sort itemsets in the ascending order of frequency
+				frequency_graph_map.insert(std::pair<int, ItemsetGraph*>(frequency, g));
 			}
-			while(stream);
+			myfile.close();
 
-			//transfer itemset into array
-			ItemsetGraph* g = new ItemsetGraph(itemset);
-			//sort itemsets in the ascending order of frequency
-			frequency_graph_map.insert(std::pair<int, ItemsetGraph*>(frequency, g));
-		}
-		myfile.close();
 
-//		//filter to obtain top-k disjoint frequent itemsets
-//		int k = 5;
-//		get_disjoint_itemset(frequency_graph_map, k);
+	//		//filter to obtain top-k disjoint frequent itemsets
+	//		int k = 5;
+	//		get_disjoint_itemset(frequency_graph_map, k);
 
-		for(auto it = frequency_graph_map.cbegin(); it != frequency_graph_map.cend(); ++ it){
-			intToItemset.push_back((*it).second);
-		}
+			for(auto it = frequency_graph_map.cbegin(); it != frequency_graph_map.cend(); ++ it){
+				intToItemset.push_back((*it).second);
+
+//				//for debugging
+//				cout << *((*it).second) << endl;
+			}
+        }
     }
 
 //    void get_disjoint_itemset(multimap<int, ItemsetGraph*>& frequency_graph_map, int k){
@@ -470,13 +520,15 @@ public:
      *              or would like to reconstruct the base from scratch
      */
     void constructItemsetBase(){
-        writeToFile();
+    	if(!graphs.empty()){
+			writeToFile();
 
-        std::string option = "-tc -s30 -m5";
-        std::string command = "../lib/eclat " + option + " " + inputFile + " " + outFile;
-        system(command.c_str());
+			std::string option = "-tc -s30 -m10";
+			std::string command = "../lib/eclat " + option + " " + inputFile + " " + outFile;
+			system(command.c_str());
 
-        readFromFile();
+			readFromFile();
+    	}
     }
 
     /*
