@@ -29,7 +29,7 @@ public:
 	}
 
 	int get_hash() const{
-		return ((srcId << 1) + dstId * 13 + label) >> 1;
+		return ((srcId << 1) + (dstId >> 1) + label);
 	}
 
 	bool operator==(const Edge& other) const {

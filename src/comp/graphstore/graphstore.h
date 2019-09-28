@@ -59,12 +59,16 @@ public:
 
     virtual void update_graphs_parallel(GraphStore* another) = 0;
 
-    void update_graphs(GraphStore* another){
+    void update_graphs(GraphStore* another, bool update_mode){
     	//for debugging
     	Logger::print_thread_info_locked("update-graphs starting...\n", LEVEL_LOG_FUNCTION);
 
-//    	update_graphs_sequential(another); // sequential
-    	update_graphs_parallel(another); // in parallel
+    	if(update_mode){
+	    	update_graphs_parallel(another); // in parallel
+    	}
+    	else{
+			update_graphs_sequential(another); // sequential
+    	}
 
     	//for debugging
     	Logger::print_thread_info_locked("update-graphs finished.\n", LEVEL_LOG_FUNCTION);

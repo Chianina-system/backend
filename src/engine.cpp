@@ -19,20 +19,23 @@ using namespace std;
 //const string file_singletons = dir + "var_singleton_info.txt";
 const string file_grammar = "/home/dell/Desktop/Ouroboros-dataset-master/rules_pointsto.txt";
 
+
 /* function declaration */
-void run_inmemory(int, int, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);
-void run_ooc(int, int, int, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);
+void run_inmemory(int, bool, bool, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);
+void run_ooc(int, bool, int, bool, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);
 
 
 int main(int argc, char* argv[]) {
-	if(argc != 8 && argc != 9){
-		cout << "Usage: ./backend file_total file_entries file_cfg file_stmts file_singletons graphstore_mode(0: naive; 1: itemset) computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1)" << endl;
+	if(argc != 9 && argc != 10){
+		cout << "Usage: ./backend file_total file_entries file_cfg file_stmts file_singletons "
+				  << "graphstore_mode(0: naive; 1: itemset) update_mode(0: sequential; 1: parallel) computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1)" << endl;
 		return 0;
 	}
 
-	if(argc == 8){
-		if(atoi(argv[7]) != 0){
-			cout << "Usage: ./backend file_total file_entries file_cfg file_stmts file_singletons graphstore_mode(0: naive; 1: itemset) computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1)" << endl;
+	if(argc == 9){
+		if(atoi(argv[8]) != 0){
+			cout << "Usage: ./backend file_total file_entries file_cfg file_stmts file_singletons "
+					<< "graphstore_mode(0: naive; 1: itemset) update_mode(0: sequential; 1: parallel) computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1)" << endl;
 			return 0;
 		}
 	}
@@ -47,11 +50,11 @@ int main(int argc, char* argv[]) {
 	// get running time (wall time)
 	auto start_fsm = std::chrono::high_resolution_clock::now();
 
-	if(atoi(argv[7])){
-		run_ooc(atoi(argv[6]), atoi(argv[8]), 1, file_total, file_entries, file_cfg, file_stmts, file_singletons);
+	if(atoi(argv[8])){
+		run_ooc(atoi(argv[6]), (bool)atoi(argv[7]), atoi(argv[9]), true, file_total, file_entries, file_cfg, file_stmts, file_singletons);
 	}
 	else{
-		run_inmemory(atoi(argv[6]), 1, file_total, file_entries, file_cfg, file_stmts, file_singletons);
+		run_inmemory(atoi(argv[6]), (bool)atoi(argv[7]), true, file_total, file_entries, file_cfg, file_stmts, file_singletons);
 	}
 
 	auto end_fsm = std::chrono::high_resolution_clock::now();
@@ -70,7 +73,7 @@ int main(int argc, char* argv[]) {
 
 
 
-void compute_ooc(Partition partition, Context* context, int sync_mode, int graphstore_mode){
+void compute_ooc(Partition partition, Context* context, bool sync_mode, int graphstore_mode, bool update_mode){
 	//for debugging
 	Logger::print_thread_info_locked("----------------------- Partition " + to_string(partition) + " starting -----------------------\n", LEVEL_LOG_MAIN);
 
@@ -91,7 +94,7 @@ void compute_ooc(Partition partition, Context* context, int sync_mode, int graph
 
     CFGCompute_ooc_syn::load(partition, cfg, graphstore, context);
     if(sync_mode){
-		CFGCompute_ooc_syn::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), context->getSingletons(), actives, false);
+		CFGCompute_ooc_syn::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), context->getSingletons(), actives, false, update_mode);
     }
     else{
     	CFGCompute_ooc_asyn::do_worklist_ooc_asynchronous(cfg, graphstore, context->getGrammar(), context->getSingletons(), actives, false);
@@ -193,7 +196,7 @@ void printGraphstoreInfo(Context* context){
 	cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
 }
 
-void run_ooc(int graphstore_mode, int num_partitions, int sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
+void run_ooc(int graphstore_mode, bool update_mode, int num_partitions, bool sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
 	//preprocessing
 	Context* context = new Context(num_partitions, file_total, file_cfg, file_stmts, file_entries, file_singletons, file_grammar);
 	Preprocess::process(*context);
@@ -204,7 +207,7 @@ void run_ooc(int graphstore_mode, int num_partitions, int sync_mode, const strin
 	//iterative computation
 	Partition partition;
 	while(context->schedule(partition)){
-		compute_ooc(partition, context, sync_mode, graphstore_mode);
+		compute_ooc(partition, context, sync_mode, graphstore_mode, update_mode);
 
 		//for debugging
 		context->printOutPriorityInfo();
@@ -221,7 +224,7 @@ void run_ooc(int graphstore_mode, int num_partitions, int sync_mode, const strin
 }
 
 
-void compute_inmemory(int graphstore_mode, int sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
+void compute_inmemory(int graphstore_mode, bool update_mode, bool sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
 	CFG *cfg = new CFG_map();
 	Singletons * singletons = new Singletons();
     Grammar *grammar = new Grammar();
@@ -235,7 +238,7 @@ void compute_inmemory(int graphstore_mode, int sync_mode, const string& file_tot
 
 	CFGCompute_syn::load(file_total, file_cfg, file_stmts, file_entries, cfg, file_singletons, singletons, graphstore, file_grammar, grammar);
 	if(sync_mode){
-		CFGCompute_syn::do_worklist_synchronous(cfg, graphstore, grammar, singletons, false);
+		CFGCompute_syn::do_worklist_synchronous(cfg, graphstore, grammar, singletons, false, update_mode);
 	}
 	else{
 		CFGCompute_asyn::do_worklist_asynchronous(cfg, graphstore, grammar, singletons, false);
@@ -247,8 +250,8 @@ void compute_inmemory(int graphstore_mode, int sync_mode, const string& file_tot
 	delete singletons;
 }
 
-void run_inmemory(int graphstore_mode, int sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
-	compute_inmemory(graphstore_mode, sync_mode, file_total, file_entries, file_cfg, file_stmts, file_singletons);
+void run_inmemory(int graphstore_mode, bool update_mode, bool sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
+	compute_inmemory(graphstore_mode, update_mode, sync_mode, file_total, file_entries, file_cfg, file_stmts, file_singletons);
 }
 
 

@@ -9,7 +9,7 @@
 #include "cfg_compute_syn.h"
 
 
-void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag){
+void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag, bool update_mode){
 	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
     Concurrent_Worklist<CFGNode*>* worklist_1 = new Concurrent_Workset<CFGNode*>();
@@ -42,7 +42,7 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
             t.join();
 
         //synchronize and communicate
-        graphstore->update_graphs(tmp_graphstore);
+        graphstore->update_graphs(tmp_graphstore, update_mode);
         tmp_graphstore->clear();
 
         //update worklists

@@ -100,7 +100,7 @@ public:
 	}
 
 
-	static void do_worklist_ooc_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag){
+	static void do_worklist_ooc_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode){
 		Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
 	    Concurrent_Worklist<CFGNode*>* worklist_1 = new Concurrent_Workset<CFGNode*>();
@@ -133,7 +133,7 @@ public:
 	            t.join();
 
 	        //synchronize and communicate
-	        graphstore->update_graphs(tmp_graphstore);
+	        graphstore->update_graphs(tmp_graphstore, update_mode);
 	        tmp_graphstore->clear();
 
 	        //update worklists
