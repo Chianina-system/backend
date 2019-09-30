@@ -8,6 +8,8 @@
 #ifndef COMP_GRAPHSTORE_ITEMSET_GRAPH_H_
 #define COMP_GRAPHSTORE_ITEMSET_GRAPH_H_
 
+#include "myarray.h"
+
 class ItemsetGraph {
 
 	friend std::ostream & operator<<(std::ostream & strm, const ItemsetGraph & itemsetGraph) {
@@ -22,6 +24,15 @@ public:
 	ItemsetGraph(){
 		edge_ids = NULL;
 		len = 0;
+	}
+
+	ItemsetGraph(MyArray* edge_vector) {
+		len = edge_vector->getLength();
+		if (len) {
+			edge_ids = edge_vector->getData();
+		} else {
+			edge_ids = NULL;
+		}
 	}
 
 	ItemsetGraph(std::vector<int>& edge_vector){

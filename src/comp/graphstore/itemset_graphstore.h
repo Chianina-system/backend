@@ -12,6 +12,7 @@
 #include "edge.h"
 #include "itemset_graph.h"
 
+
 using namespace std;
 
 const string inputFile = "../lib/file/input_itemsets.txt";
@@ -19,7 +20,6 @@ const string outFile = "../lib/file/out_itemsets.txt";
 const bool serialize_peg_mode = true;
 
 class ItemsetGraphStore : public GraphStore {
-
 
 public:
 
@@ -254,8 +254,29 @@ public:
 
     }
 
+//    ItemsetGraph* convertToSetGraph(PEGraph* pegraph){
+//    	set<int> edges_set;
+//    	for(auto& it : pegraph->getGraph()){
+//    		vertexid_t src = it.first;
+//    		int size = it.second.getSize();
+//    		vertexid_t* dsts = it.second.getEdges();
+//    		label_t* labels = it.second.getLabels();
+//    		for(int i = 0; i < size; ++i){
+//    			Edge edge(src, dsts[i], labels[i]);
+//    			addNewEdgeToEdgeset(edge, edges_set);
+//    		}
+//		}
+//
+//    	//TODO: replace edge set with frequent itemset
+//    	compressEdges(edges_set);
+//    	ItemsetGraph *graph = new ItemsetGraph(edges_set);
+//    	return graph;
+//    }
+
     ItemsetGraph* convertToSetGraph(PEGraph* pegraph){
-    	set<int> edges_set;
+    	int len = pegraph->getNumEdges();
+    	MyArray* myArray = new MyArray(len);
+
     	for(auto& it : pegraph->getGraph()){
     		vertexid_t src = it.first;
     		int size = it.second.getSize();
@@ -263,18 +284,24 @@ public:
     		label_t* labels = it.second.getLabels();
     		for(int i = 0; i < size; ++i){
     			Edge edge(src, dsts[i], labels[i]);
-    			addNewEdgeToEdgeset(edge, edges_set);
+    			addNewEdgeToEdgeset(edge, myArray);
     		}
 		}
 
+    	//sort the array
+    	sort(myArray->getData(), myArray->getData() + myArray->getLength());
+
     	//TODO: replace edge set with frequent itemset
-    	compressEdges(edges_set);
-    	ItemsetGraph *graph = new ItemsetGraph(edges_set);
+    	compressEdges(myArray);
+    	ItemsetGraph *graph = new ItemsetGraph(myArray);
+    	delete myArray;
     	return graph;
     }
 
     ItemsetGraph* convertToSetGraph_locked(PEGraph* pegraph){
-    	set<int> edges_set;
+    	int len = pegraph->getNumEdges();
+    	MyArray* myArray = new MyArray(len);
+
     	for(auto& it : pegraph->getGraph()){
     		vertexid_t src = it.first;
     		int size = it.second.getSize();
@@ -282,43 +309,46 @@ public:
     		label_t* labels = it.second.getLabels();
     		for(int i = 0; i < size; ++i){
     			Edge edge(src, dsts[i], labels[i]);
-    			addNewEdgeToEdgeset_locked(edge, edges_set);
+    			addNewEdgeToEdgeset_locked(edge, myArray);
     		}
 		}
 
+    	//sort the array
+    	sort(myArray->getData(), myArray->getData() + myArray->getLength());
+
     	//TODO: replace edge set with frequent itemset
-    	compressEdges(edges_set);
-    	ItemsetGraph *graph = new ItemsetGraph(edges_set);
+    	compressEdges(myArray);
+    	ItemsetGraph *graph = new ItemsetGraph(myArray);
+    	delete myArray;
     	return graph;
     }
 
-    void addNewEdgeToEdgeset_locked(Edge& edge, set<int>& edges_set){
+    void addNewEdgeToEdgeset_locked(Edge& edge, MyArray* myArray){
     	std::lock_guard<std::mutex> lockGuard(mutex);
-    	addNewEdgeToEdgeset(edge, edges_set);
+    	addNewEdgeToEdgeset(edge, myArray);
     }
 
-    void addNewEdgeToEdgeset(Edge& edge, set<int>& edges_set){
+    void addNewEdgeToEdgeset(Edge& edge, MyArray* myArray){
 		if(edgeToInt.find(edge) != edgeToInt.end()){
-			edges_set.insert(edgeToInt[edge]);
+			myArray->insert(edgeToInt[edge]);
 		}
 		else{
 	    	intToEdge.push_back(edge);
 	    	int id = intToEdge.size() - 1;
 	    	edgeToInt[edge] = id;
-	    	edges_set.insert(id);
+	    	myArray->insert(id);
 		}
     }
 
     /*
      *encode or compress the graph representation by replacing certain frequent subsets of edge ids with the unique itemset ids
      */
-    void compressEdges(set<int>& edges_set){
-    	//TODO
+    void compressEdges(MyArray* myArray){
     	for(unsigned i = 0; i < intToItemset.size(); i++){
-    		if(edges_set.size() < intToItemset.at(intToItemset.size() - 1)->getLength()){
+    		if(myArray->getLength() < intToItemset.at(intToItemset.size() - 1)->getLength()){
     			break;
     		}
-    		subsume(edges_set, intToItemset[i], getItemsetId(i));
+    		subsume(myArray, intToItemset[i], getItemsetId(i));
     	}
     }
 
@@ -330,18 +360,18 @@ public:
     	return 0 - (id_itemset + 1);
     }
 
-    bool subsume(set<int>& edges_set, ItemsetGraph* itemset, int id_itemset){
+    bool subsume(MyArray* myArray, ItemsetGraph* itemset, int id_itemset){
     	//first, determine if the itemset is a subset of edges_set; note that both are sorted
-    	unsigned int i = 0;
-    	for(auto it = edges_set.begin(); it != edges_set.end() && i < itemset->getLength(); ){
-    		if(*it < itemset->getEdgeId(i)){
-    			it++;
+    	unsigned int i = 0, j = 0;
+    	while(j < myArray->getLength() && i < itemset->getLength()){
+    		if(myArray->getData(j) < itemset->getEdgeId(i)){
+    			j++;
     		}
-    		else if(*it == itemset->getEdgeId(i)){
-    			it++;
+    		else if(myArray->getData(j) == itemset->getEdgeId(i)){
+    			j++;
     			i++;
     		}
-    		else if(*it > itemset->getEdgeId(i)){
+    		else {//if(myArray->getData(j) > itemset->getEdgeId(i))
     			return false;
     		}
     	}
@@ -350,23 +380,70 @@ public:
     	}
 
     	//second, if so, replace the itemset in edges_set with the itemset id
-    	i = 0;
-    	for(auto it = edges_set.begin(); it != edges_set.end() && i < itemset->getLength(); ){
-    		if(*it < itemset->getEdgeId(i)){
-    			it++;
+    	unsigned new_len = myArray->getLength() - itemset->getLength() + 1;
+    	MyArray* new_array = new MyArray(new_len);
+
+    	i = 0, j = 0;
+    	bool flag = true;
+    	while(j < myArray->getLength() && i < itemset->getLength()){
+    		if(myArray->getData(j) < itemset->getEdgeId(i)){
+    			if(flag){
+					if(myArray->getData(j) < id_itemset){
+						new_array->insert(myArray->getData(j));
+					}
+					else{
+						new_array->insert(id_itemset);
+						new_array->insert(myArray->getData(j));
+						flag = false;
+					}
+    			}
+    			else{
+    				new_array->insert(myArray->getData(j));
+    			}
+    			j++;
     		}
-    		else if(*it == itemset->getEdgeId(i)){
-    			it = edges_set.erase(it);
+    		else if(myArray->getData(j) == itemset->getEdgeId(i)){
+    			j++;
     			i++;
     		}
-    		else if(*it > itemset->getEdgeId(i)){
+    		else {//if(myArray->getData(j) > itemset->getEdgeId(i))
                 cout << "wrong condition!" << outFile << endl;
                 exit(EXIT_FAILURE);
     		}
     	}
     	assert(i == itemset->getLength());
 
-    	edges_set.insert(id_itemset);
+    	//copy all the remaining data in myArray to new_array
+    	if(flag){
+			while(j < myArray->getLength()){
+				if(flag){
+					if(myArray->getData(j) < id_itemset) {
+						new_array->insert(myArray->getData(j));
+					}
+					else{
+						new_array->insert(id_itemset);
+						new_array->insert(myArray->getData(j));
+						flag = false;
+					}
+				}
+				else{
+					std::copy(myArray->getData() + j, myArray->getData() + myArray->getLength(), new_array->getData() + new_array->getIndex());
+					break;
+				}
+				j++;
+			}
+
+			if(flag){
+				new_array->insert(id_itemset);
+			}
+    	}
+    	else{
+    		copy(myArray->getData() + j, myArray->getData() + myArray->getLength(), new_array->getData() + new_array->getIndex());
+    	}
+
+    	//update myArray
+    	myArray->shallowCopy(new_array);
+    	delete new_array;
     	return true;
     }
 
