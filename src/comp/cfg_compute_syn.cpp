@@ -10,6 +10,10 @@
 
 
 void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag, bool update_mode){
+	//for performance tuning
+	Timer_sum sum_compute("compute-synchronous");
+	Timer_sum sum_update("update-graphs");
+
 	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
     Concurrent_Worklist<CFGNode*>* worklist_1 = new Concurrent_Workset<CFGNode*>();
@@ -34,6 +38,9 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
         //for debugging
         Logger::print_thread_info_locked("--------------------------------------------------------------- superstep starting ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
 
+        //for tuning
+        sum_compute.start();
+
         std::vector<std::thread> comp_threads;
         for (unsigned int i = 0; i < NUM_THREADS; i++)
             comp_threads.push_back(std::thread( [=] {compute_synchronous(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore, singletons, flag);}));
@@ -41,9 +48,18 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
         for (auto &t : comp_threads)
             t.join();
 
+        //for tuning
+        sum_compute.end();
+
+        //for tuning
+        sum_update.start();
+
         //synchronize and communicate
         graphstore->update_graphs(tmp_graphstore, update_mode);
         tmp_graphstore->clear();
+
+        //for tuning
+        sum_update.end();
 
         //update worklists
         assert(worklist_1->isEmpty());
@@ -74,6 +90,10 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
     Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 //    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
     graphstore->printOutInfo();
+
+    //for tuning
+    sum_compute.print();
+    sum_update.print();
 }
 
 

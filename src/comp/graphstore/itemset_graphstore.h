@@ -525,7 +525,7 @@ public:
     	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
 
     	for(auto it = graphs.begin(); it != graphs.end(); ++it){
-    		cout << it->first << "\t" << it->second->getNumEdges() << endl;
+//    		cout << it->first << "\t" << it->second->getNumEdges() << endl;
     		size_edges += it->second->getNumEdges();
     	}
 
