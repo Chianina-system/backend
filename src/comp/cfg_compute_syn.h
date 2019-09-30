@@ -23,6 +23,8 @@
 #include "peg_compute.h"
 #include "peg_compute_parallel.h"
 #include "../utility/timer_sum.hpp"
+#include "../utility/timer_diff.hpp"
+#include "../utility/timer_sum_sync.hpp"
 
 using namespace std;
 
@@ -78,7 +80,7 @@ public:
 
 private:
     static void compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
-    		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag);
+    		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag, Timer_sum_sync* merge_sum, Timer_sum_sync* transfer_sum, Timer_sum_sync* propagate_sum);
 
     static PEGraph* transfer_call(PEGraph* in){
     	return in;

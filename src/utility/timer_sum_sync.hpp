@@ -1,45 +1,38 @@
-#ifndef TIMER_SUM_HPP
-#define TIMER_SUM_HPP
+#ifndef TIMER_SUM_SYNC_HPP
+#define TIMER_SUM_SYNC_HPP
 
 
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "../common/CommonLibs.hpp"
 
 // This class represents a timer to calculate the time elapsed
-class Timer_sum {
+class Timer_sum_sync {
     
     public:
         /* Class Constructors & Destructor */
-        Timer_sum()
+        Timer_sum_sync()
             : title("Untitle"), wall_ms_string("0"), cpu_ms_string("0") {
-        	startTime = boost::posix_time::second_clock::local_time();
-        	startClock = std::clock();
         	time_sum = 0;
         	clock_sum = 0;
         }
 
 
-        Timer_sum(const std::string& title)
+        Timer_sum_sync(const std::string& title)
             : title(title), wall_ms_string("0"), cpu_ms_string("0") {
-        	startTime = boost::posix_time::second_clock::local_time();
-        	startClock = std::clock();
         	time_sum = 0;
         	clock_sum = 0;
         }
 
 
-        ~Timer_sum() {
+        ~Timer_sum_sync() {
 
         }
 
-        void start(){
-        	startTime = boost::posix_time::second_clock::local_time();
-        	startClock = std::clock();
-        }
 
-        void end(){
-        	time_sum += (boost::posix_time::second_clock::local_time() - startTime).total_milliseconds();
-        	clock_sum += std::clock() - startClock;
+        void add(std::clock_t clock_diff, boost::posix_time::time_duration::tick_type time_diff){
+        	std::lock_guard<std::mutex> lockGuard(mutex);
+        	time_sum += time_diff;
+        	clock_sum += clock_diff;
         }
 
         void print(){
@@ -100,8 +93,6 @@ class Timer_sum {
 
     private:
         /* Declaring Variables */
-        std::clock_t startClock;
-        boost::posix_time::ptime startTime;
         std::string title;
 
         std::string wall_ms_string;
@@ -113,4 +104,4 @@ class Timer_sum {
         std::mutex mutex;
 };
 
-#endif // TIMER_SUM_HPP
+#endif // TIMER_SUM_SYNC_HPP

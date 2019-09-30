@@ -14,6 +14,12 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
 	Timer_sum sum_compute("compute-synchronous");
 	Timer_sum sum_update("update-graphs");
 
+	Timer_sum_sync* merge_sum = new Timer_sum_sync("merge");
+	Timer_sum_sync* transfer_sum = new Timer_sum_sync("transfer");
+	Timer_sum_sync* propagate_sum = new Timer_sum_sync("propagate");
+
+//	Timer_sum
+
 	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
     Concurrent_Worklist<CFGNode*>* worklist_1 = new Concurrent_Workset<CFGNode*>();
@@ -43,7 +49,8 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
 
         std::vector<std::thread> comp_threads;
         for (unsigned int i = 0; i < NUM_THREADS; i++)
-            comp_threads.push_back(std::thread( [=] {compute_synchronous(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore, singletons, flag);}));
+            comp_threads.push_back(std::thread( [=] {compute_synchronous(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore, singletons, flag,
+            		merge_sum, transfer_sum, propagate_sum);}));
 
         for (auto &t : comp_threads)
             t.join();
@@ -93,12 +100,24 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
 
     //for tuning
     sum_compute.print();
+    merge_sum->print();
+    delete merge_sum;
+    transfer_sum->print();
+    delete transfer_sum;
+    propagate_sum->print();
+    delete propagate_sum;
+
     sum_update.print();
 }
 
 
 void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
-		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag){
+		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag, Timer_sum_sync* merge_sum, Timer_sum_sync* transfer_sum, Timer_sum_sync* propagate_sum){
+	//for performance tuning
+	Timer_diff diff_merge;
+	Timer_diff diff_transfer;
+	Timer_diff diff_propagate;
+
 	//for debugging
 	Logger::print_thread_info_locked("compute-synchronous starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -110,20 +129,37 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 //				+ " " + cfg_node->getStmt()->toString()
 //				+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
 
-        //merge
+		//for tuning
+		diff_merge.start();
+
+		//merge
     	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
-//        //for debugging
-//    	StaticPrinter::print_vector(preds);
         PEGraph* in = combine_synchronous(graphstore, preds);
+
+        //for tuning
+        diff_merge.end();
+        merge_sum->add(diff_merge.getClockDiff(), diff_merge.getTimeDiff());
 
 //        //for debugging
 //        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
+
+        //for tuning
+        diff_transfer.start();
+
         //transfer
         PEGraph* out = transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
 
+        //for tuning
+        diff_transfer.end();
+        transfer_sum->add(diff_transfer.getClockDiff(), diff_transfer.getTimeDiff());
+
 //        //for debugging
 //        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
+
+
+        //for tuning
+        diff_propagate.start();
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
@@ -151,7 +187,6 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
             }
 
             //store the new graph into tmp_graphstore
-//            tmp_graphstore->addOneGraph_atomic(out_pointer, out);
             dynamic_cast<NaiveGraphStore*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
         }
         else{
@@ -162,6 +197,10 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
         if(old_out){
         	delete old_out;
         }
+
+        //for tuning
+        diff_propagate.end();
+        propagate_sum->add(diff_propagate.getClockDiff(), diff_propagate.getTimeDiff());
 
         //for debugging
 //        Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
