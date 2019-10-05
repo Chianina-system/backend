@@ -18,7 +18,9 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
 	Timer_sum_sync* transfer_sum = new Timer_sum_sync("transfer");
 	Timer_sum_sync* propagate_sum = new Timer_sum_sync("propagate");
 
-//	Timer_sum
+	Timer_sum_sync* strongupdate_sum = new Timer_sum_sync("strong-update");
+	Timer_sum_sync* add_sum = new Timer_sum_sync("edge-addition");
+
 
 	Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
@@ -50,7 +52,8 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
         std::vector<std::thread> comp_threads;
         for (unsigned int i = 0; i < NUM_THREADS; i++)
             comp_threads.push_back(std::thread( [=] {compute_synchronous(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore, singletons, flag,
-            		merge_sum, transfer_sum, propagate_sum);}));
+            		merge_sum, transfer_sum, propagate_sum,
+					strongupdate_sum, add_sum);}));
 
         for (auto &t : comp_threads)
             t.join();
@@ -100,19 +103,30 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
 
     //for tuning
     sum_compute.print();
-    merge_sum->print();
-    delete merge_sum;
-    transfer_sum->print();
-    delete transfer_sum;
-    propagate_sum->print();
-    delete propagate_sum;
+
+    	merge_sum->print();
+    	delete merge_sum;
+
+    	transfer_sum->print();
+    	delete transfer_sum;
+
+    		strongupdate_sum->print();
+    		delete strongupdate_sum;
+
+    		add_sum->print();
+    		delete add_sum;
+
+    	propagate_sum->print();
+    	delete propagate_sum;
 
     sum_update.print();
 }
 
 
 void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
-		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag, Timer_sum_sync* merge_sum, Timer_sum_sync* transfer_sum, Timer_sum_sync* propagate_sum){
+		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag,
+		Timer_sum_sync* merge_sum, Timer_sum_sync* transfer_sum, Timer_sum_sync* propagate_sum,
+		Timer_sum_sync* strongupdate_sum, Timer_sum_sync* add_sum){
 	//for performance tuning
 	Timer_diff diff_merge;
 	Timer_diff diff_transfer;
@@ -148,7 +162,7 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
         diff_transfer.start();
 
         //transfer
-        PEGraph* out = transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
+        PEGraph* out = transfer(in, cfg_node->getStmt(), grammar, singletons, flag, strongupdate_sum, add_sum);
 
         //for tuning
         diff_transfer.end();
@@ -255,20 +269,39 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
 }
 
 
-PEGraph* CFGCompute_syn::transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
+PEGraph* CFGCompute_syn::transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_sum_sync* strongupdate_sum, Timer_sum_sync* add_sum){
+	//for performance tuning
+	Timer_diff diff_update;
+	Timer_diff diff_add;
+
 	//for debugging
 	Logger::print_thread_info_locked("transfer-phi starting...\n", LEVEL_LOG_FUNCTION);
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
 
+	//for tuning
+	diff_update.start();
+
     // the KILL set
     std::set<vertexid_t> vertices_changed;
     std::set<vertexid_t> vertices_affected;
     strong_update(stmt->getDst(),out,vertices_changed,grammar,vertices_affected, singletons);
 
+    //for tuning
+    diff_update.end();
+    strongupdate_sum->add(diff_update.getClockDiff(), diff_update.getTimeDiff());
+
+
+    //for tuning
+    diff_add.start();
+
     // the GEN set
     peg_compute_add(out,stmt,grammar, flag);
+
+    //for tuning
+    diff_add.end();
+    add_sum->add(diff_add.getClockDiff(), diff_add.getTimeDiff());
 
 	//for debugging
 	Logger::print_thread_info_locked("transfer-phi finished.\n", LEVEL_LOG_FUNCTION);
@@ -276,20 +309,39 @@ PEGraph* CFGCompute_syn::transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar *gramma
     return out;
 }
 
-PEGraph* CFGCompute_syn::transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
+PEGraph* CFGCompute_syn::transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_sum_sync* strongupdate_sum, Timer_sum_sync* add_sum){
+	//for performance tuning
+	Timer_diff diff_update;
+	Timer_diff diff_add;
+
 	//for debugging
 	Logger::print_thread_info_locked("transfer-copy starting...\n", LEVEL_LOG_FUNCTION);
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
 
+	//for tuning
+	diff_update.start();
+
     // the KILL set
     std::set<vertexid_t> vertices_changed;
     std::set<vertexid_t> vertices_affected;
     strong_update(stmt->getDst(),out,vertices_changed,grammar,vertices_affected, singletons);
 
+    //for tuning
+    diff_update.end();
+    strongupdate_sum->add(diff_update.getClockDiff(), diff_update.getTimeDiff());
+
+
+    //for tuning
+    diff_add.start();
+
     // the GEN set
     peg_compute_add(out,stmt,grammar, flag);
+
+    //for tuning
+    diff_add.end();
+    add_sum->add(diff_add.getClockDiff(), diff_add.getTimeDiff());
 
 	//for debugging
 	Logger::print_thread_info_locked("transfer-copy finished.\n", LEVEL_LOG_FUNCTION);
@@ -297,20 +349,39 @@ PEGraph* CFGCompute_syn::transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar *gr
     return out;
 }
 
-PEGraph* CFGCompute_syn::transfer_load(PEGraph* in, LoadStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
+PEGraph* CFGCompute_syn::transfer_load(PEGraph* in, LoadStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_sum_sync* strongupdate_sum, Timer_sum_sync* add_sum){
+	//for performance tuning
+	Timer_diff diff_update;
+	Timer_diff diff_add;
+
 	//for debugging
 	Logger::print_thread_info_locked("transfer-load starting...\n", LEVEL_LOG_FUNCTION);
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
 
+	//for tuning
+	diff_update.start();
+
     // the KILL set
     std::set<vertexid_t> vertices_changed;
     std::set<vertexid_t> vertices_affected;
     strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected, singletons);
 
+    //for tuning
+    diff_update.end();
+    strongupdate_sum->add(diff_update.getClockDiff(), diff_update.getTimeDiff());
+
+
+    //for tuning
+    diff_add.start();
+
     // the GEN set
     peg_compute_add(out,stmt,grammar, flag);
+
+    //for tuning
+    diff_add.end();
+    add_sum->add(diff_add.getClockDiff(), diff_add.getTimeDiff());
 
 	//for debugging
 	Logger::print_thread_info_locked("transfer-load finished.\n", LEVEL_LOG_FUNCTION);
@@ -318,12 +389,19 @@ PEGraph* CFGCompute_syn::transfer_load(PEGraph* in, LoadStmt* stmt,Grammar *gram
     return out;
 }
 
-PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, StoreStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
+PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, StoreStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_sum_sync* strongupdate_sum, Timer_sum_sync* add_sum){
+	//for performance tuning
+	Timer_diff diff_update;
+	Timer_diff diff_add;
+
 	//for debugging
 	Logger::print_thread_info_locked("transfer-store starting...\n", LEVEL_LOG_FUNCTION);
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
+
+	//for tuning
+	diff_update.start();
 
     // the KILL set
     std::set<vertexid_t> vertices_changed;
@@ -340,11 +418,20 @@ PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, StoreStmt* stmt,Grammar *gr
         }
     }
 
-//    //for debugging
-//    cout << *out << endl;
+    //for tuning
+    diff_update.end();
+    strongupdate_sum->add(diff_update.getClockDiff(), diff_update.getTimeDiff());
+
+
+    //for tuning
+    diff_add.start();
 
     // the GEN set
     peg_compute_add(out,stmt,grammar, flag);
+
+    //for tuning
+    diff_add.end();
+    add_sum->add(diff_add.getClockDiff(), diff_add.getTimeDiff());
 
 	//for debugging
 	Logger::print_thread_info_locked("transfer-store finished.\n", LEVEL_LOG_FUNCTION);
@@ -352,20 +439,39 @@ PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, StoreStmt* stmt,Grammar *gr
     return out;
 }
 
-PEGraph* CFGCompute_syn::transfer_address(PEGraph* in, AllocStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag){
+PEGraph* CFGCompute_syn::transfer_address(PEGraph* in, AllocStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_sum_sync* strongupdate_sum, Timer_sum_sync* add_sum){
+	//for performance tuning
+	Timer_diff diff_update;
+	Timer_diff diff_add;
+
 	//for debugging
 	Logger::print_thread_info_locked("transfer-alloc starting...\n", LEVEL_LOG_FUNCTION);
 
 //    PEGraph* out = new PEGraph(in);
 	PEGraph* out = in;
 
+	//for tuning
+	diff_update.start();
+
     // the KILL set
     std::set<vertexid_t> vertices_changed;
     std::set<vertexid_t> vertices_affected;
 	strong_update(stmt->getDst(), out, vertices_changed, grammar, vertices_affected, singletons);
 
+    //for tuning
+    diff_update.end();
+    strongupdate_sum->add(diff_update.getClockDiff(), diff_update.getTimeDiff());
+
+
+    //for tuning
+    diff_add.start();
+
     // the GEN set
     peg_compute_add(out, stmt, grammar, flag);
+
+    //for tuning
+    diff_add.end();
+    add_sum->add(diff_add.getClockDiff(), diff_add.getTimeDiff());
 
     //for debugging
    	Logger::print_thread_info_locked("transfer-alloc finished.\n", LEVEL_LOG_FUNCTION);
@@ -419,7 +525,7 @@ bool CFGCompute_syn::is_strong_update_aux(vertexid_t aux, PEGraph *out, Grammar 
 
     for(int i = 0; i < numEdges; ++i) {
         if(grammar->isPointsTo(labels[i]) && singletons->isSingleton(edges[i])){
-        	cout << grammar->isPointsTo(labels[i]) << endl;
+//        	cout << grammar->isPointsTo(labels[i]) << endl;
             ++numOfSingleTon;
         }
     }
