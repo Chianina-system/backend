@@ -19,7 +19,11 @@ long PEGCompute::startCompute_delete(ComputationSet *compset, Grammar *grammar, 
     return totalAddedEdges;
 }
 
-long PEGCompute::startCompute_add(ComputationSet *compset, Grammar *grammar) {
+long PEGCompute::startCompute_add(ComputationSet *compset, Grammar *grammar, Timer_wrapper* timer) {
+	//for performance tuning
+	Timer_diff diff_join;
+	Timer_diff diff_merge;
+
 	//for debugging
 	Logger::print_thread_info_locked("start-compute_add starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -31,13 +35,27 @@ long PEGCompute::startCompute_add(ComputationSet *compset, Grammar *grammar) {
 //    cout << *compset << endl;
 
     while (true) {
-        computeOneIteration(compset, grammar);
+    	//for tuning
+    	diff_join.start();
+
+        computeOneIteration(compset, grammar, timer);
+
+        //for tuning
+        diff_join.end();
+        timer->getAddComputeJoinSum()->add(diff_join.getClockDiff(), diff_join.getTimeDiff());
 
 //        //for debugging
 //        cout << *compset << endl;
 //        cout << "-----------------------------------------------------------------------------\n";
 
+        //for tuning
+        diff_merge.start();
+
         postProcessOneIteration(compset, false);
+
+        //for tuning
+        diff_merge.end();
+        timer->getAddComputeMergeSum()->add(diff_merge.getClockDiff(), diff_merge.getTimeDiff());
 
 //        //for debugging
 //        cout << *compset << endl;
@@ -55,10 +73,10 @@ long PEGCompute::startCompute_add(ComputationSet *compset, Grammar *grammar) {
     return totalAddedEdges;
 }
 
-void PEGCompute::computeOneIteration(ComputationSet *compset, Grammar *grammar) {
+void PEGCompute::computeOneIteration(ComputationSet *compset, Grammar *grammar, Timer_wrapper* timer) {
     auto vertexSet = compset->getVertices();
     for (auto it = vertexSet.begin(); it != vertexSet.end(); it++) {
-        computeOneVertex(*it, compset, grammar);
+        computeOneVertex(*it, compset, grammar, timer);
     }
 }
 
@@ -78,7 +96,12 @@ void PEGCompute::computeOneIteration(ComputationSet *compset, Grammar *grammar) 
 //    }
 //}
 
-long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Grammar *grammar) {
+long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Grammar *grammar, Timer_wrapper* timer) {
+	//for performance tuning
+	Timer_diff diff_collect;
+	Timer_diff diff_kmerge;
+	Timer_diff diff_post;
+
 	//for debugging
 	Logger::print_thread_info_locked("compute-one-vertex starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -99,11 +122,33 @@ long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Gra
     // use array
     ContainersToMerge *containers = new myarray::ArraysToMerge();
 
+    //for tuning
+    diff_collect.start();
+
     // find new edges to containers
     getEdgesToMerge(index, compset, oldEmpty, deltaEmpty, *containers, grammar);
 
+    //for tuning
+    diff_collect.end();
+    if(timer){
+		timer->getAddComputeJoinCollectSum()->add(diff_collect.getClockDiff(), diff_collect.getTimeDiff());
+    }
+
+    //for tuning
+    diff_kmerge.start();
+
     // merge and sort edges,remove duplicate edges.
     containers->merge();
+
+    //for tuning
+    diff_kmerge.end();
+    if(timer){
+		timer->getAddComputeJoinMergeSum()->add(diff_kmerge.getClockDiff(), diff_kmerge.getTimeDiff());
+    }
+
+
+    //for tuning
+    diff_post.start();
 
     long newEdgesNum = containers->getNumEdges();
     //for debugging
@@ -118,6 +163,12 @@ long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Gra
 
     containers->clear();
     delete containers;
+
+    //for tuning
+    diff_post.end();
+    if(timer){
+		timer->getAddComputeJoinPostSum()->add(diff_post.getClockDiff(), diff_post.getTimeDiff());
+    }
 
 	//for debugging
 	Logger::print_thread_info_locked("compute-one-vertex finished.\n", LEVEL_LOG_FUNCTION);

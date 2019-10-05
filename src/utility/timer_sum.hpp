@@ -110,7 +110,6 @@ class Timer_sum {
         std::clock_t clock_sum;
         boost::posix_time::time_duration::tick_type time_sum;
 
-        std::mutex mutex;
 };
 
 #endif // TIMER_SUM_HPP

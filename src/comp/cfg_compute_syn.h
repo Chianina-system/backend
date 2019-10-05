@@ -23,8 +23,9 @@
 #include "peg_compute.h"
 #include "peg_compute_parallel.h"
 #include "../utility/timer_sum.hpp"
-#include "../utility/timer_diff.hpp"
-#include "../utility/timer_sum_sync.hpp"
+//#include "../utility/timer_diff.hpp"
+//#include "../utility/timer_sum_sync.hpp"
+//#include "../utility/Timer_wrapper.h"
 
 using namespace std;
 
@@ -52,18 +53,18 @@ public:
     static void do_worklist_synchronous(CFG* cfg, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag, bool update_mode); //worklist algorithm in parallel
 
     static PEGraph* transfer(PEGraph* in, Stmt* stmt, Grammar* grammar, Singletons* singletons, bool flag,
-    		Timer_sum_sync* strongupdate_sum, Timer_sum_sync* add_sum){
+    		Timer_wrapper* timer = nullptr){
         switch(stmt->getType()){
             case TYPE::Assign:
-                return transfer_copy(in, (AssignStmt*)stmt, grammar, singletons, flag, strongupdate_sum, add_sum);
+                return transfer_copy(in, (AssignStmt*)stmt, grammar, singletons, flag, timer);
             case TYPE::Load:
-                return transfer_load(in, (LoadStmt*)stmt, grammar, singletons, flag, strongupdate_sum, add_sum);
+                return transfer_load(in, (LoadStmt*)stmt, grammar, singletons, flag, timer);
             case TYPE::Store:
-                return transfer_store(in, (StoreStmt*)stmt, grammar, singletons, flag, strongupdate_sum, add_sum);
+                return transfer_store(in, (StoreStmt*)stmt, grammar, singletons, flag, timer);
             case TYPE::Alloca:
-                return transfer_address(in, (AllocStmt*)stmt, grammar, singletons, flag, strongupdate_sum, add_sum);
+                return transfer_address(in, (AllocStmt*)stmt, grammar, singletons, flag, timer);
             case TYPE::Phi:
-            	return transfer_phi(in, (PhiStmt*)stmt, grammar, singletons, flag, strongupdate_sum, add_sum);
+            	return transfer_phi(in, (PhiStmt*)stmt, grammar, singletons, flag, timer);
             case TYPE::Call:
             	return transfer_call(in);
             case TYPE::Return:
@@ -82,8 +83,7 @@ public:
 private:
     static void compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
     		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag,
-			Timer_sum_sync* merge_sum, Timer_sum_sync* transfer_sum, Timer_sum_sync* propagate_sum,
-			Timer_sum_sync* strongupdate_sum, Timer_sum_sync* add_sum);
+			Timer_wrapper* timer);
 
     static PEGraph* transfer_call(PEGraph* in){
     	return in;
@@ -101,15 +101,15 @@ private:
     	return in;
     }
 
-    static PEGraph* transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag, Timer_sum_sync* strongupdate_sum, Timer_sum_sync* add_sum);
+    static PEGraph* transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag, Timer_wrapper* timer);
 
-    static PEGraph* transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag, Timer_sum_sync* strongupdate_sum, Timer_sum_sync* add_sum);
+    static PEGraph* transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag, Timer_wrapper* timer);
 
-    static PEGraph* transfer_load(PEGraph* in, LoadStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag, Timer_sum_sync* strongupdate_sum, Timer_sum_sync* add_sum);
+    static PEGraph* transfer_load(PEGraph* in, LoadStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag, Timer_wrapper* timer);
 
-    static PEGraph* transfer_store(PEGraph* in, StoreStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag, Timer_sum_sync* strongupdate_sum, Timer_sum_sync* add_sum);
+    static PEGraph* transfer_store(PEGraph* in, StoreStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag, Timer_wrapper* timer);
 
-    static PEGraph* transfer_address(PEGraph* in, AllocStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag, Timer_sum_sync* strongupdate_sum, Timer_sum_sync* add_sum);
+    static PEGraph* transfer_address(PEGraph* in, AllocStmt* stmt,Grammar* grammar, Singletons* singletons, bool flag, Timer_wrapper* timer);
 
     static bool is_strong_update_dst(vertexid_t x,PEGraph *out,Grammar *grammar, Singletons* singletons);
 
@@ -129,7 +129,7 @@ private:
 
     static bool isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar);
 
-    static void peg_compute_add(PEGraph *out,Stmt* stmt,Grammar* grammar, bool flag);
+    static void peg_compute_add(PEGraph *out,Stmt* stmt,Grammar* grammar, bool flag, Timer_wrapper* timer);
 
     static void peg_compute_delete(PEGraph *out,Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* m);
 	static void getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& vertices_changed, Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* m);
