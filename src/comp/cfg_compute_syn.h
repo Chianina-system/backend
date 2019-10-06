@@ -22,7 +22,7 @@
 #include "graphstore/itemset_graphstore.h"
 #include "peg_compute.h"
 #include "peg_compute_parallel.h"
-#include "../utility/timer_sum.hpp"
+//#include "../utility/timer_sum.hpp"
 //#include "../utility/timer_diff.hpp"
 //#include "../utility/timer_sum_sync.hpp"
 //#include "../utility/Timer_wrapper.h"

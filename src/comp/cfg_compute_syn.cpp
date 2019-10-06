@@ -11,8 +11,8 @@
 
 void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag, bool update_mode){
 	//for performance tuning
-	Timer_sum sum_compute("compute-synchronous");
-	Timer_sum sum_update("update-graphs");
+	Timer_diff sum_compute("compute-synchronous");
+	Timer_diff sum_update("update-graphs");
 
 	Timer_wrapper* timer = new Timer_wrapper();
 
