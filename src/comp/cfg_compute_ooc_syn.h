@@ -100,7 +100,8 @@ public:
 	}
 
 
-	static void do_worklist_ooc_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode){
+	static void do_worklist_ooc_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode,
+			Timer_wrapper_ooc* timer_ooc, Timer_wrapper_inmemory* timer){
 		Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
 	    Concurrent_Worklist<CFGNode*>* worklist_1 = new Concurrent_Workset<CFGNode*>();
@@ -125,16 +126,28 @@ public:
 	        //for debugging
 	        Logger::print_thread_info_locked("--------------------------------------------------------------- superstep starting ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
 
+	        //for tuning
+	        timer_ooc->getEdgeComputeSum()->start();
+
 	        std::vector<std::thread> comp_threads;
 	        for (unsigned int i = 0; i < NUM_THREADS; i++)
-	            comp_threads.push_back(std::thread( [=] {compute_ooc(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore, singletons, actives, flag);}));
+	            comp_threads.push_back(std::thread( [=] {compute_ooc(cfg, graphstore, worklist_1, worklist_2, grammar, tmp_graphstore, singletons, actives, flag, timer);}));
 
 	        for (auto &t : comp_threads)
 	            t.join();
 
+	        //for tuning
+	        timer_ooc->getEdgeComputeSum()->end();
+
+	        //for tuning
+	        timer_ooc->getEdgeUpdateSum()->start();
+
 	        //synchronize and communicate
 	        graphstore->update_graphs(tmp_graphstore, update_mode);
 	        tmp_graphstore->clear();
+
+	        //for tuning
+	        timer_ooc->getEdgeUpdateSum()->end();
 
 	        //update worklists
 	        assert(worklist_1->isEmpty());
@@ -160,7 +173,13 @@ public:
 
 
 	static void compute_ooc(CFG_map_outcore* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1,
-			Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag){
+			Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag,
+			Timer_wrapper_inmemory* timer){
+		//for performance tuning
+		Timer_diff diff_merge;
+		Timer_diff diff_transfer;
+		Timer_diff diff_propagate;
+
 	    CFGNode* cfg_node;
 		while(worklist_1->pop_atomic(cfg_node)){
 //	//    	//for debugging
@@ -169,20 +188,39 @@ public:
 //					+ " " + cfg_node->getStmt()->toString()
 //					+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
 
+			//for tuning
+			diff_merge.start();
+
 	        //merge
 	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
 	//        //for debugging
 	//    	StaticPrinter::print_vector(preds);
 	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds);
 
+	        //for tuning
+	        diff_merge.end();
+	        timer->getMergeSum()->add_locked(diff_merge.getClockDiff(), diff_merge.getTimeDiff());
+
 //	        //for debugging
 //	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
+
+	        //for tuning
+	        diff_transfer.start();
+
 	        //transfer
-	        PEGraph* out = CFGCompute_syn::transfer(in, cfg_node->getStmt(), grammar, singletons, flag);
+	        PEGraph* out = CFGCompute_syn::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
+
+	        //for tuning
+	        diff_transfer.end();
+	        timer->getTransferSum()->add_locked(diff_transfer.getClockDiff(), diff_transfer.getTimeDiff());
 
 //	        //for debugging
 //	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
+
+
+	        //for tuning
+	        diff_propagate.start();
 
 	        //update and propagate
 	        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
@@ -221,6 +259,10 @@ public:
 	        if(old_out){
 	        	delete old_out;
 	        }
+
+	        //for tuning
+	        diff_propagate.end();
+	        timer->getPropagateSum()->add_locked(diff_propagate.getClockDiff(), diff_propagate.getTimeDiff());
 
 //	        //for debugging
 //	//        Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);

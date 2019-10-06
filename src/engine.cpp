@@ -74,7 +74,8 @@ int main(int argc, char* argv[]) {
 
 
 
-void compute_ooc(Partition partition, Context* context, bool sync_mode, int graphstore_mode, bool update_mode){
+void compute_ooc(Partition partition, Context* context, bool sync_mode, int graphstore_mode, bool update_mode,
+		Timer_wrapper_ooc* timer_ooc, Timer_wrapper_inmemory* timer){
 	//for debugging
 	Logger::print_thread_info_locked("----------------------- Partition " + to_string(partition) + " starting -----------------------\n", LEVEL_LOG_MAIN);
 
@@ -93,14 +94,36 @@ void compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
 //    bool flag = context->getFlag(partition);
 //	context->setFlag(partition);
 
+	//for tuning
+	timer_ooc->getLoadSum()->start();
+
     CFGCompute_ooc_syn::load(partition, cfg, graphstore, context);
+
+    //for tuning
+    timer_ooc->getLoadSum()->end();
+
+
+    //for tuning
+    timer_ooc->getComputeSum()->start();
+
     if(sync_mode){
-		CFGCompute_ooc_syn::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), context->getSingletons(), actives, false, update_mode);
+		CFGCompute_ooc_syn::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
     }
     else{
     	CFGCompute_ooc_asyn::do_worklist_ooc_asynchronous(cfg, graphstore, context->getGrammar(), context->getSingletons(), actives, false);
     }
-	CFGCompute_ooc_syn::pass(partition, cfg, graphstore, actives, context);
+
+    //for tuning
+    timer_ooc->getComputeSum()->end();
+
+
+    //for tuning
+    timer_ooc->getPassSum()->start();
+
+    CFGCompute_ooc_syn::pass(partition, cfg, graphstore, actives, context);
+
+    //for tuning
+    timer_ooc->getPassSum()->end();
 
 	delete cfg;
 	delete graphstore;
@@ -198,21 +221,39 @@ void printGraphstoreInfo(Context* context){
 }
 
 void run_ooc(int graphstore_mode, bool update_mode, int num_partitions, bool sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
+	//for performance tuning
+	Timer_sum sum_preprocess("preprocess");
+	Timer_sum sum_compute("compute-ooc");
+	Timer_wrapper_ooc* timer_ooc = new Timer_wrapper_ooc();
+	Timer_wrapper_inmemory* timer = new Timer_wrapper_inmemory();
+
+	//for tuning
+	sum_preprocess.start();
+
 	//preprocessing
 	Context* context = new Context(num_partitions, file_total, file_cfg, file_stmts, file_entries, file_singletons, file_grammar);
 	Preprocess::process(*context);
 
-	//for debugging
-	context->printOutPriorityInfo();
+	//for tuning
+	sum_preprocess.end();
+
+//	//for debugging
+//	context->printOutPriorityInfo();
+
+	//for tuning
+	sum_compute.start();
 
 	//iterative computation
 	Partition partition;
 	while(context->schedule(partition)){
-		compute_ooc(partition, context, sync_mode, graphstore_mode, update_mode);
+		compute_ooc(partition, context, sync_mode, graphstore_mode, update_mode, timer_ooc, timer);
 
-		//for debugging
-		context->printOutPriorityInfo();
+//		//for debugging
+//		context->printOutPriorityInfo();
 	}
+
+	//for tuning
+	sum_compute.end();
 
 	//for debugging
 //	NaiveGraphStore *graphstore = new NaiveGraphStore();
@@ -222,6 +263,17 @@ void run_ooc(int graphstore_mode, bool update_mode, int num_partitions, bool syn
 	printGraphstoreInfo(context);
 
 	delete context;
+
+	//for tuning
+	sum_preprocess.print();
+
+	timer_ooc->print();
+	delete timer_ooc;
+
+	timer->print();
+	delete timer;
+
+	sum_compute.print();
 }
 
 

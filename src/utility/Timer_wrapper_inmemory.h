@@ -5,16 +5,16 @@
  *      Author: dell
  */
 
-#ifndef UTILITY_TIMER_WRAPPER_H_
-#define UTILITY_TIMER_WRAPPER_H_
+#ifndef UTILITY_TIMER_WRAPPER_INMEMORY_H_
+#define UTILITY_TIMER_WRAPPER_INMEMORY_H_
 
 #include "timer_sum_sync.hpp"
 
-class Timer_wrapper {
+class Timer_wrapper_inmemory {
 
 public:
 
-	Timer_wrapper(){
+	Timer_wrapper_inmemory(){
 		merge_sum = new Timer_sum_sync("merge");
 		transfer_sum = new Timer_sum_sync("transfer");
 		propagate_sum = new Timer_sum_sync("propagate");
@@ -35,7 +35,7 @@ public:
 		add_compute_join_post_sum = new Timer_sum_sync("compute-add-join-post");
 	}
 
-	~Timer_wrapper(){
+	~Timer_wrapper_inmemory(){
     	delete merge_sum;
     	delete transfer_sum;
 
@@ -160,4 +160,4 @@ private:
 
 
 
-#endif /* UTILITY_TIMER_WRAPPER_H_ */
+#endif /* UTILITY_TIMER_WRAPPER_INMEMORY_H_ */

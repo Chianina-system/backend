@@ -19,7 +19,7 @@ long PEGCompute::startCompute_delete(ComputationSet *compset, Grammar *grammar, 
     return totalAddedEdges;
 }
 
-long PEGCompute::startCompute_add(ComputationSet *compset, Grammar *grammar, Timer_wrapper* timer) {
+long PEGCompute::startCompute_add(ComputationSet *compset, Grammar *grammar, Timer_wrapper_inmemory* timer) {
 	//for performance tuning
 	Timer_diff diff_join;
 	Timer_diff diff_merge;
@@ -42,7 +42,7 @@ long PEGCompute::startCompute_add(ComputationSet *compset, Grammar *grammar, Tim
 
         //for tuning
         diff_join.end();
-        timer->getAddComputeJoinSum()->add(diff_join.getClockDiff(), diff_join.getTimeDiff());
+        timer->getAddComputeJoinSum()->add_locked(diff_join.getClockDiff(), diff_join.getTimeDiff());
 
 //        //for debugging
 //        cout << *compset << endl;
@@ -55,7 +55,7 @@ long PEGCompute::startCompute_add(ComputationSet *compset, Grammar *grammar, Tim
 
         //for tuning
         diff_merge.end();
-        timer->getAddComputeMergeSum()->add(diff_merge.getClockDiff(), diff_merge.getTimeDiff());
+        timer->getAddComputeMergeSum()->add_locked(diff_merge.getClockDiff(), diff_merge.getTimeDiff());
 
 //        //for debugging
 //        cout << *compset << endl;
@@ -73,7 +73,7 @@ long PEGCompute::startCompute_add(ComputationSet *compset, Grammar *grammar, Tim
     return totalAddedEdges;
 }
 
-void PEGCompute::computeOneIteration(ComputationSet *compset, Grammar *grammar, Timer_wrapper* timer) {
+void PEGCompute::computeOneIteration(ComputationSet *compset, Grammar *grammar, Timer_wrapper_inmemory* timer) {
     auto vertexSet = compset->getVertices();
     for (auto it = vertexSet.begin(); it != vertexSet.end(); it++) {
         computeOneVertex(*it, compset, grammar, timer);
@@ -96,7 +96,7 @@ void PEGCompute::computeOneIteration(ComputationSet *compset, Grammar *grammar, 
 //    }
 //}
 
-long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Grammar *grammar, Timer_wrapper* timer) {
+long PEGCompute::computeOneVertex(vertexid_t index, ComputationSet *compset, Grammar *grammar, Timer_wrapper_inmemory* timer) {
 //	//for performance tuning
 //	Timer_diff diff_collect;
 //	Timer_diff diff_kmerge;
