@@ -9,6 +9,7 @@
 #define COMP_GRAPHSTORE_EDGE_H_
 
 #include "../../common/CommonLibs.hpp"
+#include "../../utility/uintseqhash.hh"
 
 class Edge {
 
@@ -28,8 +29,15 @@ public:
 		return srcId;
 	}
 
-	int get_hash() const{
-		return ((srcId << 1) + (dstId >> 1) + label);
+	unsigned int get_hash() const{
+//		return ((srcId << 1) + (dstId >> 1) + label);
+		bliss::UintSeqHash h;
+
+		h.update(srcId);
+		h.update(dstId);
+		h.update(label);
+
+		return h.get_value();
 	}
 
 	bool operator==(const Edge& other) const {

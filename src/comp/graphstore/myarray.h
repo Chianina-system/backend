@@ -31,6 +31,11 @@ public:
 		}
 	}
 
+	void insert(int* d, unsigned int s){
+		memcpy(data, d, sizeof(int)*s);
+		index += s;
+	}
+
 	void insert(int d){
 		data[index] = d;
 		index++;
@@ -52,13 +57,16 @@ public:
 	}
 
 	inline unsigned getLength() const {
-		return len;
+		return index;
 	}
 
 	inline unsigned getIndex() const {
 		return index;
 	}
 
+//	void printOutArray(){
+//
+//	}
 
 private:
 	int* data;

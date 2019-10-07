@@ -140,6 +140,28 @@ public:
 //    	return retrieve(graph_pointer);
 //    }
 
+    PEGraph* retrieve_shallow(PEGraph_Pointer graph_pointer){
+//    	//for debugging
+//    	Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
+
+    	PEGraph* out;
+
+    	if(map.find(graph_pointer) != map.end()){
+//    		Logger::print_thread_info_locked("retrieving +++++++++++++++++++++++ " +  to_string((long) map[graph_pointer]) + " +++++++++++++++++++++++\n", LEVEL_LOG_GRAPHSTORE) ;
+    		out = map[graph_pointer];
+    	}
+    	else{
+//    		out = new PEGraph();
+    		out = nullptr;
+    	}
+
+    	//for debugging
+//    	Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
+
+    	return out;
+    }
+
+
     //deep copy
     PEGraph* retrieve(PEGraph_Pointer graph_pointer){
 //    	//for debugging
@@ -168,6 +190,23 @@ public:
 //    	update(graph_pointer, pegraph);
 //    }
 
+
+    //deep copy
+    void update_shallow(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
+//    	//for debugging
+//    	Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
+
+//    	assert(map.find(graph_pointer) != map.end());
+    	if(map.find(graph_pointer) != map.end()){
+//    		Logger::print_thread_info_locked("deleting +++++++++++++++++++++++ " +  to_string((long) map[graph_pointer]) + " +++++++++++++++++++++++\n", LEVEL_LOG_GRAPHSTORE) ;
+			delete map[graph_pointer];
+    	}
+		map[graph_pointer] = pegraph;
+
+    	//for debugging
+//    	Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
+    }
+
     //deep copy
     void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
 //    	//for debugging
@@ -186,7 +225,7 @@ public:
 
     //shallow copy
     void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph* graph){
-    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	std::lock_guard<std::mutex> lGuard (mtx);
     	this->map[pointer] = graph;
     }
 
@@ -229,6 +268,66 @@ public:
     	}
     }
 
+
+    void update_graphs_shallow(GraphStore* another, bool update_mode){
+    	//for debugging
+    	Logger::print_thread_info_locked("update-graphs starting...\n", LEVEL_LOG_FUNCTION);
+
+    	if(update_mode){
+    		update_graphs_shallow_parallel(another); // in parallel
+    	}
+    	else{
+    		update_graphs_shallow_sequential(another); // sequential
+    	}
+
+    	//for debugging
+    	Logger::print_thread_info_locked("update-graphs finished.\n", LEVEL_LOG_FUNCTION);
+    }
+
+    void update_graphs_shallow_parallel(GraphStore* another){
+	    //initiate concurrent worklist
+	    Concurrent_Worklist<vertexid_t>* worklist = new Concurrent_Workset<vertexid_t>();
+	    NaiveGraphStore* another_graphstore = dynamic_cast<NaiveGraphStore*>(another);
+	    for(auto& it: another_graphstore->map){
+	        worklist->push_atomic(it.first);
+
+			//initialize the graphstore
+	        if(map.find(it.first) == map.end()){
+	        	map[it.first] = new PEGraph();
+	        }
+	    }
+
+		std::vector<std::thread> comp_threads;
+		for (unsigned int i = 0; i < NUM_THREADS; i++)
+			comp_threads.push_back(std::thread([=] {update_shallow_parallel(this, another_graphstore, worklist);}));
+
+		for (auto &t : comp_threads)
+			t.join();
+
+	    //clean
+	    delete(worklist);
+    }
+
+    static void update_shallow_parallel(NaiveGraphStore* current, NaiveGraphStore* another, Concurrent_Worklist<vertexid_t>* worklist){
+    	vertexid_t id = -1;
+    	while(worklist->pop_atomic(id)){
+    		assert(current->map.find(id) != current->map.end());
+    		current->update_shallow(id, another->map.at(id));
+    	}
+    }
+
+
+    void update_graphs_shallow_sequential(GraphStore* another){
+    	NaiveGraphStore* another_graphstore = dynamic_cast<NaiveGraphStore*>(another);
+    	for(auto& it: another_graphstore->map){
+    		update_shallow(it.first, it.second);
+    	}
+    }
+
+
+
+
+
 //    void update_graphs(GraphStore* another){
 ////    	update_graphs_sequential(another); // sequential
 //    	update_graphs_parallel(another); // in parallel
@@ -243,6 +342,13 @@ public:
     		delete it->second;
     		it = map.erase(it);
     	}
+    }
+
+    void clear_shallow(){
+//    	for(auto it = map.begin(); it != map.end(); ){
+//    		it = map.erase(it);
+//    	}
+    	this->map.clear();
     }
 
 
@@ -269,7 +375,7 @@ public:
 
 protected:
     void print(std::ostream& str) {
-    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	std::lock_guard<std::mutex> lGuard (mtx);
     	str << "The number of graphs is: " << map.size() << "\n";
     	for(auto it = map.begin(); it != map.end(); ++it){
     		str << ">>>>" << it->first << " " << *(it->second) << endl;
@@ -277,7 +383,7 @@ protected:
     }
 
     void toString_sub(std::ostringstream& str) {
-    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	std::lock_guard<std::mutex> lGuard (mtx);
     	str << "The number of graphs is: " << map.size() << "\n";
     	for(auto it = map.begin(); it != map.end(); ++it){
     		str << ">>>>" << it->first << " " << *(it->second) << endl;

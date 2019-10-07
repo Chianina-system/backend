@@ -58,6 +58,26 @@ public:
 		return out;
     }
 
+    ItemsetGraph* retrieve_direct(PEGraph_Pointer graph_pointer) {
+//		//for debugging
+//		Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
+
+    	ItemsetGraph *out;
+
+		if (graphs.find(graph_pointer) != graphs.end()) {
+//			out = new PEGraph(graphs[graph_pointer]);
+			out = graphs[graph_pointer];
+		}
+		else {
+			out = nullptr;
+		}
+
+//		//for debugging
+//		Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
+
+		return out;
+    }
+
     bool isItemset(int id_edge){
     	return id_edge < 0;
     }
@@ -137,6 +157,42 @@ public:
 		//for debugging
 //		cout << *pegraph << endl;
 		graphs[graph_pointer] = convertToSetGraph(pegraph);
+//		cout << *graphs[graph_pointer] << endl;
+//		cout << *convertToPEGraph(graphs[graph_pointer]) << endl;
+
+//		//for debugging
+//		Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
+    }
+
+    void update_hybrid(PEGraph_Pointer graph_pointer, HybridGraph* hybridgraph) {
+//		//for debugging
+//		Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
+
+		if (graphs.find(graph_pointer) != graphs.end()) {
+			delete graphs[graph_pointer];
+		}
+
+		//for debugging
+//		cout << *pegraph << endl;
+		graphs[graph_pointer] = convertToSetGraph_hybrid(hybridgraph);
+//		cout << *graphs[graph_pointer] << endl;
+//		cout << *convertToPEGraph(graphs[graph_pointer]) << endl;
+
+//		//for debugging
+//		Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
+    }
+
+    void update_convert_hybrid_locked(PEGraph_Pointer graph_pointer, HybridGraph* pegraph) {
+//		//for debugging
+//		Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
+
+		if (graphs.find(graph_pointer) != graphs.end()) {
+			delete graphs[graph_pointer];
+		}
+
+		//for debugging
+//		cout << *pegraph << endl;
+		graphs[graph_pointer] = convertToSetGraph_hybrid_locked(pegraph);
 //		cout << *graphs[graph_pointer] << endl;
 //		cout << *convertToPEGraph(graphs[graph_pointer]) << endl;
 
@@ -298,6 +354,37 @@ public:
     	return graph;
     }
 
+    ItemsetGraph* convertToSetGraph_hybrid(HybridGraph* hybridgraph){
+    	PEGraph* pegraph = hybridgraph->getPeGraph();
+    	ItemsetGraph* itemsetgraph = hybridgraph->getItemsetGraph();
+    	int len = itemsetgraph->getLength() + pegraph->getNumEdges();
+    	MyArray* myArray = new MyArray(len);
+
+    	//first copy the original itemsetgraph into the array
+    	myArray->insert(itemsetgraph->getEdgeIds(), itemsetgraph->getLength());
+
+    	//then add the pegraph into the array
+    	for(auto& it : pegraph->getGraph()){
+    		vertexid_t src = it.first;
+    		int size = it.second.getSize();
+    		vertexid_t* dsts = it.second.getEdges();
+    		label_t* labels = it.second.getLabels();
+    		for(int i = 0; i < size; ++i){
+    			Edge edge(src, dsts[i], labels[i]);
+    			addNewEdgeToEdgeset(edge, myArray);
+    		}
+		}
+
+    	//sort the array
+    	sort(myArray->getData(), myArray->getData() + myArray->getLength());
+
+    	//TODO: replace edge set with frequent itemset
+    	compressEdges(myArray);
+    	ItemsetGraph *graph = new ItemsetGraph(myArray);
+    	delete myArray;
+    	return graph;
+    }
+
     ItemsetGraph* convertToSetGraph_locked(PEGraph* pegraph){
     	int len = pegraph->getNumEdges();
     	MyArray* myArray = new MyArray(len);
@@ -323,8 +410,39 @@ public:
     	return graph;
     }
 
+    ItemsetGraph* convertToSetGraph_hybrid_locked(HybridGraph* hybridgraph){
+    	PEGraph* pegraph = hybridgraph->getPeGraph();
+    	ItemsetGraph* itemsetgraph = hybridgraph->getItemsetGraph();
+    	int len = itemsetgraph->getLength() + pegraph->getNumEdges();
+    	MyArray* myArray = new MyArray(len);
+
+    	//first copy the original itemsetgraph into the array
+    	myArray->insert(itemsetgraph->getEdgeIds(), itemsetgraph->getLength());
+
+    	//then add the pegraph into the array
+    	for(auto& it : pegraph->getGraph()){
+    		vertexid_t src = it.first;
+    		int size = it.second.getSize();
+    		vertexid_t* dsts = it.second.getEdges();
+    		label_t* labels = it.second.getLabels();
+    		for(int i = 0; i < size; ++i){
+    			Edge edge(src, dsts[i], labels[i]);
+    			addNewEdgeToEdgeset_locked(edge, myArray);
+    		}
+		}
+
+    	//sort the array
+    	sort(myArray->getData(), myArray->getData() + myArray->getLength());
+
+    	//TODO: replace edge set with frequent itemset
+    	compressEdges(myArray);
+    	ItemsetGraph *graph = new ItemsetGraph(myArray);
+    	delete myArray;
+    	return graph;
+    }
+
     void addNewEdgeToEdgeset_locked(Edge& edge, MyArray* myArray){
-    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	std::lock_guard<std::mutex> lGuard(mtx);
     	addNewEdgeToEdgeset(edge, myArray);
     }
 
@@ -339,6 +457,46 @@ public:
 	    	myArray->insert(id);
 		}
     }
+
+
+    HybridGraph* convertToHybridGraph(PEGraph* pegraph){
+    	int len = pegraph->getNumEdges();
+    	MyArray* myArray = new MyArray(len);
+    	PEGraph* diff_peGraph = new PEGraph();
+
+    	for(auto& it : pegraph->getGraph()){
+    		vertexid_t src = it.first;
+    		int size = it.second.getSize();
+    		vertexid_t* dsts = it.second.getEdges();
+    		label_t* labels = it.second.getLabels();
+
+    		EdgeArray edgeArray;
+
+    		for(int i = 0; i < size; ++i){
+    			Edge edge(src, dsts[i], labels[i]);
+    			if(edgeToInt.find(edge) != edgeToInt.end()){
+    				myArray->insert(edgeToInt[edge]);
+    			}
+    			else{
+    				edgeArray.addOneEdge(dsts[i], labels[i]);
+    			}
+    		}
+
+    		if(!edgeArray.isEmpty()){
+    			diff_peGraph->setEdgeArray(src, edgeArray);
+    		}
+		}
+
+    	//sort the array
+    	sort(myArray->getData(), myArray->getData() + myArray->getLength());
+
+    	//TODO: replace edge set with frequent itemset
+    	compressEdges(myArray);
+    	HybridGraph *graph = new HybridGraph(myArray, diff_peGraph);
+    	delete myArray;
+    	return graph;
+    }
+
 
     /*
      *encode or compress the graph representation by replacing certain frequent subsets of edge ids with the unique itemset ids
@@ -500,11 +658,79 @@ public:
     	Logger::print_thread_info_locked("update-graphs-parallel finished.\n", LEVEL_LOG_FUNCTION);
     }
 
+    static void update_hybrid_parallel(ItemsetGraphStore* current, HybridGraphStore* tmp_graphs, Concurrent_Worklist<vertexid_t>* worklist){
+    	//for debugging
+    	Logger::print_thread_info_locked("update-parallel starting...\n", LEVEL_LOG_FUNCTION);
+
+    	vertexid_t id = -1;
+    	while(worklist->pop_atomic(id)){
+//    		//for debugging
+//    		Logger::print_thread_info_locked("graph id = " + to_string(id) + "\n", LEVEL_LOG_FUNCTION);
+
+    		assert(current->graphs.find(id) != current->graphs.end());
+    		current->update_convert_hybrid_locked(id, tmp_graphs->getGraphs().at(id));
+    	}
+
+    	//for debugging
+    	Logger::print_thread_info_locked("update-parallel finished.\n", LEVEL_LOG_FUNCTION);
+    }
+
+
     void update_graphs_sequential(GraphStore* another){
     	NaiveGraphStore* another_graphstore = dynamic_cast<NaiveGraphStore*>(another);
     	for(auto& it: another_graphstore->getMap()){
     		update(it.first, it.second);
     	}
+    }
+
+    void update_graphs_hybrid(HybridGraphStore* tmp_graphs, bool update_mode){
+    	//for debugging
+    	Logger::print_thread_info_locked("update-graphs starting...\n", LEVEL_LOG_FUNCTION);
+
+    	if(update_mode){
+	    	update_graphs_hybrid_parallel(tmp_graphs); // in parallel
+    	}
+    	else{
+			update_graphs_hybrid_sequential(tmp_graphs); // sequential
+    	}
+
+    	//for debugging
+    	Logger::print_thread_info_locked("update-graphs finished.\n", LEVEL_LOG_FUNCTION);
+    }
+
+    void update_graphs_hybrid_sequential(HybridGraphStore* tmp_graphs){
+    	for(auto& it: tmp_graphs->getGraphs()){
+    		update_hybrid(it.first, it.second);
+    	}
+    }
+
+    void update_graphs_hybrid_parallel(HybridGraphStore* tmp_graphs){
+    	//for debugging
+    	Logger::print_thread_info_locked("update-graphs-parallel starting...\n", LEVEL_LOG_FUNCTION);
+
+	    //initiate concurrent worklist
+	    Concurrent_Worklist<vertexid_t>* worklist = new Concurrent_Workset<vertexid_t>();
+	    for(auto& it: tmp_graphs->getGraphs()){
+	        worklist->push_atomic(it.first);
+
+			//initialize the graphstore
+	        if(graphs.find(it.first) == graphs.end()){
+	        	graphs[it.first] = new ItemsetGraph();
+	        }
+	    }
+
+		std::vector<std::thread> comp_threads;
+		for (unsigned int i = 0; i < NUM_THREADS; i++)
+			comp_threads.push_back(std::thread([=] {update_hybrid_parallel(this, tmp_graphs, worklist);}));
+
+		for (auto &t : comp_threads)
+			t.join();
+
+	    //clean
+	    delete(worklist);
+
+    	//for debugging
+    	Logger::print_thread_info_locked("update-graphs-parallel finished.\n", LEVEL_LOG_FUNCTION);
     }
 
 //    void clearEntryOnly() {
@@ -660,10 +886,13 @@ public:
 
     }
 
+	unordered_map<PEGraph_Pointer, ItemsetGraph*>& getGraphs() {
+		return graphs;
+	}
 
 protected:
     void print(std::ostream& str) {
-    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	std::lock_guard<std::mutex> lGuard (mtx);
     	str << "The number of graphs is: " << graphs.size() << "\n";
     	for(auto it = graphs.begin(); it != graphs.end(); ++it){
     		str << ">>>>" << it->first << " " << *(it->second) << endl;
@@ -671,7 +900,7 @@ protected:
     }
 
     void toString_sub(std::ostringstream& str) {
-    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	std::lock_guard<std::mutex> lGuard (mtx);
     	str << "The number of graphs is: " << graphs.size() << "\n";
     	for(auto it = graphs.begin(); it != graphs.end(); ++it){
     		str << ">>>>" << it->first << " " << *(it->second) << endl;

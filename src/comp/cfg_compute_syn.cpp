@@ -1097,7 +1097,7 @@ void CFGCompute_syn::peg_compute_delete(PEGraph *out, Grammar *grammar, std::uno
     else{
     	number_deleted = PEGCompute::startCompute_delete(compset, grammar, m);
     }
-    Logger::print_thread_info_locked("number of edges deleted: " + std::to_string(number_deleted) + "\n", LEVEL_LOG_INFO);
+//    Logger::print_thread_info_locked("number of edges deleted: " + std::to_string(number_deleted) + "\n", LEVEL_LOG_INFO);
 
     // clean
     delete compset;

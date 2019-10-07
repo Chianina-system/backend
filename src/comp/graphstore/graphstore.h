@@ -8,11 +8,12 @@
 #ifndef COMP_GRAPHSTORE_GRAPHSTORE_H_
 #define COMP_GRAPHSTORE_GRAPHSTORE_H_
 
-#include "../pegraph.h"
+//#include "../pegraph.h"
 #include "../cfg.h"
 #include "../concurrent_worklist/concurrent_workset.h"
 //#include "peGraphPointer.h"
 //#include "cfg_compute.h"
+#include "hybrid_graphstore.h"
 
 using namespace std;
 
@@ -32,7 +33,7 @@ public:
 
     //deep copy; locked version for asynchronous mode
     PEGraph* retrieve_locked(PEGraph_Pointer graph_pointer){
-    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	std::lock_guard<std::mutex> lguard (mtx);
     	return retrieve(graph_pointer);
     }
 
@@ -40,7 +41,7 @@ public:
 
     //deep copy; locked version for asynchronous mode
     void update_locked(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
-    	std::lock_guard<std::mutex> lockGuard(mutex);
+    	std::lock_guard<std::mutex> lguard (mtx);
     	update(graph_pointer, pegraph);
     }
 
@@ -103,7 +104,7 @@ protected:
     virtual void toString_sub(std::ostringstream& strm) = 0;
 
 
-    std::mutex mutex;
+    std::mutex mtx;
 
 private:
     //	void add();

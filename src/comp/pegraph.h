@@ -155,6 +155,10 @@ public:
 		}
     }
 
+    bool isEmpty(){
+    	return this->getNumEdges() == 0;
+    }
+
 
 private:
     std::unordered_map<vertexid_t, EdgeArray> graph;

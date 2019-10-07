@@ -291,7 +291,13 @@ void compute_inmemory(int graphstore_mode, bool update_mode, bool sync_mode, con
 
 	CFGCompute_syn::load(file_total, file_cfg, file_stmts, file_entries, cfg, file_singletons, singletons, graphstore, file_grammar, grammar);
 	if(sync_mode){
-		CFGCompute_syn::do_worklist_synchronous(cfg, graphstore, grammar, singletons, false, update_mode);
+//		CFGCompute_syn::do_worklist_synchronous(cfg, graphstore, grammar, singletons, false, update_mode);
+		if(graphstore_mode){
+			CFGCompute_syn_itemset::do_worklist_synchronous(cfg, dynamic_cast<ItemsetGraphStore*> (graphstore), grammar, singletons, false, update_mode);
+		}
+		else{
+			CFGCompute_syn_naive::do_worklist_synchronous(cfg, dynamic_cast<NaiveGraphStore*> (graphstore), grammar, singletons, false, update_mode);
+		}
 	}
 	else{
 		CFGCompute_asyn::do_worklist_asynchronous(cfg, graphstore, grammar, singletons, false);

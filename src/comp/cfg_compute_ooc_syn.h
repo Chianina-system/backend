@@ -11,7 +11,8 @@
 
 #include "cfg_map_outcore.h"
 #include "../preproc/preprocess.h"
-#include "cfg_compute_syn.h"
+#include "cfg_compute_syn_itemset.h"
+#include "cfg_compute_syn_naive.h"
 
 
 using namespace std;

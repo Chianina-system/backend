@@ -35,6 +35,15 @@ public:
 		}
 	}
 
+	ItemsetGraph(ItemsetGraph* base_graph, MyArray* edge_vector) {
+		len = base_graph->getLength() + edge_vector->getLength();
+		if (len) {
+			edge_ids = edge_vector->getData();
+		} else {
+			edge_ids = NULL;
+		}
+	}
+
 	ItemsetGraph(std::vector<int>& edge_vector){
 		len = edge_vector.size();
 		if(len){
@@ -107,7 +116,7 @@ public:
 		return len;
 	}
 
-	inline bool isEmpty(){
+	inline bool isEmpty() const {
 		return len == 0;
 	}
 
@@ -117,6 +126,30 @@ public:
 //			os << edge_ids[i] << " ";
 //		}
 //	}
+
+	bool equals(ItemsetGraph* another) const {
+		if(!another){
+			return false;
+		}
+
+		if(this == another){
+			return true;
+		}
+
+		if(this->getLength() != another->getLength()){
+			return false;
+		}
+
+		if(this->isEmpty()){
+			return true;
+		}
+
+		if(memcmp(this->edge_ids, another->edge_ids, sizeof(label_t)*len)){
+			return false;
+		}
+
+		return true;
+	}
 
 
 private:

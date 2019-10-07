@@ -31,12 +31,12 @@ public:
     virtual bool isEmpty() = 0;
 
     void push_atomic(T item) {
-    	std::unique_lock < std::mutex > lock(mutex);
+    	std::unique_lock < std::mutex > lock(mtx);
     	push(item);
     }
 
     bool pop_atomic(T & item){
-    	std::unique_lock < std::mutex > lock(mutex);
+    	std::unique_lock < std::mutex > lock(mtx);
     	return pop(item);
     }
 
@@ -55,7 +55,7 @@ public:
     virtual bool pop(T & item) = 0;
 
 protected:
-    std::mutex mutex;
+    std::mutex mtx;
 
 
 //    virtual void print(std::ostream& str) const = 0;
