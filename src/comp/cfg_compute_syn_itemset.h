@@ -10,6 +10,7 @@
 
 #include "cfg_compute_syn.h"
 
+#define DIFF_MODE 1
 
 using namespace std;
 
@@ -168,43 +169,79 @@ public:
 	        diff_propagate.start();
 
 	        //update and propagate
-//	        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-//	        PEGraph* old_out = graphstore->retrieve(out_pointer);
-//	        bool isEqual = out->equals(old_out);
-	        HybridGraph* out_hybrid = graphstore->convertToHybridGraph(out);
-	        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-	        ItemsetGraph* old_out = graphstore->retrieve_direct(out_pointer);
-	        bool isEqual = out_hybrid->equals(old_out);
+	        if(DIFF_MODE){
+				PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
+				PEGraph* old_out = graphstore->retrieve(out_pointer);
+				bool isEqual = out->equals(old_out);
 
-	//        //for debugging
-	//        if(old_out){
-	//			Logger::print_thread_info_locked("The old-out-PEG:\n" + old_out->toString(grammar) + "\n", LEVEL_LOG_PEG);
-	//        }
-	//        else{
-	//        	Logger::print_thread_info_locked("The old-out-PEG:\n null \n", LEVEL_LOG_PEG);
-	//        }
+//		        //for debugging
+//		        if(old_out){
+//					Logger::print_thread_info_locked("The old-out-PEG:\n" + old_out->toString(grammar) + "\n", LEVEL_LOG_PEG);
+//		        }
+//		        else{
+//		        	Logger::print_thread_info_locked("The old-out-PEG:\n null \n", LEVEL_LOG_PEG);
+//		        }
 
-//	        //for debugging
-//	        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", LEVEL_LOG_INFO);
+//		        //for debugging
+//		        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", 1);
 
-	        if(!isEqual){
-	            //propagate
-	            std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
-	            if(successors){
-					for(auto it = successors->cbegin(); it != successors->cend(); ++it){
-						worklist_2->push_atomic(*it);
+				if(!isEqual){
+					ItemsetGraph* old_out_itemset = graphstore->retrieve_direct(out_pointer);
+
+					HybridGraph* out_hybrid;
+					if(old_out_itemset){
+						out_hybrid = graphstore->constructHybridGraph(out, old_out, old_out_itemset);
 					}
-	            }
+					else{
+						out_hybrid = graphstore->convertToHybridGraph(out);
+					}
 
-	            //store the new graph into tmp_graphstore
-	            tmp_graphs->addOneGraph_atomic(out_pointer, out_hybrid);
+					//propagate
+					std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
+					if(successors){
+						for(auto it = successors->cbegin(); it != successors->cend(); ++it){
+							worklist_2->push_atomic(*it);
+						}
+					}
+
+					//store the new graph into tmp_graphstore
+					tmp_graphs->addOneGraph_atomic(out_pointer, out_hybrid);
+				}
+
+				//clean out
+				delete out;
+				if(old_out){
+					delete old_out;
+				}
 	        }
 	        else{
-				delete out_hybrid;
-	        }
+				HybridGraph* out_hybrid = graphstore->convertToHybridGraph(out);
+				PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
+				ItemsetGraph* old_out = graphstore->retrieve_direct(out_pointer);
+				bool isEqual = out_hybrid->equals(old_out);
 
-	        //clean out
-			delete out;
+//		        //for debugging
+//		        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", 1);
+
+				if(!isEqual){
+					//propagate
+					std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
+					if(successors){
+						for(auto it = successors->cbegin(); it != successors->cend(); ++it){
+							worklist_2->push_atomic(*it);
+						}
+					}
+
+					//store the new graph into tmp_graphstore
+					tmp_graphs->addOneGraph_atomic(out_pointer, out_hybrid);
+				}
+				else{
+					delete out_hybrid;
+				}
+
+				//clean out
+				delete out;
+	        }
 
 	        //for tuning
 	        diff_propagate.end();
@@ -221,6 +258,8 @@ public:
 		//for debugging
 		Logger::print_thread_info_locked("compute-synchronous finished.\n", LEVEL_LOG_FUNCTION);
 	}
+
+
 
 };
 

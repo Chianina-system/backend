@@ -498,6 +498,267 @@ public:
     }
 
 
+    //for debugging
+    static void printArray(int* array, unsigned int len){
+    	for(unsigned int i = 0; i < len; i++){
+    		cout << array[i] << ",";
+    	}
+    	cout << endl;
+    }
+
+    HybridGraph* constructHybridGraph(PEGraph* out, PEGraph* old_out, ItemsetGraph* old_out_itemset){
+    	assert(old_out != nullptr && old_out_itemset != nullptr);
+
+    	//get the keys of out
+    	unsigned int out_len = out->getNumVertices();
+    	vertexid_t* out_keys = new vertexid_t[out_len];
+    	unsigned int i = 0;
+    	for(auto it = out->getGraph().begin(); it != out->getGraph().end(); ++it){
+    		out_keys[i++] = it->first;
+    	}
+    	sort(out_keys, out_keys + out_len);
+
+//    	//for debugging
+//    	cout << "kyes in out: " << endl;
+//    	printArray(out_keys, out_len);
+
+    	//get the keys of old_out
+    	unsigned int old_out_len = old_out->getNumVertices();
+    	vertexid_t* old_out_keys = new vertexid_t[old_out_len];
+    	unsigned int j = 0;
+    	for(auto it = old_out->getGraph().begin(); it != old_out->getGraph().end(); ++it){
+    		old_out_keys[j++] = it->first;
+    	}
+    	sort(old_out_keys, old_out_keys + old_out_len);
+
+//    	//for debugging
+//    	cout << "kyes in old-out: " << endl;
+//    	printArray(old_out_keys, old_out_len);
+
+    	//compute the deleted and added keys
+    	vector<vertexid_t> added;
+    	vector<vertexid_t> both;
+    	vector<vertexid_t> deleted;
+    	i = 0, j = 0;
+    	while(i < out_len && j < old_out_len){
+    		if(out_keys[i] < old_out_keys[j]){
+    			//push to added
+    			added.push_back(out_keys[i]);
+    			i++;
+    		}
+    		else if(out_keys[i] == old_out_keys[j]){
+    			//push to both
+    			both.push_back(out_keys[i]);
+    			j++;
+    			i++;
+
+    		}
+    		else {//out_keys[i] > old_out_keys[j]
+    			//push to deleted
+    			deleted.push_back(old_out_keys[j]);
+    			j++;
+    		}
+    	}
+    	while(i < out_len){
+    		added.push_back(out_keys[i]);
+    		i++;
+    	}
+    	while(j < old_out_len){
+			deleted.push_back(old_out_keys[j]);
+			j++;
+    	}
+
+    	//clean
+    	delete[] out_keys;
+    	delete[] old_out_keys;
+
+//    	//for debugging
+//    	cout << "srcIds-added: " << endl;
+//    	printArray(added.data(), added.size());
+//    	cout << "srcIds-deleted: " << endl;
+//    	printArray(deleted.data(), deleted.size());
+//    	cout << "srcIds-both: " << endl;
+//    	printArray(both.data(), both.size());
+
+
+    	vector<int> myArray_added;
+    	PEGraph* added_peGraph = new PEGraph();
+    	vector<int> myArray_deleted;
+
+    	//get the added edges
+    	for(auto it = added.begin(); it != added.end(); ++it){
+    		vertexid_t src = *it;
+    		int size = out->getNumEdges(src);
+    		vertexid_t* dsts = out->getEdges(src);
+    		label_t* labels = out->getLabels(src);
+
+    		EdgeArray edgeArray;
+
+    		for(int i = 0; i < size; ++i){
+    			Edge edge(src, dsts[i], labels[i]);
+    			if(edgeToInt.find(edge) != edgeToInt.end()){
+    				myArray_added.push_back(edgeToInt[edge]);
+    			}
+    			else{
+    				edgeArray.addOneEdge(dsts[i], labels[i]);
+    			}
+    		}
+
+    		if(!edgeArray.isEmpty()){
+    			added_peGraph->setEdgeArray(src, edgeArray);
+    		}
+		}
+
+    	//get the deleted edges
+    	for(auto it = deleted.begin(); it != deleted.end(); ++it){
+    		vertexid_t src = *it;
+    		int size = old_out->getNumEdges(src);
+    		vertexid_t* dsts = old_out->getEdges(src);
+    		label_t* labels = old_out->getLabels(src);
+
+    		for(int i = 0; i < size; ++i){
+    			Edge edge(src, dsts[i], labels[i]);
+    			assert(edgeToInt.find(edge) != edgeToInt.end());
+    			if(edgeToInt.find(edge) != edgeToInt.end()){
+    				myArray_deleted.push_back(edgeToInt[edge]);
+    			}
+    		}
+		}
+
+    	//for both
+    	for(auto it = both.begin(); it != both.end(); ++it){
+    		EdgeArray edgeArray;
+
+			vertexid_t src = *it;
+
+			unsigned int size = out->getNumEdges(src);
+			vertexid_t *dsts = out->getEdges(src);
+			label_t *labels = out->getLabels(src);
+
+			unsigned int old_size = old_out->getNumEdges(src);
+			vertexid_t *old_dsts = old_out->getEdges(src);
+			label_t *old_labels = old_out->getLabels(src);
+
+			unsigned int i = 0; j = 0;
+	    	while(i < size && j < old_size){
+	    		int value = myalgo::myCompare(dsts[i], labels[i], old_dsts[j], old_labels[j]);
+	    		if(value < 0){
+	    			//push to added array and added EdgeArray
+	    			Edge edge(src, dsts[i], labels[i]);
+	    			if(edgeToInt.find(edge) != edgeToInt.end()){
+	    				myArray_added.push_back(edgeToInt[edge]);
+	    			}
+	    			else{
+	    				edgeArray.addOneEdge(dsts[i], labels[i]);
+	    			}
+
+	    			i++;
+	    		}
+	    		else if(value == 0){
+	    			j++;
+	    			i++;
+	    		}
+	    		else {//value > 0
+	    			//push to deleted array
+	    			Edge edge(src, old_dsts[j], old_labels[j]);
+	    			assert(edgeToInt.find(edge) != edgeToInt.end());
+	    			if(edgeToInt.find(edge) != edgeToInt.end()){
+	    				myArray_deleted.push_back(edgeToInt[edge]);
+	    			}
+
+	    			j++;
+	    		}
+	    	}
+	    	while(i < size){
+    			//push to added array and added EdgeArray
+    			Edge edge(src, dsts[i], labels[i]);
+    			if(edgeToInt.find(edge) != edgeToInt.end()){
+    				myArray_added.push_back(edgeToInt[edge]);
+    			}
+    			else{
+    				edgeArray.addOneEdge(dsts[i], labels[i]);
+    			}
+
+	    		i++;
+	    	}
+	    	while(j < old_size){
+    			//push to deleted array
+    			Edge edge(src, old_dsts[j], old_labels[j]);
+    			assert(edgeToInt.find(edge) != edgeToInt.end());
+    			if(edgeToInt.find(edge) != edgeToInt.end()){
+    				myArray_deleted.push_back(edgeToInt[edge]);
+    			}
+
+				j++;
+	    	}
+
+    		if(!edgeArray.isEmpty()){
+    			added_peGraph->setEdgeArray(src, edgeArray);
+    		}
+
+    	}
+
+    	//sort the array
+    	sort(myArray_added.begin(), myArray_added.end());
+    	sort(myArray_deleted.begin(), myArray_deleted.end());
+
+//    	//for debugging
+//    	cout << "old-out-itemset: " << endl;
+//    	cout << old_out_itemset->toString() << endl;
+//    	cout << "edges-added: " << endl;
+//    	printArray(myArray_added.data(), myArray_added.size());
+//    	cout << "edges-deleted: " << endl;
+//    	printArray(myArray_deleted.data(), myArray_deleted.size());
+
+    	MyArray* myArray = new MyArray(old_out_itemset->getLength() + myArray_added.size() - myArray_deleted.size());
+    	//construct myArray
+    	unsigned int a = 0, o = 0, d = 0;
+    	while(a < myArray_added.size() && o < old_out_itemset->getLength()){
+    		int diff = myArray_added[a] - old_out_itemset->getEdgeId(o);
+    		if(diff < 0){
+    			myArray->insert(myArray_added[a]);
+    			a++;
+    		}
+    		else if(diff > 0){
+    			if(d >= myArray_deleted.size() || myArray_deleted[d] != old_out_itemset->getEdgeId(o)){
+					myArray->insert(old_out_itemset->getEdgeId(o));
+    			}
+    			else{
+    				d++;
+    			}
+    			o++;
+    		}
+    		else {//diff == 0
+    			cout << "wrong condition!" << endl;
+    			exit(EXIT_FAILURE);
+    		}
+    	}
+    	if(a < myArray_added.size()){
+    		myArray->insert(myArray_added.data() + a, myArray_added.size() - a);
+    	}
+    	while(o < old_out_itemset->getLength()){
+			if(d >= myArray_deleted.size()){
+				myArray->insert(old_out_itemset->getEdgeIds() + o, old_out_itemset->getLength() - o);
+				break;
+			}
+
+			if(myArray_deleted[d] != old_out_itemset->getEdgeId(o)){
+				myArray->insert(old_out_itemset->getEdgeId(o));
+			}
+			else{
+				d++;
+			}
+			o++;
+    	}
+
+    	//TODO: replace edge set with frequent itemset
+    	compressEdges(myArray);
+    	HybridGraph *graph = new HybridGraph(myArray, added_peGraph);
+    	delete myArray;
+    	return graph;
+
+    }
+
     /*
      *encode or compress the graph representation by replacing certain frequent subsets of edge ids with the unique itemset ids
      */
@@ -585,7 +846,8 @@ public:
 					}
 				}
 				else{
-					std::copy(myArray->getData() + j, myArray->getData() + myArray->getLength(), new_array->getData() + new_array->getIndex());
+//					copy(myArray->getData() + j, myArray->getData() + myArray->getLength(), new_array->getData() + new_array->getIndex());
+					new_array->insert(myArray->getData() + j, myArray->getLength() - j);
 					break;
 				}
 				j++;
@@ -596,7 +858,8 @@ public:
 			}
     	}
     	else{
-    		copy(myArray->getData() + j, myArray->getData() + myArray->getLength(), new_array->getData() + new_array->getIndex());
+//    		copy(myArray->getData() + j, myArray->getData() + myArray->getLength(), new_array->getData() + new_array->getIndex());
+    		new_array->insert(myArray->getData() + j, myArray->getLength() - j);
     	}
 
     	//update myArray

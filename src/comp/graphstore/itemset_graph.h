@@ -152,6 +152,17 @@ public:
 	}
 
 
+    std::string toString(){
+      	std::ostringstream strm;
+		strm << "{size=" << len << "; ";
+		for(int i = 0; i < len; i++){
+			strm << edge_ids[i] << ", ";
+		}
+		strm << "}";
+		return strm.str();
+    }
+
+
 private:
 	int* edge_ids = NULL;
 	unsigned int len;

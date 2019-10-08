@@ -32,7 +32,7 @@ public:
 	}
 
 	void insert(int* d, unsigned int s){
-		memcpy(data, d, sizeof(int)*s);
+		memcpy(data + index, d, sizeof(int)*s);
 		index += s;
 	}
 
