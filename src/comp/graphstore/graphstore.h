@@ -27,7 +27,9 @@ class GraphStore{
 	}
 
 public:
-    GraphStore(){}
+    GraphStore(bool f_mode){
+    	file_mode = f_mode;
+    }
 
     virtual ~GraphStore(){};
 
@@ -86,6 +88,8 @@ public:
 
     virtual void serialize(const string& file) = 0;
 
+    virtual void store_in_graphs(const string& file_graphs_in, std::unordered_set<CFGNode*>& set) = 0;
+
 //    virtual void printOutInfo() = 0;
 
     virtual std::string toString(){
@@ -105,6 +109,7 @@ protected:
 
 
     std::mutex mtx;
+    bool file_mode;
 
 private:
     //	void add();

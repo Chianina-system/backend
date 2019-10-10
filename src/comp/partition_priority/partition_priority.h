@@ -13,7 +13,9 @@
 class Priority_partition {
 
 public:
-	virtual ~Priority_partition(){}
+	virtual ~Priority_partition(){
+//		cout << "priority-partition destructor" << endl;
+	}
 
 	virtual bool schedule(Partition& part) = 0;
 

@@ -18,14 +18,20 @@ using namespace std;
 class NaiveGraphStore : public GraphStore {
 
 public:
-	NaiveGraphStore(){}
+	NaiveGraphStore() : GraphStore (true) {
+
+	}
+
+	NaiveGraphStore(bool file_mode) : GraphStore (file_mode) {
+
+	}
 
 
     ~NaiveGraphStore(){
-//    	for(auto it = map.begin(); it != map.end(); ++it){
-//    		delete it->second;
-//    	}
-    	clear();
+    	for(auto it = map.begin(); it != map.end(); ++it){
+    		delete it->second;
+    	}
+//    	clear();
     }
 
     void init(CFG* cfg) {
@@ -39,45 +45,45 @@ public:
     }
 
 
-    void load_onebyone(const string& file){
-    	//for debugging
-    	Logger::print_thread_info_locked("load-readable starting...\n", LEVEL_LOG_FUNCTION);
-
-	    std::ifstream fin;
-	    fin.open(file);
-	    if(!fin) {
-	        cout << "can't load file_graphs: " << file << endl;
-//	        exit (EXIT_FAILURE);
-	    }
-	    else{
-			std::string line;
-			while (getline(fin, line)) {
-				if(line == ""){
-					continue;
-				}
-
-				std::stringstream stream(line);
-				std::string id;
-				stream >> id;
-				PEGraph_Pointer graph_pointer = atoi(id.c_str());
-				PEGraph* pegraph = new PEGraph();
-				pegraph->load_readable(stream);
-				//since the file is appended, we just use the recent updated pegraph
-				if (map.find(graph_pointer) != map.end()) {
-					delete map[graph_pointer];
-				}
-				map[graph_pointer] = pegraph;
-			}
-			fin.close();
-
-	    	//delete the old graphstore file
-	    	FileUtil::delete_file(file);
-	    }
-
-		//for debugging
-		Logger::print_thread_info_locked("load-readable finished.\n", LEVEL_LOG_FUNCTION);
-
-    }
+//    void load_onebyone(const string& file){
+//    	//for debugging
+//    	Logger::print_thread_info_locked("load-readable starting...\n", LEVEL_LOG_FUNCTION);
+//
+//	    std::ifstream fin;
+//	    fin.open(file);
+//	    if(!fin) {
+//	        cout << "can't load file_graphs: " << file << endl;
+////	        exit (EXIT_FAILURE);
+//	    }
+//	    else{
+//			std::string line;
+//			while (getline(fin, line)) {
+//				if(line == ""){
+//					continue;
+//				}
+//
+//				std::stringstream stream(line);
+//				std::string id;
+//				stream >> id;
+//				PEGraph_Pointer graph_pointer = atoi(id.c_str());
+//				PEGraph* pegraph = new PEGraph();
+//				pegraph->load_readable(stream);
+//				//since the file is appended, we just use the recent updated pegraph
+//				if (map.find(graph_pointer) != map.end()) {
+//					delete map[graph_pointer];
+//				}
+//				map[graph_pointer] = pegraph;
+//			}
+//			fin.close();
+//
+//	    	//delete the old graphstore file
+//	    	FileUtil::delete_file(file);
+//	    }
+//
+//		//for debugging
+//		Logger::print_thread_info_locked("load-readable finished.\n", LEVEL_LOG_FUNCTION);
+//
+//    }
 
 
     void loadGraphStore(const string& file, const string& folder_in) {
@@ -100,13 +106,12 @@ public:
 //        	cout << "can't load folder: " << folder_in << endl;
 //        }
 
-//    	this->load_onebyone(folder_in);
     	this->deserialize(folder_in);
     }
 
 
     void serialize(const string& file){
-    	if(readable){
+    	if(file_mode){
     		ofstream myfile;
     		myfile.open(file, std::ofstream::out);
     		if (myfile.is_open()){
@@ -140,13 +145,42 @@ public:
     }
 
     void deserialize(const string& file){
-    	if(readable){
-    		load_onebyone(file);
+    	if(file_mode){
+    	    std::ifstream fin;
+    	    fin.open(file);
+    	    if(!fin) {
+    	        cout << "can't load graphs file: " << file << endl;
+    //	        exit (EXIT_FAILURE);
+    	    }
+    	    else{
+    			std::string line;
+    			while (getline(fin, line)) {
+    				if(line == ""){
+    					continue;
+    				}
+
+    				std::stringstream stream(line);
+    				std::string id;
+    				stream >> id;
+    				PEGraph_Pointer graph_pointer = atoi(id.c_str());
+    				PEGraph* pegraph = new PEGraph();
+    				pegraph->load_readable(stream);
+    				//since the file is appended, we just use the recent updated pegraph
+    				if (map.find(graph_pointer) != map.end()) {
+    					delete map[graph_pointer];
+    				}
+    				map[graph_pointer] = pegraph;
+    			}
+    			fin.close();
+
+    	    	//delete the old graphstore file
+    	    	FileUtil::delete_file(file);
+    	    }
     	}
     	else{
     		FILE *fp = fopen(file.c_str(),"rb");
     		if(!fp) {
-    			cout << "can't load partition file: " << file << endl;
+    			cout << "can't load graphs file: " << file << endl;
 //    			exit(-1);
     		}
     		else{
@@ -166,6 +200,47 @@ public:
 				FileUtil::delete_file(file);
     		}
     	}
+    }
+
+    void store_in_graphs(const string& file_graphs_in, std::unordered_set<CFGNode*>& set){
+		if(file_mode){
+			ofstream myfile;
+			myfile.open(file_graphs_in, std::ofstream::out | std::ofstream::app);
+			if (myfile.is_open()){
+				for (auto& n : set) {
+					auto pointer = n->getOutPointer();
+					PEGraph* graph = retrieve_shallow(pointer);
+//					assert(graph != nullptr);
+					if(graph){
+						//write a pegraph into file
+						myfile << pointer << "\t";
+						graph->write_readable(myfile);
+//						delete graph;
+						myfile << "\n";
+					}
+				}
+				myfile.close();
+			}
+		}
+		else{
+    		FILE *f = fopen(file_graphs_in.c_str(),"ab");
+    		if(f == NULL) {
+    			cout << "can't write to file: " << file_graphs_in << endl;
+    			exit(-1);
+    		}
+    		else{
+				for (auto& n : set) {
+					auto graph_pointer = n->getOutPointer();
+					PEGraph* graph = retrieve_shallow(graph_pointer);
+					if(graph){
+						fwrite((const void*)& graph_pointer, sizeof(PEGraph_Pointer), 1, f);
+						graph->write_unreadable(f);
+//						delete graph;
+					}
+				}
+				fclose(f);
+    		}
+		}
     }
 
 

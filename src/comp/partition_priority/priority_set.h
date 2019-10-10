@@ -60,7 +60,7 @@
 //
 //struct partition_compare {
 //    bool operator() (const partition_info& lhs, const partition_info& rhs) const {
-//        return lhs.score < rhs.score;
+//        return lhs.score == rhs.score ? lhs.partition_id < rhs.partition_id : lhs.score < rhs.score;
 //    }
 //};
 //
@@ -86,11 +86,10 @@
 //		partition_info pinfo(part, size);
 //		auto it = priority_set.find(pinfo);
 //		if(it != priority_set.end()){
-////			int old_score = ((partition_info) (*it)).score;
-////			priority_set.erase(it);
-////			pinfo.increase_score(old_score);
-////			priority_set.insert(pinfo);
-//			((partition_info) (*it)).increase_score(size);
+//			int old_score = it->score;
+//			priority_set.erase(it);
+//			pinfo.increase_score(old_score);
+//			priority_set.insert(pinfo);
 //		}
 //		else{
 //			priority_set.insert(pinfo);

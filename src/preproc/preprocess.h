@@ -199,6 +199,9 @@ public:
 				write_to_partition_actives(part, id);
 
 				//update entry partitions according to entry nodes
+				if(part > context.getNumberPartitions()){
+					cout << id << endl;
+				}
 				context.update_priority(part, 1);
 			}
 

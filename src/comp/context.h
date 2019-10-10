@@ -36,7 +36,7 @@ public:
 //		for(unsigned int i = 0; i < this->number_partitions; i++){
 //			this->priority_set.insert(partition_info(i, 0));
 //		}
-//		priority_set = new Priority_set();
+//		priority_list = new Priority_set();
 		priority_list = new Priority_array(this->number_partitions);
 
 		//file path initialization
@@ -54,6 +54,7 @@ public:
 	}
 
 	~Context(){
+//		cout << "destructor of Context" << endl;
 //		if(partitions){
 //			delete[] partitions;
 //		}
@@ -62,16 +63,24 @@ public:
 //			delete[] flag_partitions;
 //		}
 
+//		cout << "before deleting priority-list" << endl;
+
 		if(priority_list){
 			delete priority_list;
 		}
 
+//		cout << "deleted priority-list" << endl;
+
 		if(grammar)
 			delete grammar;
+
+//		cout << "deleted grammar" << endl;
 
 		if(singletons){
 			delete singletons;
 		}
+
+//		cout << "deleted singletons" << endl;
 	}
 
 
@@ -172,9 +181,6 @@ private:
 
 	long total_nodes;
 	unsigned int number_partitions;
-//	unsigned int* partitions;
-//	bool* flag_partitions;
-
 
 	Priority_partition* priority_list;
 

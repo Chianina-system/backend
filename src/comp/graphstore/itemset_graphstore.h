@@ -22,8 +22,13 @@ const bool serialize_peg_mode = true;
 class ItemsetGraphStore : public GraphStore {
 
 public:
+	ItemsetGraphStore() : GraphStore (true) {
 
-	ItemsetGraphStore(){}
+	}
+
+	ItemsetGraphStore(bool file_mode) : GraphStore (file_mode) {
+
+	}
 
     ~ItemsetGraphStore(){
     	//delete ItemsetGraph in graphs
@@ -204,26 +209,19 @@ public:
     }
 
     void loadGraphStore(const string& file, const string& file_in) {
-    	if(serialize_peg_mode){
-			//graphstore file
-			this->deserialize(file);
+		//graphstore file
+		this->deserialize(file);
 
-			//load in-graphs
-			this->load_onebyone(file_in);
+		//load in-graphs
+		this->deserialize(file_in);
 
-			//construct itemset base
-			this->constructItemsetBase();
-    	}
-    	else{
-    		this->deserialize(file);
-    		this->load_onebyone(file_in);
-    	}
-
+//		//construct itemset base
+//		this->constructItemsetBase();
     }
 
     void serialize(const string& file){
-    	if(readable){
-    		if(serialize_peg_mode){
+    	if(serialize_peg_mode){
+    		if(file_mode){
 				ofstream myfile;
 				myfile.open(file, std::ofstream::out);
 				if (myfile.is_open()){
@@ -238,32 +236,105 @@ public:
 					myfile.close();
 				}
     		}
-    		else{//direct written in the itemset format
-    			store_itemsetGraphstore(file);
+    		else{
+        		FILE *f = fopen(file.c_str(),"wb");
+        		if(f == NULL) {
+        			cout << "can't write to file: " << file << endl;
+        			exit(-1);
+        		}
+        		else{
+    				for (auto& n : graphs) {
+    					PEGraph_Pointer graph_pointer = n.first;
+    					fwrite((const void*)& graph_pointer, sizeof(PEGraph_Pointer), 1, f);
+    					PEGraph* out = convertToPEGraph(n.second);
+    					out->write_unreadable(f);
+    					delete out;
+    				}
+    				fclose(f);
+        		}
     		}
     	}
-    	else{
-
+    	else{//direct written in the itemset format
+   			store_itemsetGraphstore(file);
     	}
     }
 
     void deserialize(const string& file){
-    	if(readable){
-    		if(serialize_peg_mode){
-				load_onebyone(file);
+    	if(serialize_peg_mode){
+    		if(file_mode){
+//				load_onebyone(file);
+    		    std::ifstream fin;
+    		    fin.open(file);
+    		    if(!fin) {
+    		        cout << "can't load graphs file: " << file << endl;
+    		    }
+    		    else{
+    				std::string line;
+    				while (getline(fin, line)) {
+    					if(line == ""){
+    						continue;
+    					}
+
+    					std::stringstream stream(line);
+    					std::string id;
+    					stream >> id;
+    					PEGraph_Pointer graph_pointer = atoi(id.c_str());
+    					PEGraph* pegraph = new PEGraph();
+    					pegraph->load_readable(stream);
+    					//since the file is appended, we just use the recent updated pegraph
+    					ItemsetGraph *graph = convertToSetGraph(pegraph);
+    					delete pegraph;
+    					if (graphs.find(graph_pointer) != graphs.end()) {
+    						delete graphs[graph_pointer];
+    					}
+    					graphs[graph_pointer] = graph;
+    				}
+    				fin.close();
+
+    		    	//delete the old graphstore file
+    		    	FileUtil::delete_file(file);
+    		    }
     		}
     		else{
-				load_itemsetGraphstore(file);
+//				load_itemsetGraphstore(file);
+        		FILE *fp = fopen(file.c_str(),"rb");
+        		if(!fp) {
+        			cout << "can't load graphs file: " << file << endl;
+    //    			exit(-1);
+        		}
+        		else{
+    				PEGraph_Pointer graph_pointer;
+    				while(fread(&graph_pointer, sizeof(PEGraph_Pointer), 1, fp) != 0) {
+    					PEGraph* pegraph = new PEGraph();
+    					pegraph->load_unreadable(fp);
+    					ItemsetGraph *graph = convertToSetGraph(pegraph);
+    					delete pegraph;
+    					//since the file is appended, we just use the recent updated pegraph
+    					if (graphs.find(graph_pointer) != graphs.end()) {
+    						delete graphs[graph_pointer];
+    					}
+    					graphs[graph_pointer] = graph;
+    				}
+    				fclose(fp);
+
+    				//delete the old graphstore file
+    				FileUtil::delete_file(file);
+        		}
     		}
     	}
     	else{
-
+   			load_itemsetGraphstore(file);
     	}
     }
 
     //load the graphstore in the itemset format
     void load_itemsetGraphstore(const string& file){
+    	if(file_mode){
 
+    	}
+    	else{
+
+    	}
     }
 
 
@@ -272,46 +343,104 @@ public:
     }
 
 
-    void load_onebyone(const string& file){
-    	//for debugging
-    	Logger::print_thread_info_locked("load-readable starting...\n", LEVEL_LOG_FUNCTION);
-
-	    std::ifstream fin;
-	    fin.open(file);
-	    if(!fin) {
-	        cout << "can't load file_graphs: " << file << endl;
-	    }
-	    else{
-			std::string line;
-			while (getline(fin, line)) {
-				if(line == ""){
-					continue;
+    void store_in_graphs(const string& file_graphs_in, std::unordered_set<CFGNode*>& set){
+		if(serialize_peg_mode){
+			if(file_mode){
+				ofstream myfile;
+				myfile.open(file_graphs_in, std::ofstream::out | std::ofstream::app);
+				if (myfile.is_open()){
+					for (auto& n : set) {
+						auto pointer = n->getOutPointer();
+						PEGraph* graph = retrieve(pointer);
+//						PEGraph* graph = convertToPEGraph(graphs[pointer]);
+	//					assert(graph != nullptr);
+						if(graph){
+							//write a pegraph into file
+							myfile << pointer << "\t";
+							graph->write_readable(myfile);
+							delete graph;
+							myfile << "\n";
+						}
+					}
+					myfile.close();
 				}
-
-				std::stringstream stream(line);
-				std::string id;
-				stream >> id;
-				PEGraph_Pointer graph_pointer = atoi(id.c_str());
-				PEGraph* pegraph = new PEGraph();
-				pegraph->load_readable(stream);
-				//since the file is appended, we just use the recent updated pegraph
-				ItemsetGraph *graph = convertToSetGraph(pegraph);
-				delete pegraph;
-				if (graphs.find(graph_pointer) != graphs.end()) {
-					delete graphs[graph_pointer];
-				}
-				graphs[graph_pointer] = graph;
 			}
-			fin.close();
-
-	    	//delete the old graphstore file
-	    	FileUtil::delete_file(file);
-	    }
-
-		//for debugging
-		Logger::print_thread_info_locked("load-readable finished.\n", LEVEL_LOG_FUNCTION);
-
+			else{
+				FILE *f = fopen(file_graphs_in.c_str(),"ab");
+				if(f == NULL) {
+					cout << "can't write to file: " << file_graphs_in << endl;
+					exit(-1);
+				}
+				else{
+					for (auto& n : set) {
+						auto graph_pointer = n->getOutPointer();
+						PEGraph* graph = retrieve(graph_pointer);
+//						PEGraph* graph = convertToPEGraph(graphs[graph_pointer]);
+						if(graph){
+							fwrite((const void*)& graph_pointer, sizeof(PEGraph_Pointer), 1, f);
+							graph->write_unreadable(f);
+							delete graph;
+						}
+					}
+					fclose(f);
+				}
+			}
+		}
+		else{
+			store_itemsetGraphs(file_graphs_in, set);
+		}
     }
+
+    void store_itemsetGraphs(const string& file, std::unordered_set<CFGNode*>& set){
+    	if(file_mode){
+
+    	}
+    	else{
+
+    	}
+    }
+
+
+//    void load_onebyone(const string& file){
+//    	//for debugging
+//    	Logger::print_thread_info_locked("load-readable starting...\n", LEVEL_LOG_FUNCTION);
+//
+//	    std::ifstream fin;
+//	    fin.open(file);
+//	    if(!fin) {
+//	        cout << "can't load file_graphs: " << file << endl;
+//	    }
+//	    else{
+//			std::string line;
+//			while (getline(fin, line)) {
+//				if(line == ""){
+//					continue;
+//				}
+//
+//				std::stringstream stream(line);
+//				std::string id;
+//				stream >> id;
+//				PEGraph_Pointer graph_pointer = atoi(id.c_str());
+//				PEGraph* pegraph = new PEGraph();
+//				pegraph->load_readable(stream);
+//				//since the file is appended, we just use the recent updated pegraph
+//				ItemsetGraph *graph = convertToSetGraph(pegraph);
+//				delete pegraph;
+//				if (graphs.find(graph_pointer) != graphs.end()) {
+//					delete graphs[graph_pointer];
+//				}
+//				graphs[graph_pointer] = graph;
+//			}
+//			fin.close();
+//
+//	    	//delete the old graphstore file
+//	    	FileUtil::delete_file(file);
+//	    }
+//
+//		//for debugging
+//		Logger::print_thread_info_locked("load-readable finished.\n", LEVEL_LOG_FUNCTION);
+//
+//    }
 
 //    ItemsetGraph* convertToSetGraph(PEGraph* pegraph){
 //    	set<int> edges_set;

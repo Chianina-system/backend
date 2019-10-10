@@ -22,11 +22,14 @@ public:
 	}
 
 	~Priority_array(){
+//		cout << "priority-array destructor" << endl;
 		if(scores)
 			delete[] scores;
+//		cout << "priority-array destructor end" << endl;
 	}
 
 	bool schedule(Partition& part){
+		assert(part <= num_partitions);
 		int max = 0;
 		for(int i = 0; i < this->num_partitions; i++){
 			if(max < scores[i]){
@@ -44,6 +47,7 @@ public:
 	}
 
 	void update_priority(Partition part, int size){
+		assert(part <= num_partitions);
 		scores[part] += size;
 	}
 
@@ -51,8 +55,8 @@ public:
 		cout << "\nPriority array: {";
 		for (int i = 0; i < this->num_partitions; i++) {
 			if(scores[i] != 0){
-				cout << "<pid=" << i << ", score=" << scores[i] << ">\t";
 			}
+				cout << "<pid=" << i << ", score=" << scores[i] << ">\t";
 		}
 		cout << "}\n" << endl;
 	}

@@ -25,20 +25,22 @@ const string file_grammar = "/home/dell/Desktop/Ouroboros-dataset-master/rules_p
 
 /* function declaration */
 void run_inmemory(int, bool, bool, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);
-void run_ooc(int, bool, int, bool, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);
+void run_ooc(bool, int, bool, int, bool, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);
 
 
 int main(int argc, char* argv[]) {
-	if(argc != 9 && argc != 10){
+	if(argc != 9 && argc != 11){
 		cout << "Usage: ./backend file_total file_entries file_cfg file_stmts file_singletons "
-				  << "graphstore_mode(0: naive; 1: itemset) update_mode(0: sequential; 1: parallel) computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1)" << endl;
+				  << "graphstore_mode(0: naive; 1: itemset) update_mode(0: sequential; 1: parallel) "
+						<< "computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1) file_mode(0: text; 1: binary)" << endl;
 		return 0;
 	}
 
 	if(argc == 9){
 		if(atoi(argv[8]) != 0){
 			cout << "Usage: ./backend file_total file_entries file_cfg file_stmts file_singletons "
-					<< "graphstore_mode(0: naive; 1: itemset) update_mode(0: sequential; 1: parallel) computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1)" << endl;
+					<< "graphstore_mode(0: naive; 1: itemset) update_mode(0: sequential; 1: parallel) "
+						<< "computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1) file_mode(0: text; 1: binary)" << endl;
 			return 0;
 		}
 	}
@@ -54,7 +56,7 @@ int main(int argc, char* argv[]) {
 	auto start_fsm = std::chrono::high_resolution_clock::now();
 
 	if(atoi(argv[8])){
-		run_ooc(atoi(argv[6]), (bool)atoi(argv[7]), atoi(argv[9]), true, file_total, file_entries, file_cfg, file_stmts, file_singletons);
+		run_ooc((bool)atoi(argv[10]), atoi(argv[6]), (bool)atoi(argv[7]), atoi(argv[9]), true, file_total, file_entries, file_cfg, file_stmts, file_singletons);
 	}
 	else{
 		run_inmemory(atoi(argv[6]), (bool)atoi(argv[7]), true, file_total, file_entries, file_cfg, file_stmts, file_singletons);
@@ -76,7 +78,7 @@ int main(int argc, char* argv[]) {
 
 
 
-void compute_ooc(Partition partition, Context* context, bool sync_mode, int graphstore_mode, bool update_mode,
+void compute_ooc(Partition partition, Context* context, bool sync_mode, int graphstore_mode, bool update_mode, bool file_mode,
 		Timer_wrapper_ooc* timer_ooc, Timer_wrapper_inmemory* timer){
 	//for debugging
 	Logger::print_thread_info_locked("----------------------- Partition " + to_string(partition) + " starting -----------------------\n", LEVEL_LOG_MAIN);
@@ -86,10 +88,10 @@ void compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
 //	GraphStore *graphstore = new NaiveGraphStore();
 	GraphStore* graphstore;
 	if(graphstore_mode){
-		graphstore = new ItemsetGraphStore();
+		graphstore = new ItemsetGraphStore(file_mode);
 	}
 	else{
-		graphstore = new NaiveGraphStore();
+		graphstore = new NaiveGraphStore(file_mode);
 	}
 
 //    //get the flag for adding self-loop edges
@@ -235,7 +237,7 @@ void printGraphstoreInfo(Context* context){
 	cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
 }
 
-void run_ooc(int graphstore_mode, bool update_mode, int num_partitions, bool sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
+void run_ooc(bool file_mode, int graphstore_mode, bool update_mode, int num_partitions, bool sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
 	//for performance tuning
 	Timer_sum sum_preprocess("preprocess");
 	Timer_sum sum_compute("compute-ooc");
@@ -261,7 +263,8 @@ void run_ooc(int graphstore_mode, bool update_mode, int num_partitions, bool syn
 	//iterative computation
 	Partition partition;
 	while(context->schedule(partition)){
-		compute_ooc(partition, context, sync_mode, graphstore_mode, update_mode, timer_ooc, timer);
+		cout << "Partition: " << partition << endl;
+		compute_ooc(partition, context, sync_mode, graphstore_mode, file_mode, update_mode, timer_ooc, timer);
 
 //		//for debugging
 //		context->printOutPriorityInfo();
@@ -277,9 +280,7 @@ void run_ooc(int graphstore_mode, bool update_mode, int num_partitions, bool syn
 //	delete graphstore;
 	printGraphstoreInfo(context);
 
-	cout << "before" << endl;
 	delete context;
-	cout << "end" << endl;
 
 	//for tuning
 	sum_preprocess.print();

@@ -81,7 +81,7 @@ public:
 
 			//write graphs_in
 			const string file_graphs_in = Context::folder_graphs_in + std::to_string(part);
-			store_graphs_in(file_graphs_in, cfg, graphstore, it->second);
+			store_in_graphs(file_graphs_in, cfg, graphstore, it->second);
 
 //			if(!FileUtil::file_exists(folder_in)){
 //				if(mkdir(folder_in.c_str(), 0777) == -1){
@@ -297,7 +297,8 @@ private:
 
 
 	//append the updated in_mirrors into the corresponding file
-	static void store_graphs_in(const string& file_graphs_in, CFG* cfg, GraphStore* graphstore, std::unordered_set<CFGNode*>& set){
+	static void store_in_graphs(const string& file_graphs_in, CFG* cfg, GraphStore* graphstore, std::unordered_set<CFGNode*>& set){
+		//get all the predecessors
 		std::unordered_set<CFGNode*> s;
 		for(auto& it: set){
 			CFGNode* node_dst = it;
@@ -309,44 +310,46 @@ private:
 			}
 		}
 
-		if(readable){
-			ofstream myfile;
-			myfile.open(file_graphs_in, std::ofstream::out | std::ofstream::app);
-			if (myfile.is_open()){
-				for (auto& n : s) {
-					auto pointer = n->getOutPointer();
-					PEGraph* graph = graphstore->retrieve(pointer);
-//					assert(graph != nullptr);
-					if(graph){
-						//write a pegraph into file
-						myfile << pointer << "\t";
-						graph->write_readable(myfile);
-						delete graph;
-						myfile << "\n";
-					}
-				}
-				myfile.close();
-			}
-		}
-		else{
-    		FILE *f = fopen(file_graphs_in.c_str(),"ab");
-    		if(f == NULL) {
-    			cout << "can't write to file: " << file_graphs_in << endl;
-    			exit(-1);
-    		}
-    		else{
-				for (auto& n : s) {
-					auto graph_pointer = n->getOutPointer();
-					PEGraph* graph = graphstore->retrieve(graph_pointer);
-					if(graph){
-						fwrite((const void*)& graph_pointer, sizeof(PEGraph_Pointer), 1, f);
-						graph->write_unreadable(f);
-						delete graph;
-					}
-				}
-				fclose(f);
-    		}
-		}
+		//write the corresponding peg into file
+		graphstore->store_in_graphs(file_graphs_in, s);
+//		if(readable){
+//			ofstream myfile;
+//			myfile.open(file_graphs_in, std::ofstream::out | std::ofstream::app);
+//			if (myfile.is_open()){
+//				for (auto& n : s) {
+//					auto pointer = n->getOutPointer();
+//					PEGraph* graph = graphstore->retrieve(pointer);
+////					assert(graph != nullptr);
+//					if(graph){
+//						//write a pegraph into file
+//						myfile << pointer << "\t";
+//						graph->write_readable(myfile);
+//						delete graph;
+//						myfile << "\n";
+//					}
+//				}
+//				myfile.close();
+//			}
+//		}
+//		else{
+//    		FILE *f = fopen(file_graphs_in.c_str(),"ab");
+//    		if(f == NULL) {
+//    			cout << "can't write to file: " << file_graphs_in << endl;
+//    			exit(-1);
+//    		}
+//    		else{
+//				for (auto& n : s) {
+//					auto graph_pointer = n->getOutPointer();
+//					PEGraph* graph = graphstore->retrieve(graph_pointer);
+//					if(graph){
+//						fwrite((const void*)& graph_pointer, sizeof(PEGraph_Pointer), 1, f);
+//						graph->write_unreadable(f);
+//						delete graph;
+//					}
+//				}
+//				fclose(f);
+//    		}
+//		}
 	}
 
 };

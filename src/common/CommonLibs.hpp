@@ -94,7 +94,7 @@ typedef int Partition;
 
 #define GRAMMAR_STR_LEN 36
 
-#define readable 0
+//#define readable 1
 
 
 #define IS_PEGCOMPUTE_PARALLEL_ADD 0
