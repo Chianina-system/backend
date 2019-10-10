@@ -35,6 +35,9 @@ public:
     	for(auto it = intToItemset.begin(); it != intToItemset.end(); ++it){
     		delete *it;
     	}
+
+    	intToEdge.clear();
+    	edgeToInt.clear();
     }
 
 
@@ -488,7 +491,8 @@ public:
 		}
 
     	//sort the array
-    	sort(myArray->getData(), myArray->getData() + myArray->getLength());
+//    	sort(myArray->getData(), myArray->getData() + myArray->getLength());
+    	myalgo::insertSortArray(myArray->getData(), myArray->getLength());
 
     	//TODO: replace edge set with frequent itemset
     	compressEdges(myArray);
@@ -699,8 +703,10 @@ public:
     	}
 
     	//sort the array
-    	sort(myArray_added.begin(), myArray_added.end());
-    	sort(myArray_deleted.begin(), myArray_deleted.end());
+//    	sort(myArray_added.begin(), myArray_added.end());
+    	myalgo::insertSortArray(myArray_added.data(), myArray_added.size());
+//    	sort(myArray_deleted.begin(), myArray_deleted.end());
+    	myalgo::insertSortArray(myArray_deleted.data(), myArray_deleted.size());
 
 //    	//for debugging
 //    	cout << "old-out-itemset: " << endl;

@@ -159,6 +159,27 @@ public:
     	return this->getNumEdges() == 0;
     }
 
+    void write_unreadable(FILE* f){
+    	unsigned int size = graph.size();
+    	fwrite((const void*)& size, sizeof(unsigned int), 1, f);
+		for (auto &it : graph) {
+			fwrite((const void*)& it.first, sizeof(vertexid_t), 1, f);
+			it.second.write_unreadable(f);
+		}
+    }
+
+    void load_unreadable(FILE* fp){
+    	unsigned int size;
+    	size_t freadRes = 0; // clear warnings
+    	freadRes = fread(&size, sizeof(unsigned int), 1, fp);
+		for (unsigned i = 0; i < size; ++i) {
+			vertexid_t src;
+			freadRes = fread(&src, sizeof(vertexid_t), 1, fp);
+			//load an edgearray
+			this->graph[src] = EdgeArray();
+			this->graph[src].load_unreadable(fp);
+		}
+    }
 
 private:
     std::unordered_map<vertexid_t, EdgeArray> graph;

@@ -29,7 +29,7 @@ class GraphStore{
 public:
     GraphStore(){}
 
-    virtual ~GraphStore(){}
+    virtual ~GraphStore(){};
 
     //deep copy; locked version for asynchronous mode
     PEGraph* retrieve_locked(PEGraph_Pointer graph_pointer){

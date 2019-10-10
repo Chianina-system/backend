@@ -79,6 +79,31 @@ public:
     	}
     }
 
+    void write_unreadable(FILE* f){
+    	fwrite((const void*)& size, sizeof(int), 1, f);
+    	fwrite((const void*)& capacity, sizeof(int), 1, f);
+		fwrite((const void*) edges, sizeof(vertexid_t), size, f);
+		fwrite((const void*) labels, sizeof(label_t), size, f);
+    }
+
+    void load_unreadable(FILE* fp){
+    	size_t freadRes = 0; // clear warnings
+    	freadRes = fread(&size, sizeof(int), 1, fp);
+//    	freadRes = fread(&capacity, sizeof(int), 1, fp);
+
+		int bufsize = sizeof(int) + (sizeof(vertexid_t) + sizeof(label_t)) * size;
+		char *buf = (char*)malloc(bufsize);
+		freadRes = fread(buf, bufsize, 1, fp);
+		capacity = *((int*)(buf));
+    	this->edges = new vertexid_t[size];
+    	memcpy(edges, buf + sizeof(int), sizeof(vertexid_t) * size);
+    	this->labels = new label_t[size];
+    	memcpy(labels, buf + sizeof(int) + sizeof(vertexid_t) * size, sizeof(label_t) * size);
+    	free(buf);
+    }
+
+
+
     std::string toString(Grammar* grammar){
       	std::ostringstream strm;
 		strm << "{size=" << size << "; ";

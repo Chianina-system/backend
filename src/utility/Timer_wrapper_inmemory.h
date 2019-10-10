@@ -38,6 +38,7 @@ public:
 	~Timer_wrapper_inmemory(){
     	delete merge_sum;
     	delete transfer_sum;
+    	delete propagate_sum;
 
     		delete strongupdate_sum;
     		delete add_sum;
@@ -53,14 +54,13 @@ public:
 						delete add_compute_join_collect_sum;
 						delete add_compute_join_merge_sum;
 						delete add_compute_join_post_sum;
-
-    	delete propagate_sum;
 	}
 
 
 	void print(){
 		merge_sum->print();
 		transfer_sum->print();
+		propagate_sum->print();
 
 			strongupdate_sum->print();
 			add_sum->print();
@@ -76,8 +76,6 @@ public:
 						add_compute_join_collect_sum->print();
 						add_compute_join_merge_sum->print();
 						add_compute_join_post_sum->print();
-
-		propagate_sum->print();
 	}
 
 	Timer_sum_sync* getAddComputeJoinSum() const {

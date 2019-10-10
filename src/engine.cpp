@@ -6,6 +6,8 @@
  */
 
 #include "comp/cfg_compute_ooc_asyn.h"
+#include "comp/cfg_compute_ooc_syn_naive.h"
+#include "comp/cfg_compute_ooc_syn_itemset.h"
 #include "utility/ResourceManager.hpp"
 
 using namespace std;
@@ -107,7 +109,13 @@ void compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
     timer_ooc->getComputeSum()->start();
 
     if(sync_mode){
-		CFGCompute_ooc_syn::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
+//		CFGCompute_ooc_syn::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
+		if(graphstore_mode){
+			CFGCompute_ooc_syn_itemset::do_worklist_ooc_synchronous(cfg, dynamic_cast<ItemsetGraphStore*> (graphstore), context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
+		}
+		else{
+			CFGCompute_ooc_syn_naive::do_worklist_ooc_synchronous(cfg, dynamic_cast<NaiveGraphStore*> (graphstore), context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
+		}
     }
     else{
     	CFGCompute_ooc_asyn::do_worklist_ooc_asynchronous(cfg, graphstore, context->getGrammar(), context->getSingletons(), actives, false);
@@ -125,9 +133,16 @@ void compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
     //for tuning
     timer_ooc->getPassSum()->end();
 
+
+    //for tuning
+    timer_ooc->getCleanSum()->start();
+
 	delete cfg;
 	delete graphstore;
 	delete actives;
+
+	//for tuning
+	timer_ooc->getCleanSum()->end();
 
 	//for debugging
 	Logger::print_thread_info_locked("----------------------- Partition " + to_string(partition) + " finished -----------------------\n", LEVEL_LOG_MAIN);
@@ -262,10 +277,13 @@ void run_ooc(int graphstore_mode, bool update_mode, int num_partitions, bool syn
 //	delete graphstore;
 	printGraphstoreInfo(context);
 
+	cout << "before" << endl;
 	delete context;
+	cout << "end" << endl;
 
 	//for tuning
 	sum_preprocess.print();
+	sum_compute.print();
 
 	timer_ooc->print();
 	delete timer_ooc;
@@ -273,7 +291,6 @@ void run_ooc(int graphstore_mode, bool update_mode, int num_partitions, bool syn
 	timer->print();
 	delete timer;
 
-	sum_compute.print();
 }
 
 

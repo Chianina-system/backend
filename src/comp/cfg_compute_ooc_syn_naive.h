@@ -1,107 +1,21 @@
 /*
- * cfg_compute_ooc.h
+ * cfg_compute_ooc_syn_naive.h
  *
- *  Created on: Jul 8, 2019
- *      Author: zqzuo
+ *  Created on: Oct 8, 2019
+ *      Author: dell
  */
 
-#ifndef COMP_CFG_COMPUTE_OOC_SYN_H_
-#define COMP_CFG_COMPUTE_OOC_SYN_H_
+#ifndef COMP_CFG_COMPUTE_OOC_SYN_NAIVE_H_
+#define COMP_CFG_COMPUTE_OOC_SYN_NAIVE_H_
 
-
-#include "cfg_map_outcore.h"
-#include "../preproc/preprocess.h"
-#include "cfg_compute_syn_itemset.h"
-#include "cfg_compute_syn_naive.h"
-
+#include "cfg_compute_ooc_syn.h"
 
 using namespace std;
 
-class CFGCompute_ooc_syn {
-
+class CFGCompute_ooc_syn_naive {
 public:
 
-	static bool load(Partition part, CFG *cfg_, GraphStore *graphstore, Context* context) {
-		//for debugging
-		Logger::print_thread_info_locked("load starting...\n", LEVEL_LOG_FUNCTION);
-
-		string partition = to_string(part);
-		const string filename_cfg = Context::file_cfg + partition;
-		const string filename_mirrors_in = Context::folder_mirrors_in + partition;
-		const string filename_mirrors_out = Context::folder_mirrors_out + partition;
-		const string foldername_actives = Context::folder_actives + partition;
-		const string filename_stmt = Context::file_stmts + partition;
-		const string filename_singleton = context->getFileSingletons();
-		const string filename_graphs = Context::file_graphstore + partition;
-		const string foldername_graphs_in = Context::folder_graphs_in + partition;
-
-		CFG_map_outcore* cfg = dynamic_cast<CFG_map_outcore*>(cfg_);
-		cfg->loadCFG_ooc(filename_cfg, filename_stmt, filename_mirrors_in, filename_mirrors_out, foldername_actives);
-
-//		graphstore->init(cfg_);
-		graphstore->loadGraphStore(filename_graphs, foldername_graphs_in);
-
-		//for debugging
-		Logger::print_thread_info_locked("load finished.\n", LEVEL_LOG_FUNCTION);
-
-		return true;
-	}
-
-
-	static void pass(Partition partition, CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* actives, Context* context){
-		//for debugging
-		Logger::print_thread_info_locked("pass starting...\n", 1);
-
-		//store all the graphs into file
-		const string filename_graphs = Context::file_graphstore + to_string(partition);
-//		NaiveGraphStore* graphstore_naive = dynamic_cast<NaiveGraphStore*>(graphstore);
-		graphstore->serialize(filename_graphs);
-
-		//divide all the activated nodes into multiple partitions
-		std::unordered_map<Partition, std::unordered_set<CFGNode*>> map;
-	    CFGNode* cfg_node;
-		while(actives->pop(cfg_node)){
-			Partition partition = context->getPartition(cfg_node);
-			if(map.find(partition) != map.end()){
-				map[partition].insert(cfg_node);
-			}
-			else{
-				map[partition] = std::unordered_set<CFGNode*>();
-				map[partition].insert(cfg_node);
-			}
-		}
-
-		//get the corresponding partition
-		for(auto it = map.begin(); it != map.end(); ++it){
-			Partition part = it->first;
-
-			//write actives
-			const string file_actives = Context::folder_actives + to_string(part);
-			store_actives(file_actives, it->second);
-
-			//write graphs_in
-			const string file_graphs_in = Context::folder_graphs_in + std::to_string(part);
-			store_graphs_in(file_graphs_in, cfg, graphstore, it->second);
-
-//			if(!FileUtil::file_exists(folder_in)){
-//				if(mkdir(folder_in.c_str(), 0777) == -1){
-//			        cout << "can't create folder: " << folder_in << endl;
-//			        exit (EXIT_FAILURE);
-//				}
-//			}
-//			const string file_graphs_in = folder_in + "/" + std::to_string(partition);
-//			store_graphs_in(file_graphs_in, cfg, graphstore, it->second);
-
-			//update the priority set information
-			context->update_priority(part, it->second.size());
-		}
-
-		//for debugging
-		Logger::print_thread_info_locked("pass finished.\n", 1);
-	}
-
-
-	static void do_worklist_ooc_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode,
+	static void do_worklist_ooc_synchronous(CFG* cfg_, NaiveGraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode,
 			Timer_wrapper_ooc* timer_ooc, Timer_wrapper_inmemory* timer){
 		Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
@@ -144,8 +58,10 @@ public:
 	        timer_ooc->getEdgeUpdateSum()->start();
 
 	        //synchronize and communicate
-	        graphstore->update_graphs(tmp_graphstore, update_mode);
-	        tmp_graphstore->clear();
+//	        graphstore->update_graphs(tmp_graphstore, update_mode);
+//	        tmp_graphstore->clear();
+	        graphstore->update_graphs_shallow(tmp_graphstore, update_mode);
+	        tmp_graphstore->clear_shallow();
 
 	        //for tuning
 	        timer_ooc->getEdgeUpdateSum()->end();
@@ -173,7 +89,7 @@ public:
 	}
 
 
-	static void compute_ooc(CFG_map_outcore* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1,
+	static void compute_ooc(CFG_map_outcore* cfg, NaiveGraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1,
 			Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag,
 			Timer_wrapper_inmemory* timer){
 		//for performance tuning
@@ -183,7 +99,7 @@ public:
 
 	    CFGNode* cfg_node;
 		while(worklist_1->pop_atomic(cfg_node)){
-//	//    	//for debugging
+//	    	//for debugging
 //	    	Logger::print_thread_info_locked("----------------------- CFG Node "
 //	    			+ to_string(cfg_node->getCfgNodeId())
 //					+ " " + cfg_node->getStmt()->toString()
@@ -225,11 +141,11 @@ public:
 
 	        //update and propagate
 	        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-	        PEGraph* old_out = graphstore->retrieve(out_pointer);
+	        PEGraph* old_out = graphstore->retrieve_shallow(out_pointer);
 	        bool isEqual = out->equals(old_out);
 
 //	        //for debugging
-//	        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", LEVEL_LOG_INFO);
+//	        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", 1);
 
 	        if(!isEqual){
 	            //propagate
@@ -256,10 +172,10 @@ public:
 				delete out;
 	        }
 
-	        //clean out
-	        if(old_out){
-	        	delete old_out;
-	        }
+//	        //clean out
+//	        if(old_out){
+//	        	delete old_out;
+//	        }
 
 	        //for tuning
 	        diff_propagate.end();
@@ -275,83 +191,7 @@ public:
 	}
 
 
-private:
-
-	//append the activated nodes into the corresponding file
-	static void store_actives(const string& file_actives, std::unordered_set<CFGNode*>& set){
-		ofstream myfile;
-		myfile.open(file_actives, std::ofstream::out | std::ofstream::app);
-		if (myfile.is_open()) {
-			for (auto &it : set) {
-				myfile << it->getCfgNodeId() << "\n";
-			}
-			myfile.close();
-		}
-//		if(readable){
-//		}
-//		else{
-//
-//		}
-	}
-
-
-
-	//append the updated in_mirrors into the corresponding file
-	static void store_graphs_in(const string& file_graphs_in, CFG* cfg, GraphStore* graphstore, std::unordered_set<CFGNode*>& set){
-		std::unordered_set<CFGNode*> s;
-		for(auto& it: set){
-			CFGNode* node_dst = it;
-			auto nodes = cfg->getPredesessors(node_dst);
-			if(nodes){
-				for(auto& n: *nodes){
-					s.insert(n);
-				}
-			}
-		}
-
-		if(readable){
-			ofstream myfile;
-			myfile.open(file_graphs_in, std::ofstream::out | std::ofstream::app);
-			if (myfile.is_open()){
-				for (auto& n : s) {
-					auto pointer = n->getOutPointer();
-					PEGraph* graph = graphstore->retrieve(pointer);
-//					assert(graph != nullptr);
-					if(graph){
-						//write a pegraph into file
-						myfile << pointer << "\t";
-						graph->write_readable(myfile);
-						delete graph;
-						myfile << "\n";
-					}
-				}
-				myfile.close();
-			}
-		}
-		else{
-    		FILE *f = fopen(file_graphs_in.c_str(),"ab");
-    		if(f == NULL) {
-    			cout << "can't write to file: " << file_graphs_in << endl;
-    			exit(-1);
-    		}
-    		else{
-				for (auto& n : s) {
-					auto graph_pointer = n->getOutPointer();
-					PEGraph* graph = graphstore->retrieve(graph_pointer);
-					if(graph){
-						fwrite((const void*)& graph_pointer, sizeof(PEGraph_Pointer), 1, f);
-						graph->write_unreadable(f);
-						delete graph;
-					}
-				}
-				fclose(f);
-    		}
-		}
-	}
-
 };
 
 
-
-
-#endif /* COMP_CFG_COMPUTE_OOC_SYN_H_ */
+#endif /* COMP_CFG_COMPUTE_OOC_SYN_NAIVE_H_ */

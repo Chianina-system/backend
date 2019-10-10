@@ -30,6 +30,10 @@ namespace myarray {
     public:
         ArraysToMerge();
 
+        ~ArraysToMerge(){
+
+        }
+
         // getters and setters
         inline bool isEmpty() { return !arraySize; }
 

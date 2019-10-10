@@ -26,7 +26,7 @@ class Concurrent_Worklist{
 public:
     Concurrent_Worklist() {}
 
-    virtual ~Concurrent_Worklist(){}
+    virtual ~Concurrent_Worklist() {};
 
     virtual bool isEmpty() = 0;
 

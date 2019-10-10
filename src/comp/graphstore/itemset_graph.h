@@ -80,6 +80,7 @@ public:
 	~ItemsetGraph(){
 		if(edge_ids){
 			delete[] edge_ids;
+			edge_ids = NULL;
 			len = 0;
 		}
 	}
@@ -155,7 +156,7 @@ public:
     std::string toString(){
       	std::ostringstream strm;
 		strm << "{size=" << len << "; ";
-		for(int i = 0; i < len; i++){
+		for(unsigned int i = 0; i < len; i++){
 			strm << edge_ids[i] << ", ";
 		}
 		strm << "}";

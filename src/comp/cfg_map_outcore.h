@@ -18,9 +18,9 @@ public:
 	CFG_map_outcore(){}
 
 	~CFG_map_outcore(){
-        for (auto &node : nodes) {
-            delete node;
-        }
+//        for (auto &node : nodes) {
+//            delete node;
+//        }
 
         for(auto &mirror: mirrors){
         	assert(mirror->getStmt() == nullptr);

@@ -22,7 +22,8 @@ public:
 	}
 
 	~Priority_array(){
-		delete[] scores;
+		if(scores)
+			delete[] scores;
 	}
 
 	bool schedule(Partition& part){

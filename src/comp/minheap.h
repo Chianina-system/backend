@@ -16,6 +16,13 @@ private:
     int size;
 public:
     MinHeap(MinHeapNode a[],int size);
+
+    ~MinHeap(){
+//    	if(harr){
+//			delete[] harr;
+//    	}
+    }
+
     inline int left(int i) {return 2*i+1;}
     inline int right(int i) {return 2*i+2;}
     inline MinHeapNode getMin() {return harr[0];}

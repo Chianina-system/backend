@@ -22,11 +22,10 @@ public:
 
 
     ~NaiveGraphStore(){
-//    	cout << "deleting naive-graph-store..." << endl;
-    	for(auto it = map.begin(); it != map.end(); ++it){
-//    		cout << "deleting pegraph " << it->first << endl;
-    		delete it->second;
-    	}
+//    	for(auto it = map.begin(); it != map.end(); ++it){
+//    		delete it->second;
+//    	}
+    	clear();
     }
 
     void init(CFG* cfg) {
@@ -101,7 +100,8 @@ public:
 //        	cout << "can't load folder: " << folder_in << endl;
 //        }
 
-    	this->load_onebyone(folder_in);
+//    	this->load_onebyone(folder_in);
+    	this->deserialize(folder_in);
     }
 
 
@@ -120,7 +120,22 @@ public:
     		}
     	}
     	else{
-
+    		FILE *f = fopen(file.c_str(),"wb");
+    		if(f == NULL) {
+    			cout << "can't write to file: " << file << endl;
+    			exit(-1);
+    		}
+    		else{
+				for (auto& n : map) {
+					PEGraph_Pointer graph_pointer = n.first;
+//					if(n.second->isEmpty()){
+//						continue;
+//					}
+					fwrite((const void*)& graph_pointer, sizeof(PEGraph_Pointer), 1, f);
+					n.second->write_unreadable(f);
+				}
+				fclose(f);
+    		}
     	}
     }
 
@@ -129,7 +144,27 @@ public:
     		load_onebyone(file);
     	}
     	else{
+    		FILE *fp = fopen(file.c_str(),"rb");
+    		if(!fp) {
+    			cout << "can't load partition file: " << file << endl;
+//    			exit(-1);
+    		}
+    		else{
+				PEGraph_Pointer graph_pointer;
+				while(fread(&graph_pointer, sizeof(PEGraph_Pointer), 1, fp) != 0) {
+					PEGraph* pegraph = new PEGraph();
+					pegraph->load_unreadable(fp);
+					//since the file is appended, we just use the recent updated pegraph
+					if (map.find(graph_pointer) != map.end()) {
+						delete map[graph_pointer];
+					}
+					map[graph_pointer] = pegraph;
+				}
+				fclose(fp);
 
+				//delete the old graphstore file
+				FileUtil::delete_file(file);
+    		}
     	}
     }
 

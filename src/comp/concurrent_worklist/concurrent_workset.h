@@ -22,26 +22,7 @@ template <typename T>
 class Concurrent_Workset : public Concurrent_Worklist<T> {
 
 
-private:
-	std::set<T, cfgnode_pointer_compare<T>> set;
 
-
-protected:
-
-//    void print(std::ostream& str) const {
-////    	str << "size=" << this->size() << "; ";
-////		for(auto& it: set){
-////			str << *it << ", ";
-////		}
-//    }
-
-    void toString_sub(std::ostringstream& strm) const {
-//		for(auto& it: set){
-//			if(CFGNode* node = dynamic_cast<CFGNode*>(it)){
-//				strm << *node << ", ";
-//			}
-//		}
-    }
 
 
 
@@ -74,6 +55,27 @@ public:
 
     std::set<T>* getSet(){
     	return new std::set<T>(set.begin(), set.end());
+    }
+
+private:
+	std::set<T, cfgnode_pointer_compare<T>> set;
+
+
+protected:
+
+//    void print(std::ostream& str) const {
+////    	str << "size=" << this->size() << "; ";
+////		for(auto& it: set){
+////			str << *it << ", ";
+////		}
+//    }
+
+    void toString_sub(std::ostringstream& strm) const {
+//		for(auto& it: set){
+//			if(CFGNode* node = dynamic_cast<CFGNode*>(it)){
+//				strm << *node << ", ";
+//			}
+//		}
     }
 
 

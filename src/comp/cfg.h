@@ -22,7 +22,13 @@ class CFG{
 	}
 
 public:
-    virtual ~CFG(){}
+	CFG(){}
+
+    virtual ~CFG(){
+        for (auto &node : nodes) {
+            delete node;
+        }
+    }
 
 //    virtual std::vector<CFGNode*>* getPredesessors(const CFGNode* node) = 0;
 //

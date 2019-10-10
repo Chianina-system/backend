@@ -17,9 +17,9 @@ public:
     CFG_map(){}
 
     ~CFG_map(){
-        for (auto &node : nodes) {
-            delete node;
-        }
+//        for (auto &node : nodes) {
+//            delete node;
+//        }
     }
 
 

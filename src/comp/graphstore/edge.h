@@ -25,6 +25,10 @@ public:
 		label = l;
 	}
 
+	~Edge(){
+
+	}
+
 	inline vertexid_t getSrcId() const {
 		return srcId;
 	}

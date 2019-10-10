@@ -11,6 +11,9 @@ namespace myalgo {
     void insertSort(vertexid_t *A,char *B,int l,int r);
     int split(vertexid_t *A,char *B,int l,int r);
 
+    //insert sort
+    void insertSortArray(int* arr, unsigned int n);
+
 // merge sorted arrays algorithm
     int unionTwoArray(vertexid_t *dstA,char *dstB,int len1,vertexid_t *A1,char *B1,int len2,vertexid_t *A2,char *B2); // union set
     int minusTwoArray(vertexid_t *dstA,char *dstB,int len1,vertexid_t *A1,char *B1,int len2,vertexid_t *A2,char *B2); // difference set

@@ -97,15 +97,15 @@ void EdgeArray::print() {
 
 void EdgeArray::clear() {
     if(size) {
-        if(edges) {
-            delete[] edges;
-            edges = NULL;
-        }
-        if(labels) {
-            delete[] labels;
-            labels = NULL;
-        }
-        size = capacity = 0;
+		if (edges) {
+			delete[] edges;
+			edges = NULL;
+		}
+		if (labels) {
+			delete[] labels;
+			labels = NULL;
+		}
+		size = capacity = 0;
     }
 }
 
@@ -161,6 +161,8 @@ void EdgeArray::addEdges(int len, vertexid_t *_edges, label_t *_labels) {
         edges[i] = -1;
         labels[i] = (char) 127;
     }
+
+    size = realSize;
 }
 
 void EdgeArray::merge() {

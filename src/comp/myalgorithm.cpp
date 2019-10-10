@@ -17,6 +17,23 @@ namespace myalgo {
         }
     }
 
+    void insertSortArray(int* arr, unsigned int n){
+        int i, key, j;
+        for (i = 1; i < n; i++) {
+            key = arr[i];
+            j = i - 1;
+
+            /* Move elements of arr[0..i-1], that are
+              greater than key, to one position ahead
+              of their current position */
+            while (j >= 0 && arr[j] > key) {
+                arr[j + 1] = arr[j];
+                j = j - 1;
+            }
+            arr[j + 1] = key;
+        }
+    }
+
     void quickSort(vertexid_t *A,char *B,int l,int r) {
         if(l < r) {
             if(r - l + 1 <= 10)
