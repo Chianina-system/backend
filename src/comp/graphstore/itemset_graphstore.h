@@ -22,11 +22,11 @@ const bool serialize_peg_mode = true;
 class ItemsetGraphStore : public GraphStore {
 
 public:
-	ItemsetGraphStore() : GraphStore (true) {
+	ItemsetGraphStore() : GraphStore (true, true) {
 
 	}
 
-	ItemsetGraphStore(bool file_mode) : GraphStore (file_mode) {
+	ItemsetGraphStore(bool file_mode, bool rw_mode) : GraphStore (file_mode, rw_mode) {
 
 	}
 

@@ -18,11 +18,11 @@ using namespace std;
 class NaiveGraphStore : public GraphStore {
 
 public:
-	NaiveGraphStore() : GraphStore (true) {
+	NaiveGraphStore() : GraphStore (true, true) {
 
 	}
 
-	NaiveGraphStore(bool file_mode) : GraphStore (file_mode) {
+	NaiveGraphStore(bool file_mode, bool rw_mode) : GraphStore (file_mode, rw_mode) {
 
 	}
 
@@ -90,27 +90,14 @@ public:
     	//graphstore file
     	this->deserialize(file);
 
-    	//updated graphstore
-//        DIR* dirp = opendir(folder_in.c_str());
-//        if(dirp){
-//			struct dirent * dp;
-//			while ((dp = readdir(dirp)) != NULL) {
-//				if(strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0){
-//					cout << "file name: " << dp->d_name << endl;
-//					this->load_onebyone(folder_in + "/" + dp->d_name);
-//				}
-//			}
-//			closedir(dirp);
-//        }
-//        else{
-//        	cout << "can't load folder: " << folder_in << endl;
-//        }
-
     	this->deserialize(folder_in);
     }
 
 
     void serialize(const string& file){
+		//for debugging
+		Logger::print_thread_info_locked("serialize starting...\n", LEVEL_LOG_FUNCTION);
+
     	if(file_mode){
     		ofstream myfile;
     		myfile.open(file, std::ofstream::out);
@@ -131,17 +118,31 @@ public:
     			exit(-1);
     		}
     		else{
-				for (auto& n : map) {
-					PEGraph_Pointer graph_pointer = n.first;
-//					if(n.second->isEmpty()){
-//						continue;
-//					}
-					fwrite((const void*)& graph_pointer, sizeof(PEGraph_Pointer), 1, f);
-					n.second->write_unreadable(f);
-				}
+    			if(rw_mode){//pegraph-level
+    				for (auto& n : map) {
+    					PEGraph* pegraph = n.second;
+    					size_t bufsize = sizeof(PEGraph_Pointer) + pegraph->compute_size_bytes();
+    					fwrite((const void*)& bufsize, sizeof(size_t), 1, f);
+    					char *buf = (char*)malloc(bufsize);
+    					pegraph->write_to_buf(buf, n.first);
+    					fwrite(buf, bufsize, 1, f);
+    					free(buf);
+    				}
+    			}
+    			else{//field-level
+					for (auto& n : map) {
+						PEGraph_Pointer graph_pointer = n.first;
+						fwrite((const void*)& graph_pointer, sizeof(PEGraph_Pointer), 1, f);
+						n.second->write_unreadable(f);
+					}
+    			}
+
 				fclose(f);
     		}
     	}
+
+		//for debugging
+		Logger::print_thread_info_locked("serialize finished.\n", LEVEL_LOG_FUNCTION);
     }
 
     void deserialize(const string& file){
@@ -184,16 +185,35 @@ public:
 //    			exit(-1);
     		}
     		else{
-				PEGraph_Pointer graph_pointer;
-				while(fread(&graph_pointer, sizeof(PEGraph_Pointer), 1, fp) != 0) {
-					PEGraph* pegraph = new PEGraph();
-					pegraph->load_unreadable(fp);
-					//since the file is appended, we just use the recent updated pegraph
-					if (map.find(graph_pointer) != map.end()) {
-						delete map[graph_pointer];
+    			if(rw_mode){//pegraph-level
+    				size_t freadRes = 0; //clear warnings
+    				size_t bufsize;
+    				while(fread(&bufsize, sizeof(size_t), 1, fp) != 0) {
+    					char *buf = (char*)malloc(bufsize);
+    					freadRes = fread(buf, bufsize, 1, fp);
+    					PEGraph* pegraph = new PEGraph();
+    					PEGraph_Pointer graph_pointer = pegraph->read_from_buf(buf, bufsize);
+    					free(buf);
+						//since the file is appended, we just use the recent updated pegraph
+						if (map.find(graph_pointer) != map.end()) {
+							delete map[graph_pointer];
+						}
+						map[graph_pointer] = pegraph;
+    				}
+    			}
+    			else{
+					PEGraph_Pointer graph_pointer;
+					while(fread(&graph_pointer, sizeof(PEGraph_Pointer), 1, fp) != 0) {
+						PEGraph* pegraph = new PEGraph();
+						pegraph->load_unreadable(fp);
+						//since the file is appended, we just use the recent updated pegraph
+						if (map.find(graph_pointer) != map.end()) {
+							delete map[graph_pointer];
+						}
+						map[graph_pointer] = pegraph;
 					}
-					map[graph_pointer] = pegraph;
-				}
+    			}
+
 				fclose(fp);
 
 				//delete the old graphstore file
@@ -203,6 +223,9 @@ public:
     }
 
     void store_in_graphs(const string& file_graphs_in, std::unordered_set<CFGNode*>& set){
+		//for debugging
+		Logger::print_thread_info_locked("store-in-graphs starting...\n", LEVEL_LOG_FUNCTION);
+
 		if(file_mode){
 			ofstream myfile;
 			myfile.open(file_graphs_in, std::ofstream::out | std::ofstream::app);
@@ -229,18 +252,36 @@ public:
     			exit(-1);
     		}
     		else{
-				for (auto& n : set) {
-					auto graph_pointer = n->getOutPointer();
-					PEGraph* graph = retrieve_shallow(graph_pointer);
-					if(graph){
-						fwrite((const void*)& graph_pointer, sizeof(PEGraph_Pointer), 1, f);
-						graph->write_unreadable(f);
-//						delete graph;
+    			if(rw_mode){//pegraph-level
+    				for (auto& n : set) {
+						auto graph_pointer = n->getOutPointer();
+						PEGraph* pegraph = retrieve_shallow(graph_pointer);
+						if(pegraph){
+							size_t bufsize = sizeof(PEGraph_Pointer) + pegraph->compute_size_bytes();
+							fwrite((const void*)& bufsize, sizeof(size_t), 1, f);
+							char *buf = (char*)malloc(bufsize);
+							pegraph->write_to_buf(buf, graph_pointer);
+							fwrite(buf, bufsize, 1, f);
+							free(buf);
+						}
+    				}
+    			}
+    			else{
+					for (auto& n : set) {
+						auto graph_pointer = n->getOutPointer();
+						PEGraph* pegraph = retrieve_shallow(graph_pointer);
+						if(pegraph){
+							fwrite((const void*)& graph_pointer, sizeof(PEGraph_Pointer), 1, f);
+							pegraph->write_unreadable(f);
+						}
 					}
-				}
+    			}
 				fclose(f);
     		}
 		}
+
+		//for debugging
+		Logger::print_thread_info_locked("store-in-graphs finished.\n", LEVEL_LOG_FUNCTION);
     }
 
 

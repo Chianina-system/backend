@@ -181,6 +181,47 @@ public:
 		}
     }
 
+
+    size_t compute_size_bytes(){
+    	size_t size = 0;
+    	for(auto& it: graph){
+    		size += sizeof(vertexid_t);
+    		size += it.second.get_size_bytes();
+    	}
+    	return size;
+    }
+
+    void write_to_buf(char* buf, PEGraph_Pointer pointer){
+    	size_t offset = 0;
+    	memcpy(buf, (char*)&pointer, sizeof(PEGraph_Pointer));
+//    	*buf = pointer;
+    	offset += sizeof(PEGraph_Pointer);
+    	for(auto& it: graph){
+    		//srcId
+    		memcpy(buf + offset, (char*)&(it.first), sizeof(vertexid_t));
+//    		*(buf + offset) = it.first;
+    		offset += sizeof(vertexid_t);
+    		//edgeArray
+    		offset = it.second.write_to_buf(buf, offset);
+    	}
+    }
+
+    PEGraph_Pointer read_from_buf(char* buf, const size_t bufsize){
+    	size_t offset = 0;
+    	PEGraph_Pointer pointer = *((PEGraph_Pointer*)(buf));
+    	offset += sizeof(PEGraph_Pointer);
+    	while(offset < bufsize){
+    		vertexid_t src = *((vertexid_t*)(buf + offset));
+    		offset += sizeof(vertexid_t);
+    		this->graph[src] = EdgeArray();
+    		offset = this->graph[src].read_from_buf(buf, offset);
+    	}
+    	return pointer;
+    }
+
+
+
+
 private:
     std::unordered_map<vertexid_t, EdgeArray> graph;
 

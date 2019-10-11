@@ -27,8 +27,9 @@ class GraphStore{
 	}
 
 public:
-    GraphStore(bool f_mode){
+    GraphStore(bool f_mode, bool rw_m){
     	file_mode = f_mode;
+    	rw_mode = rw_m;
     }
 
     virtual ~GraphStore(){};
@@ -110,6 +111,7 @@ protected:
 
     std::mutex mtx;
     bool file_mode;
+    bool rw_mode;
 
 private:
     //	void add();

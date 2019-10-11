@@ -103,7 +103,7 @@ typedef int Partition;
 #define NUM_THREADS_CFGCOMPUTE 2
 
 //#define LEVEL_LOG_INFO 1
-#define LEVEL_LOG_FUNCTION 0
+#define LEVEL_LOG_FUNCTION 1
 #define LEVEL_LOG_PEG 1
 #define LEVEL_LOG_GRAPHSTORE 1
 #define LEVEL_LOG_CFGNODE 1

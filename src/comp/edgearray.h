@@ -102,6 +102,38 @@ public:
     	free(buf);
     }
 
+    size_t get_size_bytes(){
+    	return sizeof(int) * 2 + (sizeof(vertexid_t) + sizeof(label_t)) * size;
+    }
+
+    size_t write_to_buf(char* buf, size_t offset){
+    	memcpy(buf + offset, (char*)&size, sizeof(int));
+    	offset += sizeof(int);
+    	memcpy(buf + offset, (char*)&capacity, sizeof(int));
+    	offset += sizeof(int);
+    	memcpy(buf + offset, edges, sizeof(vertexid_t) * size);
+    	offset += sizeof(vertexid_t) * size;
+    	memcpy(buf + offset, labels, sizeof(label_t) * size);
+    	offset += sizeof(label_t) * size;
+
+    	return offset;
+    }
+
+    size_t read_from_buf(char* buf, size_t offset){
+    	size = *((int*)(buf + offset));
+    	offset += sizeof(int);
+    	capacity = *((int*)(buf + offset));
+    	offset += sizeof(int);
+    	this->edges = new vertexid_t[size];
+    	memcpy(edges, buf + offset, sizeof(vertexid_t) * size);
+    	offset += sizeof(vertexid_t) * size;
+    	this->labels = new label_t[size];
+    	memcpy(labels, buf + offset, sizeof(label_t) * size);
+    	offset += sizeof(label_t) * size;
+
+    	return offset;
+    }
+
 
 
     std::string toString(Grammar* grammar){

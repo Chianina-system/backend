@@ -144,8 +144,8 @@ public:
 	        PEGraph* old_out = graphstore->retrieve_shallow(out_pointer);
 	        bool isEqual = out->equals(old_out);
 
-//	        //for debugging
-//	        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", 1);
+	        //for debugging
+	        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", 1);
 
 	        if(!isEqual){
 	            //propagate
