@@ -524,6 +524,16 @@ public:
     }
 
 
+    void getStatistics(int& size_graphs, long& size_edges, const std::unordered_set<PEGraph_Pointer>& mirrors){
+    	for(auto it = map.begin(); it != map.end(); ++it){
+    		if(mirrors.find(it->first) == mirrors.end()){
+				size_edges += it->second->getNumEdges();
+				size_graphs++;
+    		}
+    	}
+    }
+
+
 protected:
     void print(std::ostream& str) {
     	std::lock_guard<std::mutex> lGuard (mtx);

@@ -216,19 +216,11 @@ void printGraphstoreInfo(Context* context, int graphstore_mode, bool file_mode, 
 		const string filename_mirrors_out = Context::folder_mirrors_out + to_string(partition);
 		loadMirrors(filename_mirrors_in, filename_mirrors_out, mirrors);
 
-		auto map = dynamic_cast<NaiveGraphStore*> (graphstore)->getMap();
-
     	int size_graphs = 0;
     	long size_edges = 0;
+    	graphstore->getStatistics(size_graphs, size_edges, mirrors);
 
     	cout << "partition " << to_string(partition) << endl;
-    	for(auto it = map.begin(); it != map.end(); ++it){
-    		if(mirrors.find(it->first) == mirrors.end()){
-				size_edges += it->second->getNumEdges();
-				size_graphs++;
-    		}
-    	}
-
     	cout << "Number of graphs: " << size_graphs << endl;
     	cout << "Number of edges: " << size_edges << endl;
     	cout << endl;

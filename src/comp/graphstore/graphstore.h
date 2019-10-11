@@ -101,6 +101,8 @@ public:
 		return strm.str();
     }
 
+    virtual void getStatistics(int& size_graphs, long& size_edges, const std::unordered_set<PEGraph_Pointer>& mirrors) = 0;
+
 
 protected:
 
