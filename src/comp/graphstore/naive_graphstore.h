@@ -86,13 +86,16 @@ public:
 //    }
 
 
-    void loadGraphStore(const string& file, const string& folder_in) {
+    void loadGraphStore(const string& file, const string& file_graphs_in) {
     	//graphstore file
     	this->deserialize(file);
 
-    	this->deserialize(folder_in);
+    	this->load_in_graphs(file_graphs_in);
     }
 
+    void load_in_graphs(const string& file_graphs_in){
+    	deserialize(file_graphs_in);
+    }
 
     void serialize(const string& file){
 		//for debugging

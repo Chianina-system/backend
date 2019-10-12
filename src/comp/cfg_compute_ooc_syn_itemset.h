@@ -101,11 +101,11 @@ public:
 
 	    CFGNode* cfg_node;
 		while(worklist_1->pop_atomic(cfg_node)){
-	//    	//for debugging
-	    	Logger::print_thread_info_locked("----------------------- CFG Node "
-	    			+ to_string(cfg_node->getCfgNodeId())
-					+ " " + cfg_node->getStmt()->toString()
-					+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
+//	//    	//for debugging
+//	    	Logger::print_thread_info_locked("----------------------- CFG Node "
+//	    			+ to_string(cfg_node->getCfgNodeId())
+//					+ " " + cfg_node->getStmt()->toString()
+//					+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
 
 			//for tuning
 			diff_merge.start();
@@ -120,8 +120,8 @@ public:
 	        diff_merge.end();
 	        timer->getMergeSum()->add_locked(diff_merge.getClockDiff(), diff_merge.getTimeDiff());
 
-	        //for debugging
-	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
+//	        //for debugging
+//	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
 
 	        //for tuning
@@ -134,8 +134,8 @@ public:
 	        diff_transfer.end();
 	        timer->getTransferSum()->add_locked(diff_transfer.getClockDiff(), diff_transfer.getTimeDiff());
 
-	        //for debugging
-	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
+//	        //for debugging
+//	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
 
 	        //for tuning

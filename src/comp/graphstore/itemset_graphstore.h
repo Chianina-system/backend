@@ -213,7 +213,6 @@ public:
 		this->deserialize(file);
 
 		//load in-graphs
-//		this->deserialize(file_in);
 		this->load_in_graphs(file_in);
 
 //		//construct itemset base
@@ -244,13 +243,27 @@ public:
         			exit(-1);
         		}
         		else{
-    				for (auto& n : graphs) {
-    					PEGraph_Pointer graph_pointer = n.first;
-    					fwrite((const void*)& graph_pointer, sizeof(PEGraph_Pointer), 1, f);
-    					PEGraph* out = convertToPEGraph(n.second);
-    					out->write_unreadable(f);
-    					delete out;
-    				}
+        			if(rw_mode){//pegraph-level
+        				for (auto& n : graphs) {
+        					PEGraph* out = convertToPEGraph(n.second);
+        					size_t bufsize = sizeof(PEGraph_Pointer) + out->compute_size_bytes();
+        					fwrite((const void*)& bufsize, sizeof(size_t), 1, f);
+        					char *buf = (char*)malloc(bufsize);
+        					out->write_to_buf(buf, n.first);
+        					delete out;
+        					fwrite(buf, bufsize, 1, f);
+        					free(buf);
+        				}
+        			}
+        			else{
+						for (auto& n : graphs) {
+							PEGraph_Pointer graph_pointer = n.first;
+							fwrite((const void*)& graph_pointer, sizeof(PEGraph_Pointer), 1, f);
+							PEGraph* out = convertToPEGraph(n.second);
+							out->write_unreadable(f);
+							delete out;
+						}
+        			}
     				fclose(f);
         		}
     		}
@@ -262,11 +275,15 @@ public:
 
     void deserialize(const string& file){
     	if(serialize_peg_mode){
-    		load_in_graphs(file);
+    		load_naiveGraphStore(file);
     	}
     	else{
    			load_itemsetGraphstore(file);
     	}
+    }
+
+    void load_naiveGraphStore(const string& file){
+    	load_in_graphs(file);
     }
 
     //load the graphstore in the itemset format
@@ -330,18 +347,39 @@ public:
 //    			exit(-1);
     		}
     		else{
-				PEGraph_Pointer graph_pointer;
-				while(fread(&graph_pointer, sizeof(PEGraph_Pointer), 1, fp) != 0) {
-					PEGraph* pegraph = new PEGraph();
-					pegraph->load_unreadable(fp);
-					ItemsetGraph *graph = convertToSetGraph(pegraph);
-					delete pegraph;
-					//since the file is appended, we just use the recent updated pegraph
-					if (graphs.find(graph_pointer) != graphs.end()) {
-						delete graphs[graph_pointer];
+    			if(rw_mode){//pegraph-level
+    				size_t freadRes = 0; //clear warnings
+    				size_t bufsize;
+    				while(fread(&bufsize, sizeof(size_t), 1, fp) != 0) {
+    					char *buf = (char*)malloc(bufsize);
+    					freadRes = fread(buf, bufsize, 1, fp);
+    					PEGraph* pegraph = new PEGraph();
+    					PEGraph_Pointer graph_pointer = pegraph->read_from_buf(buf, bufsize);
+    					free(buf);
+    					ItemsetGraph *graph = convertToSetGraph(pegraph);
+    					delete pegraph;
+						//since the file is appended, we just use the recent updated pegraph
+						if (graphs.find(graph_pointer) != graphs.end()) {
+							delete graphs[graph_pointer];
+						}
+						graphs[graph_pointer] = graph;
+    				}
+    			}
+    			else{
+					PEGraph_Pointer graph_pointer;
+					while(fread(&graph_pointer, sizeof(PEGraph_Pointer), 1, fp) != 0) {
+						PEGraph* pegraph = new PEGraph();
+						pegraph->load_unreadable(fp);
+						ItemsetGraph *graph = convertToSetGraph(pegraph);
+						delete pegraph;
+						//since the file is appended, we just use the recent updated pegraph
+						if (graphs.find(graph_pointer) != graphs.end()) {
+							delete graphs[graph_pointer];
+						}
+						graphs[graph_pointer] = graph;
 					}
-					graphs[graph_pointer] = graph;
-				}
+    			}
+
 				fclose(fp);
 
 				//delete the old graphstore file
@@ -379,15 +417,33 @@ public:
 				exit(-1);
 			}
 			else {
-				for (auto &n : set) {
-					auto graph_pointer = n->getOutPointer();
-					PEGraph *graph = retrieve(graph_pointer);
-					if (graph) {
-						fwrite((const void*) &graph_pointer, sizeof(PEGraph_Pointer), 1, f);
-						graph->write_unreadable(f);
-						delete graph;
+    			if(rw_mode){//pegraph-level
+    				for (auto& n : set) {
+						auto graph_pointer = n->getOutPointer();
+						PEGraph* pegraph = retrieve(graph_pointer);
+						if(pegraph){
+							size_t bufsize = sizeof(PEGraph_Pointer) + pegraph->compute_size_bytes();
+							fwrite((const void*)& bufsize, sizeof(size_t), 1, f);
+							char *buf = (char*)malloc(bufsize);
+							pegraph->write_to_buf(buf, graph_pointer);
+							delete pegraph;
+							fwrite(buf, bufsize, 1, f);
+							free(buf);
+						}
+    				}
+    			}
+    			else{
+					for (auto &n : set) {
+						auto graph_pointer = n->getOutPointer();
+						PEGraph *graph = retrieve(graph_pointer);
+						if (graph) {
+							fwrite((const void*) &graph_pointer, sizeof(PEGraph_Pointer), 1, f);
+							graph->write_unreadable(f);
+							delete graph;
+						}
 					}
-				}
+    			}
+
 				fclose(f);
 			}
 		}
