@@ -137,23 +137,23 @@ public:
 //		priority_set.erase(it);
 //	}
 
-	string getFileCfg() const {
+	const string& getFileCfg() const {
 		return file_cfg_init;
 	}
 
-	string getFileGrammar() const {
+	const string& getFileGrammar() const {
 		return file_grammar_init;
 	}
 
-	string getFileEntries() const {
+	const string& getFileEntries() const {
 		return file_entries_init;
 	}
 
-	string getFileSingletons() const {
+	const string& getFileSingletons() const {
 		return file_singletons_init;
 	}
 
-	string getFileStmts() const {
+	const string& getFileStmts() const {
 		return file_stmts_init;
 	}
 

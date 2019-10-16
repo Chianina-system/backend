@@ -7,7 +7,7 @@
 
 #include "context.h"
 
-const string Context::working_path = "/home/dell/Desktop/Data/";
+const string Context::working_path = "/home/nju-seg-hsy/GraphFlow-zzq/Data/";
 const string Context::file_cfg = working_path + "cfg_";
 const string Context::file_stmts = working_path + "stmt_";
 const string Context::file_singletons = working_path + "singleton_";

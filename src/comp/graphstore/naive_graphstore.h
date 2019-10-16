@@ -22,7 +22,7 @@ public:
 
 	}
 
-	NaiveGraphStore(bool file_mode, bool rw_mode) : GraphStore (file_mode, rw_mode) {
+	NaiveGraphStore(bool file_mode, bool buffered_m) : GraphStore (file_mode, buffered_m) {
 
 	}
 
@@ -86,7 +86,7 @@ public:
 //    }
 
 
-    void loadGraphStore(const string& file, const string& file_graphs_in) {
+    void loadGraphStore(const string& file, const string& file_graphs_in, Partition part) {
     	//graphstore file
     	this->deserialize(file);
 
@@ -121,7 +121,7 @@ public:
     			exit(-1);
     		}
     		else{
-    			if(rw_mode){//pegraph-level
+    			if(buffered_mode){//pegraph-level
     				for (auto& n : map) {
     					PEGraph* pegraph = n.second;
     					size_t bufsize = sizeof(PEGraph_Pointer) + pegraph->compute_size_bytes();
@@ -188,7 +188,7 @@ public:
 //    			exit(-1);
     		}
     		else{
-    			if(rw_mode){//pegraph-level
+    			if(buffered_mode){//pegraph-level
     				size_t freadRes = 0; //clear warnings
     				size_t bufsize;
     				while(fread(&bufsize, sizeof(size_t), 1, fp) != 0) {
@@ -255,7 +255,7 @@ public:
     			exit(-1);
     		}
     		else{
-    			if(rw_mode){//pegraph-level
+    			if(buffered_mode){//pegraph-level
     				for (auto& n : set) {
 						auto graph_pointer = n->getOutPointer();
 						PEGraph* pegraph = retrieve_shallow(graph_pointer);
@@ -527,13 +527,14 @@ public:
     }
 
 
-    void getStatistics(int& size_graphs, long& size_edges, const std::unordered_set<PEGraph_Pointer>& mirrors){
+    void getStatistics(int& size_graphs, long& size_edges, long& size_items, const std::unordered_set<PEGraph_Pointer>& mirrors){
     	for(auto it = map.begin(); it != map.end(); ++it){
     		if(mirrors.find(it->first) == mirrors.end()){
 				size_edges += it->second->getNumEdges();
 				size_graphs++;
     		}
     	}
+    	size_items = size_edges;
     }
 
 

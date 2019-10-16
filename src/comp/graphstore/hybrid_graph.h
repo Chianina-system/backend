@@ -59,9 +59,9 @@ public:
 		return peGraph;
 	}
 
-	int getNumEdges(){
-		return peGraph->getNumEdges() + itemsetGraph->getNumEdges();
-	}
+//	int getNumEdges(){
+//		return peGraph->getNumEdges() + itemsetGraph->getLength();
+//	}
 
 
 private:

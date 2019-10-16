@@ -20,7 +20,7 @@ using namespace std;
 //const string file_cfg = dir + "final";
 //const string file_stmts = dir + "id_stmt_info.txt";
 //const string file_singletons = dir + "var_singleton_info.txt";
-const string file_grammar = "/home/dell/Desktop/Ouroboros-dataset-master/rules_pointsto.txt";
+const string file_grammar = "/home/nju-seg-hsy/GraphFlow-zzq/Ouroboros-dataset-master/rules_pointsto.txt";
 
 
 /* function declaration */
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 	if(argc != 9 && argc != 12){
 		cout << "Usage: ./backend file_total file_entries file_cfg file_stmts file_singletons "
 				  << "graphstore_mode(0: naive; 1: itemset) update_mode(0: sequential; 1: parallel) "
-						<< "computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1) file_mode(0: binary; 1: text) rw_mode(0: field-level; 1: PEGraph-level)" << endl;
+						<< "computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1) file_mode(0: binary; 1: text) buffered_mode(0: default; 1: user-specified)" << endl;
 		return 0;
 	}
 
@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
 		if(atoi(argv[8]) != 0){
 			cout << "Usage: ./backend file_total file_entries file_cfg file_stmts file_singletons "
 					<< "graphstore_mode(0: naive; 1: itemset) update_mode(0: sequential; 1: parallel) "
-						<< "computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1) file_mode(0: binary; 1: text) rw_mode(0: field-level; 1: PEGraph-level)" << endl;
+						<< "computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1) file_mode(0: binary; 1: text) buffered_mode(0: default; 1: user-specified)" << endl;
 			return 0;
 		}
 	}
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 
 	auto end_fsm = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
-	std::cout << "Running time : " << diff_fsm.count() << " s\n";
+	std::cout << "Running time: " << diff_fsm.count() << " s\n";
 
 	//print out resource usage
 	std::cout << "\n\n";
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
 
 
 
-void compute_ooc(Partition partition, Context* context, bool sync_mode, int graphstore_mode, bool update_mode, bool file_mode, bool rw_mode,
+void compute_ooc(Partition partition, Context* context, bool sync_mode, int graphstore_mode, bool update_mode, bool file_mode, bool buffered_mode,
 		Timer_wrapper_ooc* timer_ooc, Timer_wrapper_inmemory* timer){
 	//for debugging
 	Logger::print_thread_info_locked("----------------------- Partition " + to_string(partition) + " starting -----------------------\n", LEVEL_LOG_MAIN);
@@ -88,10 +88,10 @@ void compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
 //	GraphStore *graphstore = new NaiveGraphStore();
 	GraphStore* graphstore;
 	if(graphstore_mode){
-		graphstore = new ItemsetGraphStore(file_mode, rw_mode);
+		graphstore = new ItemsetGraphStore(file_mode, buffered_mode);
 	}
 	else{
-		graphstore = new NaiveGraphStore(file_mode, rw_mode);
+		graphstore = new NaiveGraphStore(file_mode, buffered_mode);
 	}
 
 //    //get the flag for adding self-loop edges
@@ -194,18 +194,19 @@ void loadMirrors(const string& file_mirrors_in, const string& file_mirrors_out, 
 	}
 }
 
-void printGraphstoreInfo(Context* context, int graphstore_mode, bool file_mode, bool rw_mode){
+void printGraphstoreInfo(Context* context, int graphstore_mode, bool file_mode, bool buffered_mode){
 	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
+	long num_items = 0;
 	long num_edges = 0;
 	int num_graphs = 0;
 	for(unsigned int partition = 0; partition < context->getNumberPartitions(); ++ partition){
 //		NaiveGraphStore *graphstore = new NaiveGraphStore();
 		GraphStore* graphstore;
 		if(graphstore_mode){
-			graphstore = new ItemsetGraphStore(file_mode, rw_mode);
+			graphstore = new ItemsetGraphStore(file_mode, buffered_mode);
 		}
 		else{
-			graphstore = new NaiveGraphStore(file_mode, rw_mode);
+			graphstore = new NaiveGraphStore(file_mode, buffered_mode);
 		}
 		std::unordered_set<PEGraph_Pointer> mirrors;
 
@@ -218,25 +219,39 @@ void printGraphstoreInfo(Context* context, int graphstore_mode, bool file_mode, 
 
     	int size_graphs = 0;
     	long size_edges = 0;
-    	graphstore->getStatistics(size_graphs, size_edges, mirrors);
+    	long size_items = 0;
+    	graphstore->getStatistics(size_graphs, size_edges, size_items, mirrors);
 
     	cout << "partition " << to_string(partition) << endl;
     	cout << "Number of graphs: " << size_graphs << endl;
     	cout << "Number of edges: " << size_edges << endl;
+    	cout << "Number of items: " << size_items << endl;
     	cout << endl;
 
     	delete graphstore;
 
+    	num_items += size_items;
     	num_edges += size_edges;
     	num_graphs += size_graphs;
 	}
 
 	cout << "\nTotal number of graphs: " << num_graphs << endl;
 	cout << "Total number of edges: " << num_edges << endl;
+	cout << "Total number of items: " << num_items << endl;
 	cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
 }
 
-void run_ooc(bool rw_mode, bool file_mode, int graphstore_mode, bool update_mode, int num_partitions, bool sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
+void clean_mining_files(int num_partitions){
+	for(int part = 0; part < num_partitions; part++){
+		string input_file = inputFile + to_string(part);
+		string output_file = outFile + to_string(part);
+		FileUtil::delete_file(input_file);
+		FileUtil::delete_file(output_file);
+	}
+}
+
+
+void run_ooc(bool buffered_mode, bool file_mode, int graphstore_mode, bool update_mode, int num_partitions, bool sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
 	//for performance tuning
 	Timer_sum sum_preprocess("preprocess");
 	Timer_sum sum_compute("compute-ooc");
@@ -260,10 +275,12 @@ void run_ooc(bool rw_mode, bool file_mode, int graphstore_mode, bool update_mode
 	sum_compute.start();
 
 	//iterative computation
+	int iterations = 0;
 	Partition partition;
 	while(context->schedule(partition)){
-//		cout << "Partition: " << partition << endl;
-		compute_ooc(partition, context, sync_mode, graphstore_mode, update_mode, file_mode, rw_mode, timer_ooc, timer);
+		cout << "Partition: " << partition << endl;
+		iterations++;
+		compute_ooc(partition, context, sync_mode, graphstore_mode, update_mode, file_mode, buffered_mode, timer_ooc, timer);
 
 //		//for debugging
 //		context->printOutPriorityInfo();
@@ -277,8 +294,10 @@ void run_ooc(bool rw_mode, bool file_mode, int graphstore_mode, bool update_mode
 //	readAllGraphs(graphstore, context);
 //	graphstore->printOutInfo();
 //	delete graphstore;
-	printGraphstoreInfo(context, graphstore_mode, file_mode, rw_mode);
+	printGraphstoreInfo(context, graphstore_mode, file_mode, buffered_mode);
 
+	//delete all the files for itemset mining
+	clean_mining_files(num_partitions);
 	delete context;
 
 	//for tuning
@@ -290,6 +309,8 @@ void run_ooc(bool rw_mode, bool file_mode, int graphstore_mode, bool update_mode
 
 	timer->print();
 	delete timer;
+
+	cout << "Number of iterations: " << iterations << endl;
 
 }
 

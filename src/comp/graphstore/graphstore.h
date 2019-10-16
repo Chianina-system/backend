@@ -14,6 +14,8 @@
 //#include "peGraphPointer.h"
 //#include "cfg_compute.h"
 #include "hybrid_graphstore.h"
+#include "buffer.h"
+#include "../io_manager.hpp"
 
 using namespace std;
 
@@ -27,9 +29,9 @@ class GraphStore{
 	}
 
 public:
-    GraphStore(bool f_mode, bool rw_m){
+    GraphStore(bool f_mode, bool buffered_m){
     	file_mode = f_mode;
-    	rw_mode = rw_m;
+    	buffered_mode = buffered_m;
     }
 
     virtual ~GraphStore(){};
@@ -50,7 +52,7 @@ public:
 
     virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
 
-    virtual void loadGraphStore(const string& file, const string& file_in) = 0;
+    virtual void loadGraphStore(const string& file, const string& file_in, Partition part) = 0;
 
 //    virtual void init(CFG* cfg) = 0;
 
@@ -101,7 +103,7 @@ public:
 		return strm.str();
     }
 
-    virtual void getStatistics(int& size_graphs, long& size_edges, const std::unordered_set<PEGraph_Pointer>& mirrors) = 0;
+    virtual void getStatistics(int& size_graphs, long& size_edges, long& size_items, const std::unordered_set<PEGraph_Pointer>& mirrors) = 0;
 
 
 protected:
@@ -113,7 +115,7 @@ protected:
 
     std::mutex mtx;
     bool file_mode;
-    bool rw_mode;
+    bool buffered_mode;
 
 private:
     //	void add();

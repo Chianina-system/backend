@@ -15,9 +15,9 @@
 
 using namespace std;
 
-const string inputFile = "../lib/file/input_itemsets.txt";
-const string outFile = "../lib/file/out_itemsets.txt";
-const bool serialize_peg_mode = true;
+const string inputFile = "../lib/file/input_itemsets_";
+const string outFile = "../lib/file/out_itemsets_";
+
 
 class ItemsetGraphStore : public GraphStore {
 
@@ -26,7 +26,7 @@ public:
 
 	}
 
-	ItemsetGraphStore(bool file_mode, bool rw_mode) : GraphStore (file_mode, rw_mode) {
+	ItemsetGraphStore(bool file_mode, bool buffered_m) : GraphStore (file_mode, buffered_m) {
 
 	}
 
@@ -41,8 +41,8 @@ public:
     		delete *it;
     	}
 
-    	intToEdge.clear();
-    	edgeToInt.clear();
+//    	intToEdge.clear();
+//    	edgeToInt.clear();
     }
 
 
@@ -86,7 +86,7 @@ public:
 		return out;
     }
 
-    bool isItemset(int id_edge){
+    static bool isItemset(int id_edge){
     	return id_edge < 0;
     }
 
@@ -208,15 +208,22 @@ public:
 //		Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
     }
 
-    void loadGraphStore(const string& file, const string& file_in) {
+    void loadGraphStore(const string& file, const string& file_in, Partition part) {
 		//graphstore file
 		this->deserialize(file);
+
+//		cout << "deserialize ended." << endl;
 
 		//load in-graphs
 		this->load_in_graphs(file_in);
 
-//		//construct itemset base
-//		this->constructItemsetBase();
+//		cout << "load_in_graphs ended." << endl;
+
+		//construct itemset base
+//		this->printOutInfo();
+		this->constructItemsetBase(part);
+
+//		cout << "construct itemset base." << endl;
     }
 
     void serialize(const string& file){
@@ -243,7 +250,7 @@ public:
         			exit(-1);
         		}
         		else{
-        			if(rw_mode){//pegraph-level
+        			if(buffered_mode){//pegraph-level
         				for (auto& n : graphs) {
         					PEGraph* out = convertToPEGraph(n.second);
         					size_t bufsize = sizeof(PEGraph_Pointer) + out->compute_size_bytes();
@@ -286,12 +293,210 @@ public:
     	load_in_graphs(file);
     }
 
+    long get_binary_size(FILE *fp){
+    	fseek(fp, 0, SEEK_END);
+    	auto size = ftell(fp);
+    	return size;
+    }
+
     //load the graphstore in the itemset format
     void load_itemsetGraphstore(const string& file){
     	if(file_mode){
-
+			cout << "wrong file w/r mode while loading itemsetGraphStore!" << endl;
+			exit(-1);
     	}
     	else{
+    		if(buffered_mode){//pegraph-level
+    			//read intToEdge
+//    			cout << "load intToEdge" << endl;
+        		string file_intToEdge = file + ".intToEdge";
+				int fp_intToEdge = open(file_intToEdge.c_str(), O_RDONLY);
+        		if(!(fp_intToEdge > 0)) {
+        			cout << "can't load graphs file: " << file_intToEdge << endl;
+    //    			exit(-1);
+        		}
+        		else{
+					long inttoedge_file_size = io_manager::get_filesize(fp_intToEdge);
+					char* buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
+					long real_io_size = get_real_io_size(IO_SIZE, Edge::getSizeof());
+					int streaming_counter = inttoedge_file_size / real_io_size + 1;
+
+					long offset_read = 0;
+
+					for(int counter = 0; counter < streaming_counter; counter++) {
+						long valid_io_size = 0;
+						if (counter == streaming_counter - 1)
+							valid_io_size = inttoedge_file_size - real_io_size * (streaming_counter - 1);
+						else
+							valid_io_size = real_io_size;
+
+						io_manager::read_from_file(fp_intToEdge, buf, valid_io_size, offset_read);
+						offset_read += valid_io_size;
+
+						for(long offset = 0; offset < valid_io_size; offset += Edge::getSizeof()) {
+							Edge edge(*((vertexid_t*)(buf + offset)), *((vertexid_t*)(buf + offset + sizeof(vertexid_t))), *((label_t*)(buf + offset + sizeof(vertexid_t) * 2)));
+							this->intToEdge.push_back(edge);
+						}
+					}
+					free(buf);
+
+					close(fp_intToEdge);
+    		    	FileUtil::delete_file(file_intToEdge);
+        		}
+
+
+				//read edgeToInt
+//        		cout << "load edgeToInt" << endl;
+        		string file_edgeToInt = file + ".edgeToInt";
+        		int fp_edgetoint = open(file_edgeToInt.c_str(), O_RDONLY);
+        		if(!(fp_edgetoint > 0)) {
+        			cout << "can't load graphs file: " << file_edgeToInt << endl;
+    //    			exit(-1);
+        		}
+        		else{
+        			long edgetoint_file_size = io_manager::get_filesize(fp_edgetoint);
+					char* buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
+					long real_io_size = get_real_io_size(IO_SIZE, Edge::getSizeof() + sizeof(int));
+					int streaming_counter = edgetoint_file_size / real_io_size + 1;
+					long offset_read = 0;
+
+					for(int counter = 0; counter < streaming_counter; counter++) {
+						long valid_io_size = 0;
+						if (counter == streaming_counter - 1)
+							valid_io_size = edgetoint_file_size - real_io_size * (streaming_counter - 1);
+						else
+							valid_io_size = real_io_size;
+
+						io_manager::read_from_file(fp_edgetoint, buf, valid_io_size, offset_read);
+						offset_read += valid_io_size;
+
+						for(long offset = 0; offset < valid_io_size; offset += Edge::getSizeof() + sizeof(int)) {
+							Edge edge(*((vertexid_t*)(buf + offset)), *((vertexid_t*)(buf + offset + sizeof(vertexid_t))), *((label_t*)(buf + offset + sizeof(vertexid_t) * 2)));
+							int index = *((int*)(buf + offset + Edge::getSizeof()));
+							this->edgeToInt[edge] = index;
+						}
+					}
+					free(buf);
+
+        			close(fp_edgetoint);
+    		    	FileUtil::delete_file(file_edgeToInt);
+        		}
+
+        		//read itemsetGraphs
+//        		cout << "load itemsetGraphs" << endl;
+				string file_itemsetgraphs = file + ".itemsetGraphs";
+				FILE *fp_itemsetgraphs = fopen(file_itemsetgraphs.c_str(),"rb");
+				if(!fp_itemsetgraphs) {
+					cout << "can't load graphs file: " << file_itemsetgraphs << endl;
+	//    			exit(-1);
+				}
+				else{
+					PEGraph_Pointer graph_pointer;
+					while(fread(&graph_pointer, sizeof(PEGraph_Pointer), 1, fp_itemsetgraphs) != 0) {
+						ItemsetGraph* graph = new ItemsetGraph();
+						graph->load_unreadable(fp_itemsetgraphs);
+						graphs[graph_pointer] = graph;
+					}
+					fclose(fp_itemsetgraphs);
+					FileUtil::delete_file(file_itemsetgraphs);
+				}
+
+
+				//read intToItemset
+//				cout << "load intToItemset" << endl;
+				string file_intToItemset = file + ".intToItemset";
+				FILE *fp_inttoitemset = fopen(file_intToItemset.c_str(),"rb");
+				if(!fp_inttoitemset) {
+					cout << "can't load graphs file: " << file_intToItemset << endl;
+	//    			exit(-1);
+				}
+				else{
+					unsigned int len;
+					while(fread(&len, sizeof(unsigned int), 1, fp_inttoitemset) != 0) {
+						ItemsetGraph* graph = new ItemsetGraph(len);
+						fread(graph->getEdgeIds(), sizeof(int) * len, 1, fp_inttoitemset);
+						this->intToItemset.push_back(graph);
+					}
+					fclose(fp_inttoitemset);
+					FileUtil::delete_file(file_intToItemset);
+				}
+
+    		}
+    		else{//default-buffered
+    			//read intToEdge
+				string file_intToEdge = file + ".intToEdge";
+				FILE *fp_intToEdge = fopen(file_intToEdge.c_str(),"rb");
+				if(!fp_intToEdge) {
+					cout << "can't load graphs file: " << file_intToEdge << endl;
+	//    			exit(-1);
+				}
+				else{
+					char* buf_edge = (char*) malloc(Edge::getSizeof());
+					while(fread(buf_edge, Edge::getSizeof(), 1, fp_intToEdge) != 0) {
+						Edge edge(*((vertexid_t*)(buf_edge)), *((vertexid_t*)(buf_edge + sizeof(vertexid_t))), *((label_t*)(buf_edge + sizeof(vertexid_t) * 2)));
+						this->intToEdge.push_back(edge);
+					}
+					free(buf_edge);
+					fclose(fp_intToEdge);
+					FileUtil::delete_file(file_intToEdge);
+				}
+
+				//read edgeToInt
+				string file_edgeToInt = file + ".edgeToInt";
+				FILE *fp_edgetoint = fopen(file_edgeToInt.c_str(),"rb");
+				if(!fp_edgetoint) {
+					cout << "can't load graphs file: " << file_edgeToInt << endl;
+	//    			exit(-1);
+				}
+				else{
+					char* buf_edge_int = (char*) malloc(Edge::getSizeof() + sizeof(int));
+					while (fread(buf_edge_int, Edge::getSizeof() + sizeof(int), 1, fp_edgetoint) != 0) {
+						Edge edge(*((vertexid_t*) (buf_edge_int)), *((vertexid_t*) (buf_edge_int + sizeof(vertexid_t))), *((label_t*) (buf_edge_int + sizeof(vertexid_t) * 2)));
+						int index = *((int*)(buf_edge_int + Edge::getSizeof()));
+						this->edgeToInt[edge] = index;
+					}
+					free(buf_edge_int);
+					fclose(fp_edgetoint);
+					FileUtil::delete_file(file_edgeToInt);
+				}
+
+				//read itemsetGraphs
+				string file_itemsetgraphs = file + ".itemsetGraphs";
+				FILE *fp_itemsetgraphs = fopen(file_itemsetgraphs.c_str(),"rb");
+				if(!fp_itemsetgraphs) {
+					cout << "can't load graphs file: " << file_itemsetgraphs << endl;
+	//    			exit(-1);
+				}
+				else{
+					PEGraph_Pointer graph_pointer;
+					while(fread(&graph_pointer, sizeof(PEGraph_Pointer), 1, fp_itemsetgraphs) != 0) {
+						ItemsetGraph* graph = new ItemsetGraph();
+						graph->load_unreadable(fp_itemsetgraphs);
+						graphs[graph_pointer] = graph;
+					}
+					fclose(fp_itemsetgraphs);
+					FileUtil::delete_file(file_itemsetgraphs);
+				}
+
+				//read intToItemset
+				string file_intToItemset = file + ".intToItemset";
+				FILE *fp_inttoitemset = fopen(file_intToItemset.c_str(),"rb");
+				if(!fp_inttoitemset) {
+					cout << "can't load graphs file: " << file_intToItemset << endl;
+	//    			exit(-1);
+				}
+				else{
+					unsigned int len;
+					while(fread(&len, sizeof(unsigned int), 1, fp_inttoitemset) != 0) {
+						ItemsetGraph* graph = new ItemsetGraph(len);
+						fread(graph->getEdgeIds(), sizeof(int) * len, 1, fp_inttoitemset);
+						this->intToItemset.push_back(graph);
+					}
+					fclose(fp_inttoitemset);
+					FileUtil::delete_file(file_intToItemset);
+				}
+
+    		}
 
     	}
     }
@@ -299,9 +504,294 @@ public:
 
     void store_itemsetGraphstore(const string& file){
     	if(file_mode){
-
+			cout << "wrong file w/r mode while storing itemsetGraphStore!" << endl;
+			exit(-1);
     	}
     	else{
+    		if(buffered_mode){//pegraph-level
+				//write intToEdge
+//    			cout << "write intToEdge" << endl;
+//				string file_intToEdge = file + ".intToEdge";
+//				FILE * f_intToEdge = fopen(file_intToEdge.c_str(), "wb");
+//				if(f_intToEdge == NULL) {
+//					cout << "can't write to file: " << file_intToEdge << endl;
+//					exit(-1);
+//				}
+//				else{
+//					size_t bufsize = this->intToEdge.size() * (Edge::getSizeof());
+//					char* buf = (char*) malloc(bufsize);
+//					size_t offset = 0;
+//					for(auto it = this->intToEdge.begin(); it != this->intToEdge.end(); ++it){
+//						Edge edge = *it;
+//						offset = edge.write_to_buf(buf, offset);
+//					}
+//					fwrite(buf, bufsize, 1, f_intToEdge);
+//					free(buf);
+//					fclose(f_intToEdge);
+//				}
+				string file_intToEdge = file + ".intToEdge";
+				FILE *f_intToEdge = fopen(file_intToEdge.c_str(), "wb");
+				if (f_intToEdge == NULL) {
+					cout << "can't write to file: " << file_intToEdge << endl;
+					exit(-1);
+				}
+				else {
+//					char * buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
+					char* buf = (char*) malloc(IO_SIZE);
+					long real_io_size = get_real_io_size(IO_SIZE, Edge::getSizeof());
+					long offset = 0;
+					for (auto it = this->intToEdge.begin(); it != this->intToEdge.end(); ++it) {
+						Edge edge = *it;
+						offset = edge.write_to_buf(buf, offset);
+
+				    	if(offset == real_io_size){
+							fwrite(buf, real_io_size, 1, f_intToEdge);
+							offset = 0;
+				    	}
+					}
+					//write the remaining part to file
+					fwrite(buf, offset, 1, f_intToEdge);
+
+					free(buf);
+					fclose(f_intToEdge);
+				}
+
+
+				//write edgeToInt
+//				cout << "write edgeToInt" << endl;
+//				string file_edgeToInt = file + ".edgeToInt";
+//				FILE * f_edgeToInt = fopen(file_edgeToInt.c_str(),"wb");
+//				if(f_edgeToInt == NULL) {
+//					cout << "can't write to file: " << file_edgeToInt << endl;
+//					exit(-1);
+//				}
+//				else{
+//					size_t bufsize = this->edgeToInt.size() * ((Edge::getSizeof()) + sizeof(int));
+//					char* buf = (char*) malloc(bufsize);
+//					size_t offset = 0;
+//					for(auto it = this->edgeToInt.begin(); it != this->edgeToInt.end(); ++it){
+//						Edge edge = it->first;
+//						int index = it->second;
+//						offset = edge.write_to_buf(buf, offset);
+//						memcpy(buf + offset, (char*)& index, sizeof(int));
+//						offset += sizeof(int);
+//					}
+//					fwrite(buf, bufsize, 1, f_edgeToInt);
+//					free(buf);
+//					fclose(f_edgeToInt);
+//				}
+				string file_edgeToInt = file + ".edgeToInt";
+				FILE * f_edgeToInt = fopen(file_edgeToInt.c_str(),"wb");
+				if(f_edgeToInt == NULL) {
+					cout << "can't write to file: " << file_edgeToInt << endl;
+					exit(-1);
+				}
+				else{
+//					char * buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
+					char* buf = (char*) malloc(IO_SIZE);
+					long real_io_size = get_real_io_size(IO_SIZE, Edge::getSizeof() + sizeof(int));
+					long offset = 0;
+					for(auto it = this->edgeToInt.begin(); it != this->edgeToInt.end(); ++it){
+						Edge edge = it->first;
+						int index = it->second;
+						offset = edge.write_to_buf(buf, offset);
+						memcpy(buf + offset, (char*)& index, sizeof(int));
+						offset += sizeof(int);
+
+				    	if(offset == real_io_size){
+							fwrite(buf, real_io_size, 1, f_edgeToInt);
+							offset = 0;
+				    	}
+					}
+					fwrite(buf, offset, 1, f_edgeToInt);
+
+					free(buf);
+					fclose(f_edgeToInt);
+				}
+
+
+				//write graphs
+//				cout << "write itemsetGraphs" << endl;
+//				string file_itemsetgraphs = file + ".itemsetGraphs";
+//				FILE * f_itemsetGraphs = fopen(file_itemsetgraphs.c_str(),"wb");
+//				if(f_itemsetGraphs == NULL) {
+//					cout << "can't write to file: " << file_itemsetgraphs << endl;
+//					exit(-1);
+//				}
+//				else{
+//					size_t bufsize = 0;
+//					for(auto it : this->graphs){
+//						bufsize += sizeof(PEGraph_Pointer) + sizeof(unsigned int) + it.second->getLength() * sizeof(int);
+//					}
+//					char* buf = (char*) malloc(bufsize);
+//					size_t offset = 0;
+//					for(auto it = this->graphs.begin(); it != this->graphs.end(); ++it){
+//						PEGraph_Pointer pointer = it->first;
+//						ItemsetGraph* graph = it->second;
+//						memcpy(buf + offset, (char*)& pointer, sizeof(PEGraph_Pointer));
+//						offset += sizeof(PEGraph_Pointer);
+//						offset = graph->write_to_buf(buf, offset);
+//					}
+//					fwrite(buf, bufsize, 1, f_itemsetGraphs);
+//					free(buf);
+//					fclose(f_itemsetGraphs);
+//				}
+				string file_itemsetgraphs = file + ".itemsetGraphs";
+				FILE * f_itemsetGraphs = fopen(file_itemsetgraphs.c_str(),"wb");
+				if(f_itemsetGraphs == NULL) {
+					cout << "can't write to file: " << file_itemsetgraphs << endl;
+					exit(-1);
+				}
+				else{
+//					char * buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
+					char* buf = (char*) malloc(IO_SIZE);
+					long offset = 0;
+					for(auto it = this->graphs.begin(); it != this->graphs.end(); ++it){
+						PEGraph_Pointer pointer = it->first;
+						ItemsetGraph *graph = it->second;
+						long bufsize = sizeof(PEGraph_Pointer) + sizeof(unsigned int) + graph->getLength() * sizeof(int);
+
+						if(bufsize >= IO_SIZE){
+							fwrite((const void*)& pointer, sizeof(PEGraph_Pointer), 1, f_itemsetGraphs);
+							graph->write_unreadable(f_itemsetGraphs);
+						}
+						else{
+							if(bufsize > IO_SIZE - offset){
+								fwrite(buf, offset, 1, f_itemsetGraphs);
+								offset = 0;
+							}
+							memcpy(buf + offset, (char*) &pointer, sizeof(PEGraph_Pointer));
+							offset += sizeof(PEGraph_Pointer);
+							offset = graph->write_to_buf(buf, offset);
+						}
+					}
+					fwrite(buf, offset, 1, f_itemsetGraphs);
+
+					free(buf);
+					fclose(f_itemsetGraphs);
+				}
+
+
+				//write itemsets
+//				cout << "write intToItems" << endl;
+//				string file_intToItemset = file + ".intToItemset";
+//				FILE * f_intToItemset = fopen(file_intToItemset.c_str(), "wb");
+//				if(f_intToItemset == NULL) {
+//					cout << "can't write to file: " << file_intToItemset << endl;
+//					exit(-1);
+//				}
+//				else{
+//					size_t bufsize = 0;
+//					for(auto it : this->intToItemset){
+//						bufsize += sizeof(unsigned int) + it->getLength() * sizeof(int);
+//					}
+//					char* buf = (char*) malloc(bufsize);
+//					size_t offset = 0;
+//					for(auto it = this->intToItemset.begin(); it != this->intToItemset.end(); ++it){
+//						ItemsetGraph* graph = *it;
+//						offset = graph->write_to_buf(buf, offset);
+//					}
+//					fwrite(buf, bufsize, 1, f_intToItemset);
+//					free(buf);
+//					fclose(f_intToItemset);
+//				}
+				string file_intToItemset = file + ".intToItemset";
+				FILE * f_intToItemset = fopen(file_intToItemset.c_str(), "wb");
+				if(f_intToItemset == NULL) {
+					cout << "can't write to file: " << file_intToItemset << endl;
+					exit(-1);
+				}
+				else{
+//					char * buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
+					char* buf = (char*) malloc(IO_SIZE);
+					long offset = 0;
+					for(auto it = this->intToItemset.begin(); it != this->intToItemset.end(); ++it){
+						ItemsetGraph* graph = *it;
+						long bufsize = sizeof(unsigned int) + graph->getLength() * sizeof(int);
+
+						if(bufsize >= IO_SIZE){
+							graph->write_unreadable(f_intToItemset);
+						}
+						else{
+							if(bufsize > IO_SIZE - offset){
+								fwrite(buf, offset, 1, f_intToItemset);
+								offset = 0;
+							}
+							offset = graph->write_to_buf(buf, offset);
+						}
+					}
+					fwrite(buf, offset, 1, f_intToItemset);
+
+					free(buf);
+					fclose(f_intToItemset);
+				}
+
+    		}
+    		else{//default-buffered
+				//write intToEdge
+				string file_intToEdge = file + ".intToEdge";
+				FILE * f_intToEdge = fopen(file_intToEdge.c_str(), "wb");
+				if(f_intToEdge == NULL) {
+					cout << "can't write to file: " << file_intToEdge << endl;
+					exit(-1);
+				}
+				else{
+					for(auto it = this->intToEdge.begin(); it != this->intToEdge.end(); ++it){
+						Edge edge = *it;
+						edge.write_unreadable(f_intToEdge);
+					}
+					fclose(f_intToEdge);
+				}
+
+				//write edgeToInt
+				string file_edgeToInt = file + ".edgeToInt";
+				FILE * f_edgeToInt = fopen(file_edgeToInt.c_str(),"wb");
+				if(f_edgeToInt == NULL) {
+					cout << "can't write to file: " << file_edgeToInt << endl;
+					exit(-1);
+				}
+				else{
+					for(auto it = this->edgeToInt.begin(); it != this->edgeToInt.end(); ++it){
+						Edge edge = it->first;
+						edge.write_unreadable(f_edgeToInt);
+						int index = it->second;
+						fwrite((const void*)& index, sizeof(int), 1, f_edgeToInt);
+					}
+					fclose(f_edgeToInt);
+				}
+
+				//write graphs
+				string file_itemsetgraphs = file + ".itemsetGraphs";
+				FILE * f_itemsetGraphs = fopen(file_itemsetgraphs.c_str(),"wb");
+				if(f_itemsetGraphs == NULL) {
+					cout << "can't write to file: " << file_itemsetgraphs << endl;
+					exit(-1);
+				}
+				else{
+					for(auto it = this->graphs.begin(); it != this->graphs.end(); ++it){
+						PEGraph_Pointer pointer = it->first;
+						fwrite((const void*)& pointer, sizeof(PEGraph_Pointer), 1, f_itemsetGraphs);
+						ItemsetGraph* graph = it->second;
+						graph->write_unreadable(f_itemsetGraphs);
+					}
+					fclose(f_itemsetGraphs);
+				}
+
+				//write itemsets
+				string file_intToItemset = file + ".intToItemset";
+				FILE * f_intToItemset = fopen(file_intToItemset.c_str(), "wb");
+				if(f_intToItemset == NULL) {
+					cout << "can't write to file: " << file_intToItemset << endl;
+					exit(-1);
+				}
+				else{
+					for(auto it = this->intToItemset.begin(); it != this->intToItemset.end(); ++it){
+						ItemsetGraph* graph = *it;
+						graph->write_unreadable(f_intToItemset);
+					}
+					fclose(f_intToItemset);
+				}
+    		}
 
     	}
     }
@@ -347,7 +837,7 @@ public:
 //    			exit(-1);
     		}
     		else{
-    			if(rw_mode){//pegraph-level
+    			if(buffered_mode){//pegraph-level
     				size_t freadRes = 0; //clear warnings
     				size_t bufsize;
     				while(fread(&bufsize, sizeof(size_t), 1, fp) != 0) {
@@ -417,7 +907,7 @@ public:
 				exit(-1);
 			}
 			else {
-    			if(rw_mode){//pegraph-level
+    			if(buffered_mode){//pegraph-level
     				for (auto& n : set) {
 						auto graph_pointer = n->getOutPointer();
 						PEGraph* pegraph = retrieve(graph_pointer);
@@ -955,11 +1445,11 @@ public:
     	}
     }
 
-    int getItemsetId(unsigned index){
+    static int getItemsetId(unsigned index){
     	return 0 - (index + 1);
     }
 
-    unsigned getItemsetIndex(int id_itemset){
+    static unsigned getItemsetIndex(int id_itemset){
     	return 0 - (id_itemset + 1);
     }
 
@@ -1199,7 +1689,7 @@ public:
 
     	for(auto it = graphs.begin(); it != graphs.end(); ++it){
 //    		cout << it->first << "\t" << it->second->getNumEdges() << endl;
-    		size_edges += it->second->getNumEdges();
+    		size_edges += it->second->getNumEdges(this->intToItemset);
     	}
 
     	cout << "Number of graphs: " << size_graphs << endl;
@@ -1207,10 +1697,11 @@ public:
     }
 
 
-    void getStatistics(int& size_graphs, long& size_edges, const std::unordered_set<PEGraph_Pointer>& mirrors){
+    void getStatistics(int& size_graphs, long& size_edges, long& size_items, const std::unordered_set<PEGraph_Pointer>& mirrors){
     	for(auto it = graphs.begin(); it != graphs.end(); ++it){
     		if(mirrors.find(it->first) == mirrors.end()){
-				size_edges += it->second->getNumEdges();
+    			size_items += it->second->getLength();
+				size_edges += it->second->getNumEdges(this->intToItemset);
 				size_graphs++;
     		}
     	}
@@ -1221,33 +1712,43 @@ public:
      * write graphs into a file for itemset mining later where
      * each graph as a line separated by " "
      */
-    void writeToFile() {
+    void writeToFile(const string& input_file) {
 		ofstream myfile;
-		myfile.open(inputFile, std::ofstream::out);
+		myfile.open(input_file, std::ofstream::out);
 //		//for debugging
 //		cout << inputFile << endl;
 //		cout << myfile.is_open() << endl;
 
 		if (myfile.is_open()) {
 			for (auto &n : graphs) {
-//				n.second->write_for_mining(myfile);
 				if(!n.second->isEmpty()){
 					for(unsigned int i = 0; i < n.second->getLength(); i++){
 						myfile << n.second->getEdgeId(i) << " ";
 					}
 					myfile << "\n";
+
+
+//			        std::stringstream buffer;
+//			        for(unsigned int i = 0; i < n.second->getLength(); i++){
+//			        	char aLine[32];
+//			        	sprintf(aLine, "%d ", n.second->getEdgeId(i));
+//			        	buffer << aLine;
+//			        }
+//			        buffer << "\n";
+//			        myfile << buffer.str();
 				}
 			}
+
 			myfile.close();
 		}
     }
 
     //
-    void readFromFile() {
+    void readFromFile(const string& output_file) {
         ifstream myfile;
-        myfile.open(outFile);
+        myfile.open(output_file);
         if (!myfile) {
-            cout << "can't load file: " << outFile << endl;
+            cout << "can't load file: " << output_file << endl;
 //            exit(EXIT_FAILURE);
         }
         else{
@@ -1316,15 +1817,23 @@ public:
      *precondition: the current intToItemset is empty
      *              or would like to reconstruct the base from scratch
      */
-    void constructItemsetBase(){
+    void constructItemsetBase(Partition part){
+    	string input_file = inputFile + to_string(part);
+    	string output_file = outFile + to_string(part);
+
+    	if(FileUtil::file_exists(input_file)){
+    		return;
+    	}
+
     	if(!graphs.empty()){
-			writeToFile();
+			writeToFile(input_file);
 
 			std::string option = "-tc -s30 -m10";
-			std::string command = "../lib/eclat " + option + " " + inputFile + " " + outFile;
+//			std::string option = "-tc -s10 -m4";
+			std::string command = "../lib/eclat " + option + " " + input_file + " " + output_file;
 			system(command.c_str());
 
-			readFromFile();
+			readFromFile(output_file);
     	}
     }
 

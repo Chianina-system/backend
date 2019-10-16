@@ -45,20 +45,20 @@ public:
 		return graphs;
 	}
 
-    void printOutInfo(){
-    	int size_graphs = graphs.size();
-    	long size_edges = 0;
-
-    	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
-
-    	for(auto it = graphs.begin(); it != graphs.end(); ++it){
-//    		cout << it->first << "\t" << it->second->getNumEdges() << endl;
-    		size_edges += it->second->getNumEdges();
-    	}
-
-    	cout << "Number of graphs: " << size_graphs << endl;
-    	cout << "Number of edges: " << size_edges << endl;
-    }
+//    void printOutInfo(){
+//    	int size_graphs = graphs.size();
+//    	long size_edges = 0;
+//
+//    	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
+//
+//    	for(auto it = graphs.begin(); it != graphs.end(); ++it){
+////    		cout << it->first << "\t" << it->second->getNumEdges() << endl;
+//    		size_edges += it->second->getNumEdges();
+//    	}
+//
+//    	cout << "Number of graphs: " << size_graphs << endl;
+//    	cout << "Number of edges: " << size_edges << endl;
+//    }
 
 
 private:

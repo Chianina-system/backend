@@ -9,6 +9,9 @@
 #define COMP_GRAPHSTORE_ITEMSET_GRAPH_H_
 
 #include "myarray.h"
+//#include "itemset_graphstore.h"
+
+using namespace std;
 
 class ItemsetGraph {
 
@@ -24,6 +27,11 @@ public:
 	ItemsetGraph(){
 		edge_ids = NULL;
 		len = 0;
+	}
+
+	ItemsetGraph(unsigned int l){
+		edge_ids = new int[l];
+		this->len = l;
 	}
 
 	ItemsetGraph(MyArray* edge_vector) {
@@ -99,9 +107,38 @@ public:
 		return *this;
     }
 
+    unsigned getItemsetIndex(int id_itemset){
+    	return 0 - (id_itemset + 1);
+    }
 
-	unsigned int getNumEdges(){
-		return len;
+    bool isItemset(int id_edge){
+    	return id_edge < 0;
+    }
+
+	//TODO: update this for graph compression
+	unsigned int getNumEdges(vector<ItemsetGraph*>& intToItemset){
+		if(intToItemset.empty()){
+			return len;
+		}
+
+    	vector<int> edges;
+    	vector<ItemsetGraph*> itemset_graphs;
+    	itemset_graphs.push_back(this);
+    	while(!itemset_graphs.empty()){
+    		ItemsetGraph* g = itemset_graphs.back();
+    		itemset_graphs.pop_back();
+			for(unsigned int i = 0; i < g->getLength(); ++i){
+				int id_edge = g->getEdgeId(i);
+				if(isItemset(id_edge)){
+					itemset_graphs.push_back(intToItemset[getItemsetIndex(id_edge)]);
+				}
+				else{
+					edges.push_back(id_edge);
+				}
+			}
+    	}
+
+    	return edges.size();
 	}
 
 	inline int* getEdgeIds() const {
@@ -162,6 +199,44 @@ public:
 		strm << "}";
 		return strm.str();
     }
+
+
+	long write_to_buf(char* buf, size_t offset){
+    	memcpy(buf + offset, (char*)& len, sizeof(unsigned int));
+    	offset += sizeof(unsigned int);
+    	memcpy(buf + offset, (char*) edge_ids, len * sizeof(int));
+    	offset += len * sizeof(int);
+
+    	return offset;
+	}
+
+//    size_t read_from_buf(char* buf, size_t offset){
+//    	size = *((int*)(buf + offset));
+//    	offset += sizeof(int);
+//    	capacity = *((int*)(buf + offset));
+//    	offset += sizeof(int);
+//    	this->edges = new vertexid_t[size];
+//    	memcpy(edges, buf + offset, sizeof(vertexid_t) * size);
+//    	offset += sizeof(vertexid_t) * size;
+//    	this->labels = new label_t[size];
+//    	memcpy(labels, buf + offset, sizeof(label_t) * size);
+//    	offset += sizeof(label_t) * size;
+//
+//    	return offset;
+//    }
+
+	void write_unreadable(FILE* f){
+    	fwrite((const void*)& len, sizeof(unsigned int), 1, f);
+		fwrite((const void*) edge_ids, sizeof(int) * len, 1, f);
+	}
+
+	void load_unreadable(FILE* fp){
+    	size_t freadRes = 0; // clear warnings
+    	freadRes = fread(&len, sizeof(unsigned int), 1, fp);
+    	this->edge_ids = new int[len];
+		freadRes = fread(edge_ids, sizeof(int) * len, 1, fp);
+	}
+
 
 
 private:

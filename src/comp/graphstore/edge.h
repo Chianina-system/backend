@@ -56,6 +56,33 @@ public:
 		return label;
 	}
 
+	static size_t getSizeof() {
+		return sizeof(vertexid_t) * 2 + sizeof(label_t);
+	}
+
+	long write_to_buf(char* buf, size_t offset){
+    	memcpy(buf + offset, (char*)& srcId, sizeof(vertexid_t));
+    	offset += sizeof(vertexid_t);
+    	memcpy(buf + offset, (char*)& dstId, sizeof(vertexid_t));
+    	offset += sizeof(vertexid_t);
+    	memcpy(buf + offset, (char*)& label, sizeof(label_t));
+    	offset += sizeof(label_t);
+
+    	return offset;
+	}
+
+//	void read_from_buf(char* buf){
+//	}
+
+	void write_unreadable(FILE* f){
+    	fwrite((const void*)& srcId, sizeof(vertexid_t), 1, f);
+    	fwrite((const void*)& dstId, sizeof(vertexid_t), 1, f);
+		fwrite((const void*)& label, sizeof(label_t), 1, f);
+	}
+
+//	void load_unreadable(FILE* fp){
+//
+//	}
 
 
 private:

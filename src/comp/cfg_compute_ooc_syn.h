@@ -39,7 +39,7 @@ public:
 		cfg->loadCFG_ooc(filename_cfg, filename_stmt, filename_mirrors_in, filename_mirrors_out, foldername_actives);
 
 //		graphstore->init(cfg_);
-		graphstore->loadGraphStore(filename_graphs, foldername_graphs_in);
+		graphstore->loadGraphStore(filename_graphs, foldername_graphs_in, part);
 
 		//for debugging
 		Logger::print_thread_info_locked("load finished.\n", LEVEL_LOG_FUNCTION);
