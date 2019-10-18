@@ -13,6 +13,13 @@
 class PhiStmt: public Stmt {
 
 public:
+	PhiStmt(){
+		this->t = TYPE::Phi;
+		this->length = 0;
+		this->src = NULL;
+		this->dst = -1;
+	}
+
 	~PhiStmt(){
     	if(this->src){
     		delete[] src;
@@ -54,11 +61,29 @@ public:
 	}
 
 
+    size_t get_size_bytes() const {
+    	return sizeof(vertexid_t) + sizeof(vertexid_t) * length;
+    }
+
+    void write_to_buf(Buffer& buf) {
+    	memcpy(buf.getData() + buf.getSize(), (char*)& dst, sizeof(vertexid_t));
+    	buf.add_size_by(sizeof(vertexid_t));
+    	memcpy(buf.getData() + buf.getSize(), src, sizeof(vertexid_t) * length);
+    	buf.add_size_by(sizeof(vertexid_t) * length);
+    }
+
+    void read_from_buf(char* buf, size_t offset, size_t bufsize){
+    	dst = *((vertexid_t*)(buf + offset));
+    	offset += sizeof(vertexid_t);
+    	length = (bufsize - offset) / sizeof(vertexid_t);
+    	this->src = new vertexid_t[length];
+    	memcpy(src, buf + offset, sizeof(vertexid_t) * length);
+    }
 
 private:
 
     int length;
-	vertexid_t* src = nullptr;
+	vertexid_t* src;
 	vertexid_t dst;
 
     void toString_sub(std::ostringstream& strm) const {

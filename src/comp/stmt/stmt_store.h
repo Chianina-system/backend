@@ -13,6 +13,13 @@
 class StoreStmt: public Stmt {
 
 public:
+	StoreStmt(){
+		this->t = TYPE::Store;
+		this->src = -1;
+		this->dst = -1;
+		this->auxiliary = -1;
+	}
+
 	~StoreStmt(){}
 
 	StoreStmt(std::stringstream& stream){
@@ -37,6 +44,28 @@ public:
         return auxiliary;
     }
 
+    size_t get_size_bytes() const {
+    	return sizeof(vertexid_t) * 3;
+    }
+
+    void write_to_buf(Buffer& buf) {
+    	memcpy(buf.getData() + buf.getSize(), (char*)& src, sizeof(vertexid_t));
+    	buf.add_size_by(sizeof(vertexid_t));
+    	memcpy(buf.getData() + buf.getSize(), (char*)& dst, sizeof(vertexid_t));
+    	buf.add_size_by(sizeof(vertexid_t));
+    	memcpy(buf.getData() + buf.getSize(), (char*)& auxiliary, sizeof(vertexid_t));
+    	buf.add_size_by(sizeof(vertexid_t));
+    }
+
+    void read_from_buf(char* buf, size_t offset, size_t bufsize){
+    	src = *((vertexid_t*)(buf + offset));
+    	offset += sizeof(vertexid_t);
+    	dst = *((vertexid_t*)(buf + offset));
+    	offset += sizeof(vertexid_t);
+    	auxiliary = *((vertexid_t*)(buf + offset));
+    	offset += sizeof(vertexid_t);
+    	assert(offset == bufsize);
+    }
 
 
 private:

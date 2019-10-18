@@ -25,14 +25,15 @@ const string file_grammar = "/home/nju-seg-hsy/GraphFlow-zzq/Ouroboros-dataset-m
 
 /* function declaration */
 void run_inmemory(int, bool, bool, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);
-void run_ooc(bool, bool, int, bool, int, bool, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);
+void run_ooc(int, int, int, bool, bool, int, bool, int, bool, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);
 
 
 int main(int argc, char* argv[]) {
-	if(argc != 9 && argc != 12){
+	if(argc != 9 && argc != 15){
 		cout << "Usage: ./backend file_total file_entries file_cfg file_stmts file_singletons "
 				  << "graphstore_mode(0: naive; 1: itemset) update_mode(0: sequential; 1: parallel) "
-						<< "computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1) file_mode(0: binary; 1: text) buffered_mode(0: default; 1: user-specified)" << endl;
+						<< "computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1) file_mode(0: binary; 1: text) buffered_mode(0: default; 1: user-specified) "
+						<< "mining_mode(0: eclat; 1: apriori; 2: fp-growth) support_threshold length_threshold" << endl;
 		return 0;
 	}
 
@@ -40,7 +41,8 @@ int main(int argc, char* argv[]) {
 		if(atoi(argv[8]) != 0){
 			cout << "Usage: ./backend file_total file_entries file_cfg file_stmts file_singletons "
 					<< "graphstore_mode(0: naive; 1: itemset) update_mode(0: sequential; 1: parallel) "
-						<< "computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1) file_mode(0: binary; 1: text) buffered_mode(0: default; 1: user-specified)" << endl;
+						<< "computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1) file_mode(0: binary; 1: text) buffered_mode(0: default; 1: user-specified) "
+						<< "mining_mode(0: eclat; 1: apriori; 2: fp-growth) support_threshold length_threshold" << endl;
 			return 0;
 		}
 	}
@@ -56,7 +58,7 @@ int main(int argc, char* argv[]) {
 	auto start_fsm = std::chrono::high_resolution_clock::now();
 
 	if(atoi(argv[8])){
-		run_ooc((bool)atoi(argv[11]), (bool)atoi(argv[10]), atoi(argv[6]), (bool)atoi(argv[7]), atoi(argv[9]), true, file_total, file_entries, file_cfg, file_stmts, file_singletons);
+		run_ooc(atoi(argv[12]), atoi(argv[13]), atoi(argv[14]), (bool)atoi(argv[11]), (bool)atoi(argv[10]), atoi(argv[6]), (bool)atoi(argv[7]), atoi(argv[9]), true, file_total, file_entries, file_cfg, file_stmts, file_singletons);
 	}
 	else{
 		run_inmemory(atoi(argv[6]), (bool)atoi(argv[7]), true, file_total, file_entries, file_cfg, file_stmts, file_singletons);
@@ -79,6 +81,7 @@ int main(int argc, char* argv[]) {
 
 
 void compute_ooc(Partition partition, Context* context, bool sync_mode, int graphstore_mode, bool update_mode, bool file_mode, bool buffered_mode,
+		int mining_mode, int support, int length,
 		Timer_wrapper_ooc* timer_ooc, Timer_wrapper_inmemory* timer){
 	//for debugging
 	Logger::print_thread_info_locked("----------------------- Partition " + to_string(partition) + " starting -----------------------\n", LEVEL_LOG_MAIN);
@@ -101,7 +104,7 @@ void compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
 	//for tuning
 	timer_ooc->getLoadSum()->start();
 
-    CFGCompute_ooc_syn::load(partition, cfg, graphstore, context);
+    CFGCompute_ooc_syn::load(partition, cfg, graphstore, context, file_mode, mining_mode, support, length);
 
     //for tuning
     timer_ooc->getLoadSum()->end();
@@ -130,7 +133,7 @@ void compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
     //for tuning
     timer_ooc->getPassSum()->start();
 
-    CFGCompute_ooc_syn::pass(partition, cfg, graphstore, actives, context);
+    CFGCompute_ooc_syn::pass(partition, cfg, graphstore, actives, context, file_mode);
 
     //for tuning
     timer_ooc->getPassSum()->end();
@@ -157,40 +160,110 @@ void readAllGraphs(NaiveGraphStore *graphstore, Context* context){
 	}
 }
 
-void loadMirrors(const string& file_mirrors_in, const string& file_mirrors_out, std::unordered_set<PEGraph_Pointer>& mirrors){
+void loadMirrors(const string& file_mirrors_in, const string& file_mirrors_out, std::unordered_set<PEGraph_Pointer>& mirrors, bool file_mode){
 	//handle mirrors file
-	std::ifstream fin;
-	std::string line;
-	fin.open(file_mirrors_in);
-	if (!fin) {
-		cout << "can't load file_mirrors_in: " << file_mirrors_in << endl;
-	}
-	else {
-		while (getline(fin, line)) {
-			if(line == ""){
-				continue;
-			}
-
-			PEGraph_Pointer id = atoi(line.c_str());
-			mirrors.insert(id);
+	if(file_mode){
+		std::ifstream fin;
+		std::string line;
+		fin.open(file_mirrors_in);
+		if (!fin) {
+			cout << "can't load file_mirrors_in: " << file_mirrors_in << endl;
 		}
-		fin.close();
-	}
+		else {
+			while (getline(fin, line)) {
+				if(line == ""){
+					continue;
+				}
 
-	fin.open(file_mirrors_out);
-	if (!fin) {
-		cout << "can't load file_mirrors_out: " << file_mirrors_out << endl;
+				PEGraph_Pointer id = atoi(line.c_str());
+				mirrors.insert(id);
+			}
+			fin.close();
+		}
+
+		fin.open(file_mirrors_out);
+		if (!fin) {
+			cout << "can't load file_mirrors_out: " << file_mirrors_out << endl;
+		}
+		else{
+			while (getline(fin, line)) {
+				if(line == ""){
+					continue;
+				}
+
+				PEGraph_Pointer id = atoi(line.c_str());
+				mirrors.insert(id);
+			}
+			fin.close();
+		}
 	}
 	else{
-		while (getline(fin, line)) {
-			if(line == ""){
-				continue;
-			}
-
-			PEGraph_Pointer id = atoi(line.c_str());
-			mirrors.insert(id);
+		//handle mirrors file
+		int fp_mirrors_in = open(file_mirrors_in.c_str(), O_RDONLY);
+		if(!(fp_mirrors_in > 0)) {
+			cout << "can't load file_mirrors_in: " << file_mirrors_in << endl;
+//    			exit(-1);
 		}
-		fin.close();
+		else{
+			long mirrors_in_file_size = io_manager::get_filesize(fp_mirrors_in);
+			char* buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
+			long real_io_size = get_real_io_size(IO_SIZE, sizeof(vertexid_t));
+			int streaming_counter = mirrors_in_file_size / real_io_size + 1;
+
+			long offset_read = 0;
+
+			for(int counter = 0; counter < streaming_counter; counter++) {
+				long valid_io_size = 0;
+				if (counter == streaming_counter - 1)
+					valid_io_size = mirrors_in_file_size - real_io_size * (streaming_counter - 1);
+				else
+					valid_io_size = real_io_size;
+
+				io_manager::read_from_file(fp_mirrors_in, buf, valid_io_size, offset_read);
+				offset_read += valid_io_size;
+
+				for(long offset = 0; offset < valid_io_size; offset += sizeof(vertexid_t)) {
+					PEGraph_Pointer id = *((vertexid_t*)(buf + offset));
+					mirrors.insert(id);
+				}
+			}
+			free(buf);
+
+			close(fp_mirrors_in);
+		}
+
+		int fp_mirrors_out = open(file_mirrors_out.c_str(), O_RDONLY);
+		if(!(fp_mirrors_out > 0)) {
+			cout << "can't load file_mirrors_out: " << file_mirrors_out << endl;
+//    			exit(-1);
+		}
+		else{
+			long mirrors_out_file_size = io_manager::get_filesize(fp_mirrors_out);
+			char* buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
+			long real_io_size = get_real_io_size(IO_SIZE, sizeof(vertexid_t));
+			int streaming_counter = mirrors_out_file_size / real_io_size + 1;
+
+			long offset_read = 0;
+
+			for(int counter = 0; counter < streaming_counter; counter++) {
+				long valid_io_size = 0;
+				if (counter == streaming_counter - 1)
+					valid_io_size = mirrors_out_file_size - real_io_size * (streaming_counter - 1);
+				else
+					valid_io_size = real_io_size;
+
+				io_manager::read_from_file(fp_mirrors_out, buf, valid_io_size, offset_read);
+				offset_read += valid_io_size;
+
+				for(long offset = 0; offset < valid_io_size; offset += sizeof(vertexid_t)) {
+					PEGraph_Pointer id = *((vertexid_t*)(buf + offset));
+					mirrors.insert(id);
+				}
+			}
+			free(buf);
+
+			close(fp_mirrors_out);
+		}
 	}
 }
 
@@ -215,7 +288,7 @@ void printGraphstoreInfo(Context* context, int graphstore_mode, bool file_mode, 
 
 		const string filename_mirrors_in = Context::folder_mirrors_in + to_string(partition);
 		const string filename_mirrors_out = Context::folder_mirrors_out + to_string(partition);
-		loadMirrors(filename_mirrors_in, filename_mirrors_out, mirrors);
+		loadMirrors(filename_mirrors_in, filename_mirrors_out, mirrors, file_mode);
 
     	int size_graphs = 0;
     	long size_edges = 0;
@@ -251,7 +324,8 @@ void clean_mining_files(int num_partitions){
 }
 
 
-void run_ooc(bool buffered_mode, bool file_mode, int graphstore_mode, bool update_mode, int num_partitions, bool sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
+void run_ooc(int mining_mode, int support, int length, bool buffered_mode, bool file_mode, int graphstore_mode, bool update_mode, int num_partitions, bool sync_mode,
+		const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
 	//for performance tuning
 	Timer_sum sum_preprocess("preprocess");
 	Timer_sum sum_compute("compute-ooc");
@@ -263,7 +337,7 @@ void run_ooc(bool buffered_mode, bool file_mode, int graphstore_mode, bool updat
 
 	//preprocessing
 	Context* context = new Context(num_partitions, file_total, file_cfg, file_stmts, file_entries, file_singletons, file_grammar);
-	Preprocess::process(*context);
+	Preprocess::process(*context, file_mode);
 
 	//for tuning
 	sum_preprocess.end();
@@ -280,7 +354,7 @@ void run_ooc(bool buffered_mode, bool file_mode, int graphstore_mode, bool updat
 	while(context->schedule(partition)){
 		cout << "Partition: " << partition << endl;
 		iterations++;
-		compute_ooc(partition, context, sync_mode, graphstore_mode, update_mode, file_mode, buffered_mode, timer_ooc, timer);
+		compute_ooc(partition, context, sync_mode, graphstore_mode, update_mode, file_mode, buffered_mode, mining_mode, support, length, timer_ooc, timer);
 
 //		//for debugging
 //		context->printOutPriorityInfo();

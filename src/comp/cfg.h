@@ -10,6 +10,8 @@
 
 #include "cfg_node.h"
 #include "../utility/Logger.hpp"
+#include "graphstore/buffer.h"
+#include "io_manager.hpp"
 
 
 class CFG{

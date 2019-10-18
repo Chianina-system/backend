@@ -86,7 +86,7 @@ public:
 //    }
 
 
-    void loadGraphStore(const string& file, const string& file_graphs_in, Partition part) {
+    void loadGraphStore(const string& file, const string& file_graphs_in, Partition part, int mining_mode = -1, int support = 0, int length = 0) {
     	//graphstore file
     	this->deserialize(file);
 

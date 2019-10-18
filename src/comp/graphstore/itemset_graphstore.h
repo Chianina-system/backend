@@ -208,7 +208,7 @@ public:
 //		Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
     }
 
-    void loadGraphStore(const string& file, const string& file_in, Partition part) {
+    void loadGraphStore(const string& file, const string& file_in, Partition part, int mining_mode, int support, int length) {
 		//graphstore file
 		this->deserialize(file);
 
@@ -220,8 +220,19 @@ public:
 //		cout << "load_in_graphs ended." << endl;
 
 		//construct itemset base
-//		this->printOutInfo();
-		this->constructItemsetBase(part);
+		if(mining_mode == 0){
+			this->constructItemsetBase_eclat(part, support, length);
+		}
+		else if(mining_mode == 1){
+			this->constructItemsetBase_apriori(part, support, length);
+		}
+		else if(mining_mode == 2){
+			this->constructItemsetBase_fpgrowth(part, support, length);
+		}
+		else{
+			cout << "wrong mining option!" << endl;
+			exit(-1);
+		}
 
 //		cout << "construct itemset base." << endl;
     }
@@ -1722,20 +1733,20 @@ public:
 		if (myfile.is_open()) {
 			for (auto &n : graphs) {
 				if(!n.second->isEmpty()){
-					for(unsigned int i = 0; i < n.second->getLength(); i++){
-						myfile << n.second->getEdgeId(i) << " ";
-					}
-					myfile << "\n";
+//					for(unsigned int i = 0; i < n.second->getLength(); i++){
+//						myfile << n.second->getEdgeId(i) << " ";
+//					}
+//					myfile << "\n";
 
 
-//			        std::stringstream buffer;
-//			        for(unsigned int i = 0; i < n.second->getLength(); i++){
-//			        	char aLine[32];
-//			        	sprintf(aLine, "%d ", n.second->getEdgeId(i));
-//			        	buffer << aLine;
-//			        }
-//			        buffer << "\n";
-//			        myfile << buffer.str();
+			        std::stringstream buffer;
+			        for(unsigned int i = 0; i < n.second->getLength(); i++){
+			        	char aLine[32];
+			        	sprintf(aLine, "%d ", n.second->getEdgeId(i));
+			        	buffer << aLine;
+			        }
+			        buffer << "\n";
+			        myfile << buffer.str();
 				}
 			}
 
@@ -1807,35 +1818,43 @@ public:
         }
     }
 
-//    void get_disjoint_itemset(multimap<int, ItemsetGraph*>& frequency_graph_map, int k){
-//
-//    }
-
 
     /*
      *mine a set of frequent itemsets to construct the itemset base for encoding
      *precondition: the current intToItemset is empty
      *              or would like to reconstruct the base from scratch
      */
-    void constructItemsetBase(Partition part){
+    void constructItemsetBase_eclat(Partition part, int support, int length){
     	string input_file = inputFile + to_string(part);
     	string output_file = outFile + to_string(part);
 
-    	if(FileUtil::file_exists(input_file)){
-    		return;
-    	}
+//    	//if input_file exists, meaning that the itemset mining for this partition has been done before, then return directly
+//    	if(FileUtil::file_exists(input_file)){
+//    		return;
+//    	}
 
     	if(!graphs.empty()){
 			writeToFile(input_file);
 
-			std::string option = "-tc -s30 -m10";
-//			std::string option = "-tc -s10 -m4";
+			std::string option = "-tc -s" + to_string(support) + " -m" + to_string(length);
 			std::string command = "../lib/eclat " + option + " " + input_file + " " + output_file;
 			system(command.c_str());
 
+			//put the resulting frequent itemsets into intToItemset while by the ascending order of frequency
 			readFromFile(output_file);
     	}
     }
+
+
+    void constructItemsetBase_apriori(Partition part, int support, int length){
+
+    }
+
+
+    void constructItemsetBase_fpgrowth(Partition part, int support, int length){
+
+    }
+
 
     /*
      *update the existing itemset base by adding extra frequent itemsets

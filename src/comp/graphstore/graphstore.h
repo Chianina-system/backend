@@ -52,7 +52,7 @@ public:
 
     virtual void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) = 0;
 
-    virtual void loadGraphStore(const string& file, const string& file_in, Partition part) = 0;
+    virtual void loadGraphStore(const string& file, const string& file_in, Partition part, int mining_mode, int support, int length) = 0;
 
 //    virtual void init(CFG* cfg) = 0;
 

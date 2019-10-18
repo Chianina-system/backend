@@ -21,7 +21,7 @@ class CFGCompute_ooc_syn {
 
 public:
 
-	static bool load(Partition part, CFG *cfg_, GraphStore *graphstore, Context* context) {
+	static bool load(Partition part, CFG *cfg_, GraphStore *graphstore, Context* context, bool file_mode, int mining_mode, int support, int length) {
 		//for debugging
 		Logger::print_thread_info_locked("load starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -36,10 +36,10 @@ public:
 		const string foldername_graphs_in = Context::folder_graphs_in + partition;
 
 		CFG_map_outcore* cfg = dynamic_cast<CFG_map_outcore*>(cfg_);
-		cfg->loadCFG_ooc(filename_cfg, filename_stmt, filename_mirrors_in, filename_mirrors_out, foldername_actives);
+		cfg->loadCFG_ooc(file_mode, filename_cfg, filename_stmt, filename_mirrors_in, filename_mirrors_out, foldername_actives);
 
 //		graphstore->init(cfg_);
-		graphstore->loadGraphStore(filename_graphs, foldername_graphs_in, part);
+		graphstore->loadGraphStore(filename_graphs, foldername_graphs_in, part, mining_mode, support, length);
 
 		//for debugging
 		Logger::print_thread_info_locked("load finished.\n", LEVEL_LOG_FUNCTION);
@@ -48,7 +48,7 @@ public:
 	}
 
 
-	static void pass(Partition partition, CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* actives, Context* context){
+	static void pass(Partition partition, CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* actives, Context* context, bool file_mode){
 		//for debugging
 		Logger::print_thread_info_locked("pass starting...\n", 1);
 
@@ -77,7 +77,7 @@ public:
 
 			//write actives
 			const string file_actives = Context::folder_actives + to_string(part);
-			store_actives(file_actives, it->second);
+			store_actives(file_mode, file_actives, it->second);
 
 			//write graphs_in
 			const string file_graphs_in = Context::folder_graphs_in + std::to_string(part);
@@ -278,20 +278,44 @@ public:
 private:
 
 	//append the activated nodes into the corresponding file
-	static void store_actives(const string& file_actives, std::unordered_set<CFGNode*>& set){
-		ofstream myfile;
-		myfile.open(file_actives, std::ofstream::out | std::ofstream::app);
-		if (myfile.is_open()) {
-			for (auto &it : set) {
-				myfile << it->getCfgNodeId() << "\n";
+	static void store_actives(bool file_mode, const string& file_actives, std::unordered_set<CFGNode*>& set){
+		if(file_mode){
+			ofstream myfile;
+			myfile.open(file_actives, std::ofstream::out | std::ofstream::app);
+			if (myfile.is_open()) {
+				for (auto &it : set) {
+					myfile << it->getCfgNodeId() << "\n";
+				}
+				myfile.close();
 			}
-			myfile.close();
 		}
-//		if(readable){
-//		}
-//		else{
-//
-//		}
+		else{
+			FILE *f_actives = fopen(file_actives.c_str(), "ab");
+			if (f_actives == NULL) {
+				cout << "can't write to actives_file: " << file_actives << endl;
+				exit(-1);
+			}
+			else {
+				char* buf = (char*) malloc(IO_SIZE);
+				long real_io_size = get_real_io_size(IO_SIZE, sizeof(int));
+				long offset = 0;
+				for (auto &it : set) {
+					int id = it->getCfgNodeId();
+					memcpy(buf + offset, (char*)& id, sizeof(int));
+					offset += sizeof(int);
+
+			    	if(offset == real_io_size){
+						fwrite(buf, real_io_size, 1, f_actives);
+						offset = 0;
+			    	}
+				}
+				//write the remaining part to file
+				fwrite(buf, offset, 1, f_actives);
+
+				free(buf);
+				fclose(f_actives);
+			}
+		}
 	}
 
 
