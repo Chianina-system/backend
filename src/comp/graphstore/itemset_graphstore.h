@@ -11,6 +11,7 @@
 #include "graphstore.h"
 #include "edge.h"
 #include "itemset_graph.h"
+#include "fptree.hpp"
 
 
 using namespace std;
@@ -1851,9 +1852,9 @@ public:
     }
 
 
-    void constructItemsetBase_fpgrowth(Partition part, int support, int length){
-
-    }
+//    void constructItemsetBase_fpgrowth(Partition part, int support, int length){
+//
+//    }
 
 
     /*
@@ -1874,6 +1875,70 @@ public:
 	unordered_map<PEGraph_Pointer, ItemsetGraph*>& getGraphs() {
 		return graphs;
 	}
+
+
+	bool isSubset(const std::set<Item> &s1, const std::set<Item> &s2)
+	{
+    	for (auto iter=s1.begin();iter!=s1.end();iter++) {
+        	if (s2.find(*iter)==s2.end())
+            	return false;
+    	}
+    	return true;
+	}
+
+	static bool comparePattern(const Pattern &p1, const Pattern &p2)
+	{
+		if (p1.second==p2.second)
+        	return (p1.first).size()<(p2.first).size();
+    	return p1.second>p2.second;
+	}
+
+    void constructItemsetBase_fpgrowth(Partition part, int support, int length){
+		if (!graphs.empty()) {
+			std::vector<Transaction> transactions;
+			for (auto &n : graphs) {
+				if (!n.second->isEmpty()) {
+					Transaction tmp;
+					for (unsigned int i = 0; i < n.second->getLength(); i++) {
+						tmp.push_back(n.second->getEdgeId(i));
+					}
+					transactions.push_back(tmp);
+				}
+			}
+			if (transactions.size()>0) {
+				uint64_t minimum_support_threshold = uint64_t(std::floor(transactions.size()*(double(support)/100)));
+				const FPTree fptree{ transactions, minimum_support_threshold };
+				std::set<Pattern> patterns = fptree_growth( fptree );
+
+				for (auto iter=patterns.begin();iter!=patterns.end();) {
+					if (((*iter).first).size()<length) {
+						iter=patterns.erase(iter);
+					} else {
+						iter++;
+					}
+				}
+				std::vector<Pattern> patterns_v(patterns.begin(), patterns.end());
+				sort(patterns_v.begin(), patterns_v.end(), comparePattern);
+				for (int i=0;i<patterns_v.size();i++) {
+        			for (int j=i+1;j<patterns_v.size();j++) {
+            			if (patterns_v[j].second!=patterns_v[i].second)
+                			break;
+            			if ((patterns_v[j].first).size()>(patterns_v[i].first).size() && isSubset(patterns_v[i].first,patterns_v[j].first)) {
+                			patterns_v.erase(patterns_v.begin()+i);
+                			i--;
+                			break;
+            			}
+        			}
+    			}
+
+				for (int i=0;i<patterns_v.size();i++) {
+					ItemsetGraph* g = new ItemsetGraph(patterns_v[i].first);
+					intToItemset.push_back(g);
+				}
+			}
+		}
+    }
+
 
 protected:
     void print(std::ostream& str) {

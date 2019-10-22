@@ -13,6 +13,7 @@
 #include "../preproc/preprocess.h"
 #include "cfg_compute_syn_itemset.h"
 #include "cfg_compute_syn_naive.h"
+#include "cfg_compute_syn_delta.h"
 
 
 using namespace std;

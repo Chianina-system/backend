@@ -53,9 +53,15 @@ public:
         return set.size();
     }
 
-    std::set<T>* getSet(){
-    	return new std::set<T>(set.begin(), set.end());
-    }
+	const std::set<T, cfgnode_pointer_compare<T> >& getSet() const {
+		return set;
+	}
+
+//    std::set<T>* getSet(){
+//    	return new std::set<T>(set.begin(), set.end());
+//    }
+
+
 
 private:
 	std::set<T, cfgnode_pointer_compare<T>> set;

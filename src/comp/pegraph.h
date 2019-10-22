@@ -14,6 +14,7 @@
 #include "../utility/Logger.hpp"
 //#include "cfg_compute.h"
 #include "graphstore/itemset_graph.h"
+//#include "graphstore/delta_graph.h"
 
 class PEGraph {
 
@@ -27,7 +28,8 @@ public:
 
     PEGraph(PEGraph *p);
 
-//    PEGraph(ItemsetGraph* graph);
+//    PEGraph(PEGraph *base, PEGraph *added, PEGraph *deleted);
+
 
 	static void print_graph_map(std::ostream & strm, const std::unordered_map<vertexid_t, EdgeArray> graph) {
 		int size = 0;
@@ -48,6 +50,8 @@ public:
 	}
 
 	bool equals(PEGraph *another);
+
+//	bool equals(DeltaGraph *another);
 
     std::unordered_map<vertexid_t, EdgeArray> &getGraph();
 
@@ -74,6 +78,11 @@ public:
 
     void merge(PEGraph *graph_toMerge);
 
+    void subtract(PEGraph * graph_toSubtract);
+
+//    static PEGraph* merge(PEGraph* graph1, PEGraph* graph2){
+//
+//    }
 
 
 //    void setGraph(std::unordered_map<vertexid_t, EdgeArray> &_graph);
@@ -168,6 +177,13 @@ public:
 		}
     }
 
+    void write_unreadable_pure(FILE* f){
+		for (auto &it : graph) {
+			fwrite((const void*)& it.first, sizeof(vertexid_t), 1, f);
+			it.second.write_unreadable(f);
+		}
+    }
+
     void load_unreadable(FILE* fp){
     	unsigned int size;
     	size_t freadRes = 0; // clear warnings
@@ -181,6 +197,18 @@ public:
 		}
     }
 
+//    void load_unreadable_pure(FILE* fp){
+//    	unsigned int size;
+//    	size_t freadRes = 0; // clear warnings
+//    	freadRes = fread(&size, sizeof(unsigned int), 1, fp);
+//		for (unsigned i = 0; i < size; ++i) {
+//			vertexid_t src;
+//			freadRes = fread(&src, sizeof(vertexid_t), 1, fp);
+//			//load an edgearray
+//			this->graph[src] = EdgeArray();
+//			this->graph[src].load_unreadable(fp);
+//		}
+//    }
 
     size_t compute_size_bytes(){
     	size_t size = 0;
@@ -206,6 +234,18 @@ public:
     	}
     }
 
+    size_t write_to_buf_pure(char* buf, size_t offset){
+    	for(auto& it: graph){
+    		//srcId
+    		memcpy(buf + offset, (char*)&(it.first), sizeof(vertexid_t));
+//    		*(buf + offset) = it.first;
+    		offset += sizeof(vertexid_t);
+    		//edgeArray
+    		offset = it.second.write_to_buf(buf, offset);
+    	}
+    	return offset;
+    }
+
     PEGraph_Pointer read_from_buf(char* buf, const size_t bufsize){
     	size_t offset = 0;
     	PEGraph_Pointer pointer = *((PEGraph_Pointer*)(buf));
@@ -217,6 +257,29 @@ public:
     		offset = this->graph[src].read_from_buf(buf, offset);
     	}
     	return pointer;
+    }
+
+//    PEGraph* read_from_buf_(char* buf, const size_t bufsize){
+//    	size_t offset = 0;
+//    	PEGraph* pointer = *((PEGraph*)(buf));
+//    	offset += sizeof(PEGraph*);
+//    	while(offset < bufsize){
+//    		vertexid_t src = *((vertexid_t*)(buf + offset));
+//    		offset += sizeof(vertexid_t);
+//    		this->graph[src] = EdgeArray();
+//    		offset = this->graph[src].read_from_buf(buf, offset);
+//    	}
+//    	return pointer;
+//    }
+
+    void read_from_buf_pure(char* buf, size_t bufsize){
+    	size_t offset = 0;
+    	while(offset < bufsize){
+    		vertexid_t src = *((vertexid_t*)(buf + offset));
+    		offset += sizeof(vertexid_t);
+    		this->graph[src] = EdgeArray();
+    		offset = this->graph[src].read_from_buf(buf, offset);
+    	}
     }
 
 

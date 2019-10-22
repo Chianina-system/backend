@@ -20,6 +20,7 @@
 #include "graphstore/graphstore.h"
 #include "graphstore/naive_graphstore.h"
 #include "graphstore/itemset_graphstore.h"
+#include "graphstore/delta_graphstore.h"
 #include "peg_compute.h"
 #include "peg_compute_parallel.h"
 #include "../utility/timer_sum.hpp"

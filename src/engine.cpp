@@ -8,6 +8,7 @@
 #include "comp/cfg_compute_ooc_asyn.h"
 #include "comp/cfg_compute_ooc_syn_naive.h"
 #include "comp/cfg_compute_ooc_syn_itemset.h"
+#include "comp/cfg_compute_ooc_syn_delta.h"
 #include "utility/ResourceManager.hpp"
 
 using namespace std;
@@ -90,11 +91,18 @@ void compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
     Concurrent_Worklist<CFGNode*>* actives = new Concurrent_Workset<CFGNode*>();
 //	GraphStore *graphstore = new NaiveGraphStore();
 	GraphStore* graphstore;
-	if(graphstore_mode){
+	if(graphstore_mode == 1){
 		graphstore = new ItemsetGraphStore(file_mode, buffered_mode);
 	}
-	else{
+	else if(graphstore_mode == 0){
 		graphstore = new NaiveGraphStore(file_mode, buffered_mode);
+	}
+	else if(graphstore_mode == 2){
+		graphstore = new DeltaGraphStore(file_mode, buffered_mode);
+	}
+	else{
+		cout << "wrong graphstore mode!" << endl;
+		exit(-1);
 	}
 
 //    //get the flag for adding self-loop edges
@@ -115,11 +123,18 @@ void compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
 
     if(sync_mode){
 //		CFGCompute_ooc_syn::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
-		if(graphstore_mode){
+		if(graphstore_mode == 1){
 			CFGCompute_ooc_syn_itemset::do_worklist_ooc_synchronous(cfg, dynamic_cast<ItemsetGraphStore*> (graphstore), context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
 		}
-		else{
+		else if(graphstore_mode == 0){
 			CFGCompute_ooc_syn_naive::do_worklist_ooc_synchronous(cfg, dynamic_cast<NaiveGraphStore*> (graphstore), context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
+		}
+		else if(graphstore_mode == 2){
+			CFGCompute_ooc_syn_delta::do_worklist_ooc_synchronous(cfg, dynamic_cast<DeltaGraphStore*> (graphstore), context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
+		}
+		else{
+			cout << "wrong graphstore mode!" << endl;
+			exit(-1);
 		}
     }
     else{
@@ -275,12 +290,20 @@ void printGraphstoreInfo(Context* context, int graphstore_mode, bool file_mode, 
 	for(unsigned int partition = 0; partition < context->getNumberPartitions(); ++ partition){
 //		NaiveGraphStore *graphstore = new NaiveGraphStore();
 		GraphStore* graphstore;
-		if(graphstore_mode){
+		if(graphstore_mode == 1){
 			graphstore = new ItemsetGraphStore(file_mode, buffered_mode);
 		}
-		else{
+		else if(graphstore_mode == 1){
 			graphstore = new NaiveGraphStore(file_mode, buffered_mode);
 		}
+		else if(graphstore_mode == 2){
+			graphstore = new DeltaGraphStore(file_mode, buffered_mode);
+		}
+		else{
+			cout << "wrong graphstore mode!" << endl;
+			exit(-1);
+		}
+
 		std::unordered_set<PEGraph_Pointer> mirrors;
 
 		const string filename_graphs = Context::file_graphstore + to_string(partition);
@@ -394,21 +417,35 @@ void compute_inmemory(int graphstore_mode, bool update_mode, bool sync_mode, con
 	Singletons * singletons = new Singletons();
     Grammar *grammar = new Grammar();
 	GraphStore* graphstore;
-	if(graphstore_mode){
+	if(graphstore_mode == 1){
 		graphstore = new ItemsetGraphStore();
 	}
-	else{
+	else if (graphstore_mode == 0){
 		graphstore = new NaiveGraphStore();
+	}
+	else if (graphstore_mode == 2){
+		graphstore = new DeltaGraphStore();
+	}
+	else{
+		cout << "wrong graphstore mode!" << endl;
+		exit(-1);
 	}
 
 	CFGCompute_syn::load(file_total, file_cfg, file_stmts, file_entries, cfg, file_singletons, singletons, graphstore, file_grammar, grammar);
 	if(sync_mode){
 //		CFGCompute_syn::do_worklist_synchronous(cfg, graphstore, grammar, singletons, false, update_mode);
-		if(graphstore_mode){
+		if(graphstore_mode == 1){
 			CFGCompute_syn_itemset::do_worklist_synchronous(cfg, dynamic_cast<ItemsetGraphStore*> (graphstore), grammar, singletons, false, update_mode);
 		}
-		else{
+		else if (graphstore_mode == 0){
 			CFGCompute_syn_naive::do_worklist_synchronous(cfg, dynamic_cast<NaiveGraphStore*> (graphstore), grammar, singletons, false, update_mode);
+		}
+		else if (graphstore_mode == 2){
+			CFGCompute_syn_delta::do_worklist_synchronous(cfg, dynamic_cast<DeltaGraphStore*> (graphstore), grammar, singletons, false, update_mode);
+		}
+		else{
+			cout << "wrong graphstore mode!" << endl;
+			exit(-1);
 		}
 	}
 	else{

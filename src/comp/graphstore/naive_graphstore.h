@@ -345,7 +345,7 @@ public:
 //    }
 
 
-    //deep copy
+    //shallow copy
     void update_shallow(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
 //    	//for debugging
 //    	Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);

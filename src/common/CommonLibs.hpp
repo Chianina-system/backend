@@ -107,7 +107,7 @@ typedef int Partition;
 #define LEVEL_LOG_PEG 1
 #define LEVEL_LOG_GRAPHSTORE 1
 #define LEVEL_LOG_CFGNODE 1
-#define LEVEL_LOG_WORKLIST 0
+#define LEVEL_LOG_WORKLIST 1
 #define LEVEL_LOG_MAIN 1
 
 #endif /* SRC_COMMON_RSTREAMCOMMON_HPP_ */
