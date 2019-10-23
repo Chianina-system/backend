@@ -83,7 +83,7 @@ public:
 
 
 	        //start deltaGraph processing
-	        startDeltaGraphs(supersteps, worklist_1, graphstore);
+	        startDeltaGraphs(supersteps, worklist_1, graphstore, cfg);
 //	        startDeltaGraphs(supersteps, nodes, graphstore);
 
 	        //for debugging
@@ -119,39 +119,63 @@ public:
 	    sum_update.print();
 	}
 
-	static void startDeltaGraphs(int supersteps, Concurrent_Worklist<CFGNode*>* worklist, DeltaGraphStore* graphstore){
-		if(supersteps > 0){
+	static void startDeltaGraphs(int supersteps, Concurrent_Worklist<CFGNode*>* worklist, DeltaGraphStore* graphstore, CFG* cfg){
+		if(supersteps > 8){
 			Concurrent_Workset<CFGNode*>* workset = dynamic_cast<Concurrent_Workset<CFGNode*>*>(worklist);
 			for(auto it = workset->getSet().begin(); it != workset->getSet().end(); ++it){
 				CFGNode* cfg_node = *it;
-				PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-				DeltaGraph* old_out = graphstore->retrieve_shallow(out_pointer);
-				if(old_out){
-					if(old_out->isNaive() && old_out->getBase()->getNumEdges() >= 100){
-						old_out->setNaive(false);
-						graphstore->getBasesSet().insert(old_out->getBase());
-						return;
+				std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
+				for(auto p = preds->begin(); p != preds->end(); ++p){
+					CFGNode* pred_node = *p;
+
+					PEGraph_Pointer out_pointer = pred_node->getOutPointer();
+					DeltaGraph* old_out = graphstore->retrieve_shallow(out_pointer);
+					if(old_out){
+						if(old_out->isNaive() && old_out->getBase()->getNumEdges() >= 400){
+							old_out->setNaive(false);
+							graphstore->getBasesSet().insert(old_out->getBase());
+	//						return;
+						}
 					}
 				}
+
 			}
 		}
 	}
 
-	static void startDeltaGraphs(int supersteps, std::vector<CFGNode*>& nodes, DeltaGraphStore* graphstore){
-		if(supersteps > 8){
-			for(auto it = nodes.begin(); it != nodes.end(); ++it){
-				CFGNode* cfg_node = *it;
-				PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-				DeltaGraph* old_out = graphstore->retrieve_shallow(out_pointer);
-				if(old_out){
-					if(old_out->isNaive() && old_out->getBase()->getNumEdges() >= 0){
-						old_out->setNaive(false);
-						graphstore->getBasesSet().insert(old_out->getBase());
-					}
-				}
-			}
-		}
-	}
+//	static void startDeltaGraphs(int supersteps, Concurrent_Worklist<CFGNode*>* worklist, DeltaGraphStore* graphstore){
+//		if(supersteps > 0){
+//			Concurrent_Workset<CFGNode*>* workset = dynamic_cast<Concurrent_Workset<CFGNode*>*>(worklist);
+//			for(auto it = workset->getSet().begin(); it != workset->getSet().end(); ++it){
+//				CFGNode* cfg_node = *it;
+//				PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
+//				DeltaGraph* old_out = graphstore->retrieve_shallow(out_pointer);
+//				if(old_out){
+//					if(old_out->isNaive() && old_out->getBase()->getNumEdges() >= 50){
+//						old_out->setNaive(false);
+//						graphstore->getBasesSet().insert(old_out->getBase());
+//						return;
+//					}
+//				}
+//			}
+//		}
+//	}
+
+//	static void startDeltaGraphs(int supersteps, std::vector<CFGNode*>& nodes, DeltaGraphStore* graphstore){
+//		if(supersteps > 8){
+//			for(auto it = nodes.begin(); it != nodes.end(); ++it){
+//				CFGNode* cfg_node = *it;
+//				PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
+//				DeltaGraph* old_out = graphstore->retrieve_shallow(out_pointer);
+//				if(old_out){
+//					if(old_out->isNaive() && old_out->getBase()->getNumEdges() >= 0){
+//						old_out->setNaive(false);
+//						graphstore->getBasesSet().insert(old_out->getBase());
+//					}
+//				}
+//			}
+//		}
+//	}
 
 
 

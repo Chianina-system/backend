@@ -71,7 +71,7 @@ public:
 	        assert(worklist_2->isEmpty());
 
 	        //start deltaGraph processing
-	        CFGCompute_syn_delta::startDeltaGraphs(1, worklist_1, graphstore);
+	        CFGCompute_syn_delta::startDeltaGraphs(1, worklist_1, graphstore, cfg);
 
 	        //for debugging
 	        Logger::print_thread_info_locked("--------------------------------------------------------------- finished ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
