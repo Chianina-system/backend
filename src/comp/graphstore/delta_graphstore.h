@@ -121,25 +121,33 @@ public:
         }
 
 
-    	if(old_out == NULL){
-    		if(pred_graph == NULL){//predecessors are naive
-				return new DeltaGraph(new PEGraph(pegraph));
-    		}
-    		else{
-    			return constructDeltaGraph(pegraph, pred_graph);
-    		}
-    	}
-    	else if(old_out->isNaive()){
-    		if(pred_graph == NULL){//predecessors are naive
-				return new DeltaGraph(new PEGraph(pegraph));
-    		}
-    		else{
-    			return constructDeltaGraph(pegraph, pred_graph);
-    		}
-    	}
-    	else{
-    		return constructDeltaGraph(pegraph, old_out);
-    	}
+//    	if(old_out == NULL){
+//    		if(pred_graph == NULL){//predecessors are naive
+//				return new DeltaGraph(new PEGraph(pegraph));
+//    		}
+//    		else{
+//    			return constructDeltaGraph(pegraph, pred_graph);
+//    		}
+//    	}
+//    	else if(old_out->isNaive()){
+//    		if(pred_graph == NULL){//predecessors are naive
+//				return new DeltaGraph(new PEGraph(pegraph));
+//    		}
+//    		else{
+//    			return constructDeltaGraph(pegraph, pred_graph);
+//    		}
+//    	}
+//    	else{
+//    		return constructDeltaGraph(pegraph, old_out);
+//    	}
+
+		if(pred_graph == NULL){//predecessors are naive
+			return new DeltaGraph(new PEGraph(pegraph));
+		}
+		else{
+			return constructDeltaGraph(pegraph, pred_graph);
+		}
+
 
     }
 
@@ -192,6 +200,25 @@ public:
     			added->getGraph()[it->first] = it->second;
     		}
     	}
+
+    	//conditions for deltaGraph construction
+    	int num_peg = pegraph->getNumEdges();
+    	int num_base = base->getNumEdges();
+    	int num_added = added->getNumEdges();
+    	int num_deleted = deleted->getNumEdges();
+
+    	if(num_peg <= num_added + num_deleted){
+    		delete added;
+    		delete deleted;
+    		return new DeltaGraph(new PEGraph(pegraph));
+    	}
+
+    	if(num_base < num_added){
+    		delete added;
+    		delete deleted;
+    		return new DeltaGraph(new PEGraph(pegraph));
+    	}
+
 
     	DeltaGraph* out = new DeltaGraph(base, added, deleted, false);
     	return out;
@@ -710,12 +737,15 @@ public:
     		long size_base = it->second->getBase()->getNumEdges();
     		long size_added = it->second->getAdded()->getNumEdges();
     		long size_deleted = it->second->getDeleted()->getNumEdges();
-    		cout << it->first << ":\t" << size_base << ", " << size_added << ", " << size_deleted << endl;
+    		cout << it->first << ":\t" << size_base << ", " << size_added << ", " << size_deleted << "\n";
     		size_edges += size_base + size_added - size_deleted;
     		size_items += (it->second->isNaive() ? size_base : 1) + size_added + size_deleted;
     	}
 
+    	cout << endl << endl;
+
     	for(auto it: bases_set){
+    		cout << it << ":\t" << it->getNumEdges() << "\n";
     		size_items += it->getNumEdges();
     	}
 

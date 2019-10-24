@@ -143,7 +143,7 @@ public:
 			PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
 			DeltaGraph* old_out = graphstore->retrieve_shallow(out_pointer);
 			DeltaGraph* out_delta = graphstore->convertToDeltaGraph(out, old_out, preds);
-			bool isEqual = out_delta->equals(old_out);
+			bool isEqual = out_delta->equals(old_out, out);
 
 //		        //for debugging
 //		        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", 1);

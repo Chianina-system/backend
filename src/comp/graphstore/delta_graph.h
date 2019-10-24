@@ -48,7 +48,7 @@ public:
 	}
 
 
-	bool equals(DeltaGraph* another) const {
+	bool equals(DeltaGraph* another, PEGraph* out) const {
 		if(another == NULL){
 			return false;
 		}
@@ -61,8 +61,26 @@ public:
 			}
 		}
 		else{
-			assert(this->base == another->base);
-			return this->added->equals(another->added) && this->deleted->equals(another->deleted);
+			if(this->base == another->base){
+				assert(this->base == another->base);
+				return this->added->equals(another->added) && this->deleted->equals(another->deleted);
+			}
+			else{
+//				return this->base->equals(another->base) && this->added->equals(another->added) && this->deleted->equals(another->deleted);
+				if(this->getNumEdges() != another->getNumEdges()){
+					return false;
+				}
+				else{
+					PEGraph* another_peg = new PEGraph();
+					another_peg->merge(another->getBase());
+					another_peg->merge(another->getAdded());
+					another_peg->subtract(another->getDeleted());
+					bool equal = out->equals(another_peg);
+					delete another_peg;
+					return equal;
+				}
+
+			}
 		}
 
 	}
@@ -88,6 +106,9 @@ public:
 		return deleted;
 	}
 
+	int getNumEdges() const {
+		return base->getNumEdges() + added->getNumEdges() - deleted->getNumEdges();
+	}
 
 
 

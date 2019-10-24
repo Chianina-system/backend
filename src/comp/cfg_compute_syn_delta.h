@@ -120,7 +120,7 @@ public:
 	}
 
 	static void startDeltaGraphs(int supersteps, Concurrent_Worklist<CFGNode*>* worklist, DeltaGraphStore* graphstore, CFG* cfg){
-		if(supersteps > 8){
+		if(supersteps > 0){
 			Concurrent_Workset<CFGNode*>* workset = dynamic_cast<Concurrent_Workset<CFGNode*>*>(worklist);
 			for(auto it = workset->getSet().begin(); it != workset->getSet().end(); ++it){
 				CFGNode* cfg_node = *it;
@@ -131,7 +131,7 @@ public:
 					PEGraph_Pointer out_pointer = pred_node->getOutPointer();
 					DeltaGraph* old_out = graphstore->retrieve_shallow(out_pointer);
 					if(old_out){
-						if(old_out->isNaive() && old_out->getBase()->getNumEdges() >= 400){
+						if(old_out->isNaive() && old_out->getBase()->getNumEdges() >= 50){
 							old_out->setNaive(false);
 							graphstore->getBasesSet().insert(old_out->getBase());
 	//						return;
@@ -234,7 +234,7 @@ public:
 			PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
 			DeltaGraph* old_out = graphstore->retrieve_shallow(out_pointer);
 			DeltaGraph* out_delta = graphstore->convertToDeltaGraph(out, old_out, preds);
-			bool isEqual = out_delta->equals(old_out);
+			bool isEqual = out_delta->equals(old_out, out);
 
 //		        //for debugging
 //		        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", 1);
