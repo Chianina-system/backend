@@ -17,6 +17,12 @@ public:
 		index = 0;
 	}
 
+	MyArray(unsigned int l, int* edges){
+		len = l;
+		data = edges;
+		index = l;
+	}
+
 
 	~MyArray(){
 

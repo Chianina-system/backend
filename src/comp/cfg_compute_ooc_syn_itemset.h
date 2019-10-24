@@ -37,10 +37,14 @@ public:
 //	    NaiveGraphStore* tmp_graphstore = new NaiveGraphStore();
 	    HybridGraphStore* tmp_graphs = new HybridGraphStore();
 
+	    int supersteps = 0;
+
 	    Concurrent_Worklist<CFGNode*>* worklist_2 = new Concurrent_Workset<CFGNode*>();
 	    while(!worklist_1->isEmpty()){
 	        //for debugging
 	        Logger::print_thread_info_locked("--------------------------------------------------------------- superstep starting ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
+
+	        supersteps++;
 
 	        //for tuning
 	        timer_ooc->getEdgeComputeSum()->start();
@@ -75,6 +79,9 @@ public:
 	        worklist_2 = worklist_tmp;
 	        assert(worklist_2->isEmpty());
 
+//	        //start compressing via frequent itemsets
+//	        startItemsetGraphs(supersteps, worklist_1, graphstore, cfg);
+
 	        //for debugging
 	        Logger::print_thread_info_locked("--------------------------------------------------------------- finished ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
 	    }
@@ -88,6 +95,30 @@ public:
 	    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 //	    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
 //	    dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
+	}
+
+	static void startItemsetGraphs(int supersteps, Concurrent_Worklist<CFGNode*>* worklist, ItemsetGraphStore* graphstore, CFG* cfg){
+		if(supersteps > 0){
+			Concurrent_Workset<CFGNode*>* workset = dynamic_cast<Concurrent_Workset<CFGNode*>*>(worklist);
+			for(auto it = workset->getSet().begin(); it != workset->getSet().end(); ++it){
+				CFGNode* cfg_node = *it;
+				std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
+				if(!preds){
+					continue;
+				}
+				for(auto p = preds->begin(); p != preds->end(); ++p){
+					CFGNode* pred_node = *p;
+
+					PEGraph_Pointer pred_pointer = pred_node->getOutPointer();
+					ItemsetGraph* pred_graph = graphstore->retrieve_direct(pred_pointer);
+
+					if(pred_graph && !pred_graph->isEmpty()){
+						graphstore->compressItemsetGraph(pred_graph);
+					}
+				}
+
+			}
+		}
 	}
 
 
@@ -244,6 +275,45 @@ public:
 //	        Logger::print_thread_info_locked("1-> " + worklist_1->toString() + "\t2-> " + worklist_2->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);
 	    }
 	}
+
+//	static PEGraph* combine_synchronous(ItemsetGraphStore* graphstore, std::vector<CFGNode*>* preds){
+//		//for debugging
+//		Logger::print_thread_info_locked("combine starting...\n", LEVEL_LOG_FUNCTION);
+//
+//		PEGraph* out;
+//
+//	    if(!preds || preds->size() == 0){//entry node
+//	        //return an empty graph
+//	        out = new PEGraph();
+//	    }
+//	    else if(preds->size() == 1){
+//	        CFGNode* pred = preds->at(0);
+//	        PEGraph_Pointer out_pointer = pred->getOutPointer();
+//	        out = graphstore->retrieve_update(out_pointer);
+//	        if(!out){
+//	        	out = new PEGraph();
+//	        }
+//	    }
+//	    else{
+//	        out = new PEGraph();
+//
+//	        for(auto it = preds->cbegin(); it != preds->cend(); it++){
+//	            CFGNode* pred = *it;
+//	            PEGraph_Pointer out_pointer = pred->getOutPointer();
+//	            PEGraph* out_graph = graphstore->retrieve_update(out_pointer);
+//	            if(!out_graph){
+//	            	continue;
+//	            }
+//	           	out->merge(out_graph);
+//	           	delete out_graph;
+//	        }
+//	    }
+//
+//		//for debugging
+//		Logger::print_thread_info_locked("combine finished.\n", LEVEL_LOG_FUNCTION);
+//
+//		return out;
+//	}
 
 
 };

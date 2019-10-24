@@ -46,6 +46,105 @@ public:
 //    	edgeToInt.clear();
     }
 
+    PEGraph* retrieve_update(PEGraph_Pointer graph_pointer) {
+//		//for debugging
+//		Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
+
+		PEGraph *out;
+
+		if (graphs.find(graph_pointer) != graphs.end()) {
+//			out = new PEGraph(graphs[graph_pointer]);
+			out = convertToPEGraph_update(graphs[graph_pointer]);
+		}
+		else {
+			out = nullptr;
+		}
+
+//		//for debugging
+//		Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
+
+		return out;
+    }
+
+
+    void compressItemsetGraph(ItemsetGraph* graph){
+//		bool isCompressed = false;
+//		for(unsigned int i = 0; i < graph->getLength(); ++i){
+//			int id_edge = graph->getEdgeId(i);
+//			if(isItemset(id_edge)){
+//				isCompressed = true;
+//				break;
+//			}
+//		}
+    	bool isCompressed = graph->getEdgeId(0) < 0 ? true : false;
+
+    	if(!isCompressed){
+    		MyArray* myArray = new MyArray(graph->getLength(), graph->getEdgeIds());
+
+        	//TODO: replace edge set with frequent itemset
+        	compressEdges(myArray);
+        	graph->setEdges(myArray->getData(), myArray->getLength());
+        	delete myArray;
+    	}
+    }
+
+
+    PEGraph* convertToPEGraph_update(ItemsetGraph* graph){
+    	bool isCompressed = false;
+
+    	//collect all the edges
+    	vector<int> edges;
+    	vector<ItemsetGraph*> itemset_graphs;
+    	itemset_graphs.push_back(graph);
+    	while(!itemset_graphs.empty()){
+    		ItemsetGraph* g = itemset_graphs.back();
+    		itemset_graphs.pop_back();
+			for(unsigned int i = 0; i < g->getLength(); ++i){
+				int id_edge = g->getEdgeId(i);
+				if(isItemset(id_edge)){
+					isCompressed = true;
+					itemset_graphs.push_back(intToItemset[getItemsetIndex(id_edge)]);
+				}
+				else{
+					edges.push_back(id_edge);
+				}
+			}
+    	}
+//    	cout << edges.size() << endl;
+//    	cout << "size of intToEdge: " << intToEdge.size() << endl;
+
+    	//construct pegraph
+    	PEGraph* peg = new PEGraph();
+    	for(auto it = edges.begin(); it != edges.end(); ++it){
+    		int edge_id = *it;
+    		Edge edge = intToEdge[edge_id];
+
+//    		//for debugging
+//    		cout << edge << endl;
+
+    		if(peg->getGraph().find(edge.getSrcId()) == peg->getGraph().end()){
+    			peg->getGraph()[edge.getSrcId()] = EdgeArray();
+    		}
+    		peg->getGraph()[edge.getSrcId()].addOneEdge(edge.getDstId(), edge.getLabel());
+    	}
+    	//sort all the edgeArrays in peg
+    	for(auto it = peg->getGraph().begin(); it != peg->getGraph().end(); ++ it){
+			(*it).second.sort();
+    	}
+
+    	if(!isCompressed){
+    		MyArray* myArray = new MyArray(graph->getLength(), graph->getEdgeIds());
+
+        	//TODO: replace edge set with frequent itemset
+        	compressEdges(myArray);
+        	graph->setEdges(myArray->getData(), myArray->getLength());
+        	delete myArray;
+    	}
+
+//    	cout << *peg << endl;
+//    	cout << peg->getGraph().size() << endl;
+    	return peg;
+    }
 
     PEGraph* retrieve(PEGraph_Pointer graph_pointer) {
 //		//for debugging
@@ -220,20 +319,20 @@ public:
 
 //		cout << "load_in_graphs ended." << endl;
 
-		//construct itemset base
-		if(mining_mode == 0){
-			this->constructItemsetBase_eclat(part, support, length);
-		}
-		else if(mining_mode == 1){
-			this->constructItemsetBase_apriori(part, support, length);
-		}
-		else if(mining_mode == 2){
-			this->constructItemsetBase_fpgrowth(part, support, length);
-		}
-		else{
-			cout << "wrong mining option!" << endl;
-			exit(-1);
-		}
+//		//construct itemset base
+//		if(mining_mode == 0){
+//			this->constructItemsetBase_eclat(part, support, length);
+//		}
+//		else if(mining_mode == 1){
+//			this->constructItemsetBase_apriori(part, support, length);
+//		}
+//		else if(mining_mode == 2){
+//			this->constructItemsetBase_fpgrowth(part, support, length);
+//		}
+//		else{
+//			cout << "wrong mining option!" << endl;
+//			exit(-1);
+//		}
 
 //		cout << "construct itemset base." << endl;
     }
@@ -1717,8 +1816,76 @@ public:
 				size_graphs++;
     		}
     	}
+
+    	for(auto it = intToItemset.begin(); it != intToItemset.end(); ++it){
+    		ItemsetGraph* graph = *it;
+    		size_items += graph->getLength();
+    	}
     }
 
+    void compressGraphStore(Partition part, int support, int length){
+    	//construct itemset base
+    	this->constructItemsetBase_eclat(part, support, length);
+
+    	//compress graphstore
+    	this->compress_graphs_parallel();
+
+    }
+
+    static void compress_parallel(ItemsetGraphStore* current, Concurrent_Worklist<PEGraph_Pointer>* worklist){
+    	//for debugging
+    	Logger::print_thread_info_locked("compress-parallel starting...\n", LEVEL_LOG_FUNCTION);
+
+    	PEGraph_Pointer pointer;
+    	while(worklist->pop_atomic(pointer)){
+			ItemsetGraph* graph = current->graphs[pointer];
+			assert(graph);
+
+			if(!graph->isEmpty()){
+				current->compressItemsetGraph(graph);
+			}
+    	}
+
+    	//for debugging
+    	Logger::print_thread_info_locked("compress-parallel finished.\n", LEVEL_LOG_FUNCTION);
+    }
+
+    void compress_graphs_parallel(){
+    	//for debugging
+    	Logger::print_thread_info_locked("compress-graphs-parallel starting...\n", LEVEL_LOG_FUNCTION);
+
+	    //initiate concurrent worklist
+	    Concurrent_Worklist<PEGraph_Pointer>* worklist = new Concurrent_Workset<PEGraph_Pointer>();
+	    for(auto& it: graphs){
+	        worklist->push_atomic(it.first);
+	    }
+
+		std::vector<std::thread> comp_threads;
+		for (unsigned int i = 0; i < NUM_THREADS; i++)
+			comp_threads.push_back(std::thread([=] {compress_parallel(this, worklist);}));
+
+		for (auto &t : comp_threads)
+			t.join();
+
+	    //clean
+	    delete(worklist);
+
+    	//for debugging
+    	Logger::print_thread_info_locked("compress-graphs-parallel finished.\n", LEVEL_LOG_FUNCTION);
+    }
+
+
+    bool beSeleted(ItemsetGraph* graph, int percent){
+    	random_device dev;
+    	mt19937 rng(dev());
+    	uniform_int_distribution<std::mt19937::result_type> dist(1, percent);
+    	if(dist(rng) == 1 && graph->getLength() > 50){
+    		return true;
+    	}
+    	else{
+    		return false;
+    	}
+    }
 
     /*
      * write graphs into a file for itemset mining later where
@@ -1731,9 +1898,12 @@ public:
 //		cout << inputFile << endl;
 //		cout << myfile.is_open() << endl;
 
+		int percent = 100;
+		int samples = graphs.size() / percent;
+
 		if (myfile.is_open()) {
 			for (auto &n : graphs) {
-				if(!n.second->isEmpty()){
+				if(!n.second->isEmpty() && beSeleted(n.second, percent)){
 //					for(unsigned int i = 0; i < n.second->getLength(); i++){
 //						myfile << n.second->getEdgeId(i) << " ";
 //					}
@@ -1806,17 +1976,23 @@ public:
 			myfile.close();
 
 
-	//		//filter to obtain top-k disjoint frequent itemsets
-	//		int k = 5;
-	//		get_disjoint_itemset(frequency_graph_map, k);
+			//filter to obtain top-k disjoint frequent itemsets
+			int k = 10;
+			get_disjoint_itemset(frequency_graph_map, k);
 
-			for(auto it = frequency_graph_map.cbegin(); it != frequency_graph_map.cend(); ++ it){
+//			for(auto it = frequency_graph_map.rbegin(); k > 0 && it != frequency_graph_map.rend(); ++it){
+			for(auto it = frequency_graph_map.cbegin(); k > 0 && it != frequency_graph_map.cend(); ++it){
 				intToItemset.push_back((*it).second);
+				k--;
 
 //				//for debugging
 //				cout << *((*it).second) << endl;
 			}
         }
+    }
+
+    void get_disjoint_itemset(multimap<int, ItemsetGraph*>& frequency_graph_map, int k){
+
     }
 
 
@@ -1830,7 +2006,7 @@ public:
     	string output_file = outFile + to_string(part);
 
 //    	//if input_file exists, meaning that the itemset mining for this partition has been done before, then return directly
-//    	if(FileUtil::file_exists(input_file)){
+//    	if(FileUtil::file_exists(output_file)){
 //    		return;
 //    	}
 
@@ -1850,11 +2026,6 @@ public:
     void constructItemsetBase_apriori(Partition part, int support, int length){
 
     }
-
-
-//    void constructItemsetBase_fpgrowth(Partition part, int support, int length){
-//
-//    }
 
 
     /*

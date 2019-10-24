@@ -80,7 +80,6 @@ int main(int argc, char* argv[]) {
 }
 
 
-
 void compute_ooc(Partition partition, Context* context, bool sync_mode, int graphstore_mode, bool update_mode, bool file_mode, bool buffered_mode,
 		int mining_mode, int support, int length,
 		Timer_wrapper_ooc* timer_ooc, Timer_wrapper_inmemory* timer){
@@ -124,6 +123,9 @@ void compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
     if(sync_mode){
 //		CFGCompute_ooc_syn::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
 		if(graphstore_mode == 1){
+			//start compressing graphs
+			dynamic_cast<ItemsetGraphStore*> (graphstore)->compressGraphStore(partition, support, length);
+
 			CFGCompute_ooc_syn_itemset::do_worklist_ooc_synchronous(cfg, dynamic_cast<ItemsetGraphStore*> (graphstore), context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
 		}
 		else if(graphstore_mode == 0){

@@ -237,6 +237,10 @@ public:
 		freadRes = fread(edge_ids, sizeof(int) * len, 1, fp);
 	}
 
+	void setEdges(int* edges, unsigned int l){
+		edge_ids = edges;
+		len = l;
+	}
 
 
 private:
