@@ -1549,8 +1549,11 @@ public:
      */
     void compressEdges(MyArray* myArray){
     	for(unsigned i = 0; i < intToItemset.size(); i++){
-    		if(myArray->getLength() < intToItemset.at(intToItemset.size() - 1)->getLength()){
-    			break;
+//    		if(myArray->getLength() < intToItemset.at(intToItemset.size() - 1)->getLength()){
+//    			break;
+//    		}
+    		if(myArray->getLength() < intToItemset[i]->getLength()){
+    			continue;
     		}
     		subsume(myArray, intToItemset[i], getItemsetId(i));
     	}
@@ -1808,10 +1811,10 @@ public:
     }
 
 
-    void getStatistics(int& size_graphs, long& size_edges, long& size_items, const std::unordered_set<PEGraph_Pointer>& mirrors){
+    void getStatistics(int& size_graphs, long& size_edges, long& size_graphitems, long& size_baseitems, const std::unordered_set<PEGraph_Pointer>& mirrors){
     	for(auto it = graphs.begin(); it != graphs.end(); ++it){
     		if(mirrors.find(it->first) == mirrors.end()){
-    			size_items += it->second->getLength();
+    			size_graphitems += it->second->getLength();
 				size_edges += it->second->getNumEdges(this->intToItemset);
 				size_graphs++;
     		}
@@ -1819,16 +1822,27 @@ public:
 
     	for(auto it = intToItemset.begin(); it != intToItemset.end(); ++it){
     		ItemsetGraph* graph = *it;
-    		size_items += graph->getLength();
+    		size_baseitems += graph->getLength();
     	}
     }
 
     void compressGraphStore(Partition part, int support, int length){
+//    	string input_file = inputFile + to_string(part);
+//    	string output_file = outFile + to_string(part);
+//
+//    	//if input_file exists, meaning that the itemset mining for this partition has been done before, then return directly
+//    	if(FileUtil::file_exists(output_file)){
+//    		return;
+//    	}
+
     	//construct itemset base
+    	unsigned int original_size = this->intToItemset.size();
     	this->constructItemsetBase_eclat(part, support, length);
 
     	//compress graphstore
-    	this->compress_graphs_parallel();
+    	if(this->intToItemset.size() - original_size > 0){
+			this->compress_graphs_parallel();
+    	}
 
     }
 
@@ -1879,7 +1893,7 @@ public:
     	random_device dev;
     	mt19937 rng(dev());
     	uniform_int_distribution<std::mt19937::result_type> dist(1, percent);
-    	if(dist(rng) == 1 && graph->getLength() > 50){
+    	if(dist(rng) == 1 && graph->getLength() > 10){
     		return true;
     	}
     	else{
@@ -1898,16 +1912,22 @@ public:
 //		cout << inputFile << endl;
 //		cout << myfile.is_open() << endl;
 
-		int percent = 100;
-		int samples = graphs.size() / percent;
+		int percent = 30;
+		int limit = 10000;
 
 		if (myfile.is_open()) {
 			for (auto &n : graphs) {
+				if(limit == 0){
+					break;
+				}
+
 				if(!n.second->isEmpty() && beSeleted(n.second, percent)){
 //					for(unsigned int i = 0; i < n.second->getLength(); i++){
 //						myfile << n.second->getEdgeId(i) << " ";
 //					}
 //					myfile << "\n";
+					limit--;
+
 
 
 			        std::stringstream buffer;
@@ -1977,13 +1997,16 @@ public:
 
 
 			//filter to obtain top-k disjoint frequent itemsets
-			int k = 10;
-			get_disjoint_itemset(frequency_graph_map, k);
+			int k = 50;
+//			get_disjoint_itemset(frequency_graph_map, k);
 
-//			for(auto it = frequency_graph_map.rbegin(); k > 0 && it != frequency_graph_map.rend(); ++it){
-			for(auto it = frequency_graph_map.cbegin(); k > 0 && it != frequency_graph_map.cend(); ++it){
-				intToItemset.push_back((*it).second);
-				k--;
+			for(auto it = frequency_graph_map.rbegin(); k > 0 && it != frequency_graph_map.rend(); ++it){
+//			for(auto it = frequency_graph_map.cbegin(); k > 0 && it != frequency_graph_map.cend(); ++it){
+				ItemsetGraph* base = (*it).second;
+				if(!is_invalid(base, intToItemset)){
+					intToItemset.push_back((*it).second);
+					k--;
+				}
 
 //				//for debugging
 //				cout << *((*it).second) << endl;
@@ -1991,9 +2014,44 @@ public:
         }
     }
 
-    void get_disjoint_itemset(multimap<int, ItemsetGraph*>& frequency_graph_map, int k){
+    static bool is_invalid(ItemsetGraph* base, vector<ItemsetGraph*>& intToItemset){
+    	for(auto it = intToItemset.cbegin(); it != intToItemset.cend(); ++it){
+    		ItemsetGraph* graph = *it;
 
+    		if(get_num_added(base, graph)/base->getLength() < 0.2){
+    			return true;
+    		}
+    	}
+    	return false;
     }
+
+    static double get_num_added(ItemsetGraph* base, ItemsetGraph* objective){
+    	double diff = 0;
+    	unsigned int i = 0, j = 0;
+    	while(i < base->getLength() && j < objective->getLength()){
+    		if(base->getEdgeId(i) < objective->getEdgeId(j)){
+    			diff++;
+    			i++;
+    		}
+    		else if(base->getEdgeId(i) == objective->getEdgeId(j)){
+    			j++;
+    			i++;
+
+    		}
+    		else {
+    			j++;
+    		}
+    	}
+    	if(i < base->getLength()){
+    		diff += base->getLength() - i;
+    	}
+
+    	return diff;
+    }
+
+//    void get_disjoint_itemset(multimap<int, ItemsetGraph*>& frequency_graph_map, int k){
+//
+//    }
 
 
     /*

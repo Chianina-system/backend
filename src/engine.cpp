@@ -123,10 +123,10 @@ void compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
     if(sync_mode){
 //		CFGCompute_ooc_syn::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
 		if(graphstore_mode == 1){
+			CFGCompute_ooc_syn_itemset::do_worklist_ooc_synchronous(cfg, dynamic_cast<ItemsetGraphStore*> (graphstore), context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
+
 			//start compressing graphs
 			dynamic_cast<ItemsetGraphStore*> (graphstore)->compressGraphStore(partition, support, length);
-
-			CFGCompute_ooc_syn_itemset::do_worklist_ooc_synchronous(cfg, dynamic_cast<ItemsetGraphStore*> (graphstore), context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
 		}
 		else if(graphstore_mode == 0){
 			CFGCompute_ooc_syn_naive::do_worklist_ooc_synchronous(cfg, dynamic_cast<NaiveGraphStore*> (graphstore), context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
@@ -286,9 +286,10 @@ void loadMirrors(const string& file_mirrors_in, const string& file_mirrors_out, 
 
 void printGraphstoreInfo(Context* context, int graphstore_mode, bool file_mode, bool buffered_mode){
 	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
-	long num_items = 0;
 	long num_edges = 0;
 	int num_graphs = 0;
+	long num_graphitems = 0;
+	long num_baseitems = 0;
 	for(unsigned int partition = 0; partition < context->getNumberPartitions(); ++ partition){
 //		NaiveGraphStore *graphstore = new NaiveGraphStore();
 		GraphStore* graphstore;
@@ -317,25 +318,31 @@ void printGraphstoreInfo(Context* context, int graphstore_mode, bool file_mode, 
 
     	int size_graphs = 0;
     	long size_edges = 0;
-    	long size_items = 0;
-    	graphstore->getStatistics(size_graphs, size_edges, size_items, mirrors);
+    	long size_graphitems = 0;
+    	long size_baseitems = 0;
+    	graphstore->getStatistics(size_graphs, size_edges, size_graphitems, size_baseitems, mirrors);
 
     	cout << "partition " << to_string(partition) << endl;
     	cout << "Number of graphs: " << size_graphs << endl;
     	cout << "Number of edges: " << size_edges << endl;
-    	cout << "Number of items: " << size_items << endl;
+    	cout << "Number of total items: " << size_graphitems + size_baseitems << endl;
+    	cout << "Number of graph items: " << size_graphitems << endl;
+    	cout << "Number of base items: " << size_baseitems << endl;
     	cout << endl;
 
     	delete graphstore;
 
-    	num_items += size_items;
     	num_edges += size_edges;
     	num_graphs += size_graphs;
+    	num_graphitems += size_graphitems;
+    	num_baseitems += size_baseitems;
 	}
 
 	cout << "\nTotal number of graphs: " << num_graphs << endl;
 	cout << "Total number of edges: " << num_edges << endl;
-	cout << "Total number of items: " << num_items << endl;
+	cout << "Total number of items: " << num_graphitems + num_baseitems << endl;
+	cout << "Total number of graph items: " << num_graphitems << endl;
+	cout << "Total number of base items: " << num_baseitems << endl;
 	cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
 }
 

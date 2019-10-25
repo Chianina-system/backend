@@ -527,14 +527,15 @@ public:
     }
 
 
-    void getStatistics(int& size_graphs, long& size_edges, long& size_items, const std::unordered_set<PEGraph_Pointer>& mirrors){
+    void getStatistics(int& size_graphs, long& size_edges, long& size_graphitems, long& size_baseitems, const std::unordered_set<PEGraph_Pointer>& mirrors){
     	for(auto it = map.begin(); it != map.end(); ++it){
     		if(mirrors.find(it->first) == mirrors.end()){
 				size_edges += it->second->getNumEdges();
 				size_graphs++;
     		}
     	}
-    	size_items = size_edges;
+    	size_graphitems = size_edges;
+    	size_baseitems = 0;
     }
 
 

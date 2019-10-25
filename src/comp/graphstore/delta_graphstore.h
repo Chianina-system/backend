@@ -755,21 +755,21 @@ public:
     }
 
 
-    void getStatistics(int& size_graphs, long& size_edges, long& size_items, const std::unordered_set<PEGraph_Pointer>& mirrors) {
+    void getStatistics(int& size_graphs, long& size_edges, long& size_graphitems, long& size_baseitems, const std::unordered_set<PEGraph_Pointer>& mirrors) {
     	for(auto it = graphs.begin(); it != graphs.end(); ++it){
     		if(mirrors.find(it->first) == mirrors.end()){
         		long size_base = it->second->getBase()->getNumEdges();
         		long size_added = it->second->getAdded()->getNumEdges();
         		long size_deleted = it->second->getDeleted()->getNumEdges();
 
-    			size_items += (it->second->isNaive() ? size_base : 1) + size_added + size_deleted;
+        		size_graphitems += (it->second->isNaive() ? size_base : 1) + size_added + size_deleted;
 				size_edges += size_base + size_added - size_deleted;
 				size_graphs++;
     		}
     	}
 
     	for(auto it: bases_set){
-    		size_items += it->getNumEdges();
+    		size_baseitems += it->getNumEdges();
     	}
     }
 
