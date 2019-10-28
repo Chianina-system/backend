@@ -173,7 +173,7 @@ public:
     	return maxId;
 	}
 
-	static void readEdges(string filePath, vector<int> &mark, vector<vector<int>> &graph) {
+	static void readEdges(string filePath, vector<int> &mark, map<int, vector<int>> &inGraph, map<int, vector<int>> &outGraph) {
     	ifstream fin;
     	fin.open(filePath.c_str());
     	string line;
@@ -183,7 +183,8 @@ public:
         	mark[src] = 0;
         	int dst = atoi(nextItem(lineStream).c_str());
         	mark[dst] = 0;
-        	graph[src][dst] = 1;
+			outGraph[src].push_back(dst);
+			inGraph[dst].push_back(src);
     	}
     	fin.close();
 	}
@@ -198,7 +199,7 @@ public:
     	fin.close();
 	}
 
-	static void bfs(int k, int numPartitionNodes, vector<int> &mark, vector<vector<int>> &graph, queue<int> &entryNodes, Context& context) {
+	static void bfs(int k, int numPartitionNodes, vector<int> &mark, map<int, vector<int>> &inGraph, map<int, vector<int>> &outGraph, queue<int> &entryNodes, Context& context) {
     	vector<int> partitionNodes;
     
     	while (numPartitionNodes>0) {
@@ -228,22 +229,30 @@ public:
     		while (!q.empty() && numPartitionNodes>0) {
         		int tmp = q.front();
         		q.pop();
-        		for (unsigned int i=0; i<graph.size(); i++) {
-            		if (graph[i][tmp]==1 && mark[i]==0 && numPartitionNodes>0) {
-                		partitionNodes.push_back(i);
-                		numPartitionNodes--;
-                		mark[i] = 1;
-                		q.push(i);
-            		}
-        		}
-        		for (unsigned int i=0; i<graph[tmp].size(); i++) {
-            		if (graph[tmp][i]==1 && mark[i]==0 && numPartitionNodes>0) {
-                		partitionNodes.push_back(i);
-                		numPartitionNodes--;
-                		mark[i] = 1;
-                		q.push(i);
-            		}
-        		}
+				auto iterIn = inGraph.find(tmp);
+				if (iterIn!=inGraph.end()) {
+					for (unsigned int i=0; i<(iterIn->second).size(); i++) {
+						int inNodeId = (iterIn->second)[i];
+						if (mark[inNodeId]==0 && numPartitionNodes>0) {
+                			partitionNodes.push_back(inNodeId);
+                			numPartitionNodes--;
+                			mark[inNodeId] = 1;
+                			q.push(inNodeId);
+            			}
+					}
+				}
+				auto iterOut = outGraph.find(tmp);
+				if (iterOut!=outGraph.end()) {
+					for (unsigned int i=0; i<(iterOut->second).size(); i++) {
+						int outNodeId = (iterOut->second)[i];
+						if (mark[outNodeId]==0 && numPartitionNodes>0) {
+                			partitionNodes.push_back(outNodeId);
+                			numPartitionNodes--;
+                			mark[outNodeId] = 1;
+                			q.push(outNodeId);
+            			}
+					}
+				}
     		}
     	}
     
@@ -254,8 +263,9 @@ public:
 		int maxId = getMaxId(context.getFileCfg());
     	// -1: not exists
     	vector<int> mark(maxId+1,-1);
-    	vector<vector<int>> graph(maxId+1, vector<int>(maxId+1,0));
-    	readEdges(context.getFileCfg(), mark, graph);
+		map<int, vector<int>> inGraph;
+		map<int, vector<int>> outGraph;
+    	readEdges(context.getFileCfg(), mark, inGraph, outGraph);
     	int numNodes = 0;
     	for (unsigned int i=0; i<mark.size(); i++) {
         	if (mark[i]==0)
@@ -268,9 +278,9 @@ public:
     	int tmp = numNodes/numPartitions;
     	for (int i=0; i<numPartitions; i++) {
         	if (i==numPartitions-1)
-            	bfs(i, tmp+numNodes%numPartitions, mark, graph, entryNodes, context);
+            	bfs(i, tmp+numNodes%numPartitions, mark, inGraph, outGraph, entryNodes, context);
         	else
-            	bfs(i, tmp, mark, graph, entryNodes, context);
+            	bfs(i, tmp, mark, inGraph, outGraph, entryNodes, context);
     	}
 	}
 
