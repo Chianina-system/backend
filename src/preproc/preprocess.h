@@ -149,8 +149,134 @@ public:
 		}
 	}
 
+	static string nextItem(istringstream &lineStream) {
+    	string item;
+    	getline(lineStream, item, '\t');
+    	return item;
+	}
+
+	static int getMaxId(string filePath) {
+    	int maxId = 0;
+    	ifstream fin;
+    	fin.open(filePath.c_str());
+    	string line;
+    	while (getline(fin, line)) {
+        	istringstream lineStream(line);
+        	int src = atoi(nextItem(lineStream).c_str());
+        	if (src > maxId)
+            	maxId = src;
+        	int dst = atoi(nextItem(lineStream).c_str());
+        	if (dst > maxId)
+            	maxId = dst;
+    	}
+    	fin.close();
+    	return maxId;
+	}
+
+	static void readEdges(string filePath, vector<int> &mark, vector<vector<int>> &graph) {
+    	ifstream fin;
+    	fin.open(filePath.c_str());
+    	string line;
+    	while (getline(fin, line)) {
+        	istringstream lineStream(line);
+        	int src = atoi(nextItem(lineStream).c_str());
+        	mark[src] = 0;
+        	int dst = atoi(nextItem(lineStream).c_str());
+        	mark[dst] = 0;
+        	graph[src][dst] = 1;
+    	}
+    	fin.close();
+	}
+
+	static void readEntryNodes(string filePath, queue<int> &entryNodes) {
+    	ifstream fin;
+    	fin.open(filePath.c_str());
+    	string line;
+    	while (getline(fin, line)) {
+        	entryNodes.push(atoi(line.c_str()));
+    	}
+    	fin.close();
+	}
+
+	static void bfs(int k, int numPartitionNodes, vector<int> &mark, vector<vector<int>> &graph, queue<int> &entryNodes) {
+    	vector<int> partitionNodes;
+    
+    	while (numPartitionNodes>0) {
+    		int startNode = -1;
+    		while (!entryNodes.empty()) {
+        		int tmp = entryNodes.front();
+        		entryNodes.pop();
+        		if (mark[tmp]==0) {
+            		startNode=tmp;
+            		break;
+        		}
+    		}
+    		if (startNode==-1) {
+        		for (int i=0; i<mark.size(); i++) {
+            		if (mark[i]==0) {
+                		startNode=i;
+                		break;
+            		}
+        		}
+    		}
+    
+    		queue<int> q;
+    		partitionNodes.push_back(startNode);
+    		numPartitionNodes--;
+    		mark[startNode] = 1;
+    		q.push(startNode);
+    		while (!q.empty() && numPartitionNodes>0) {
+        		int tmp = q.front();
+        		q.pop();
+        		for (int i=0; i<graph.size(); i++) {
+            		if (graph[i][tmp]==1 && mark[i]==0 && numPartitionNodes>0) {
+                		partitionNodes.push_back(i);
+                		numPartitionNodes--;
+                		mark[i] = 1;
+                		q.push(i);
+            		}
+        		}
+        		for (int i=0; i<graph[tmp].size(); i++) {
+            		if (graph[tmp][i]==1 && mark[i]==0 && numPartitionNodes>0) {
+                		partitionNodes.push_back(i);
+                		numPartitionNodes--;
+                		mark[i] = 1;
+                		q.push(i);
+            		}
+        		}
+    		}
+    	}
+    
+		context.setPartitionInfo(k, partitionNodes);
+	}
+
+	static void createPartition() {
+		int maxId = getMaxId(context.getFileCfg());
+    	// -1: not exists
+    	vector<int> mark(maxId+1,-1);
+    	vector<vector<int>> graph(maxId+1, vector<int>(maxId+1,0));
+    	readEdges(context.getFileCfg(), mark, graph);
+    	int numNodes = 0;
+    	for (int i=0; i<mark.size(); i++) {
+        	if (mark[i]==0)
+            	numNodes++;
+    	}
+    	int numPartitions = context.getNumberPartitions();
+    	queue<int> entryNodes;
+    	readEntryNodes(context.getFileEntries(), entryNodes);
+    
+    	int tmp = numNodes/numPartitions;
+    	for (int i=0; i<numPartitions; i++) {
+        	if (i==numPartitions-1)
+            	bfs(i, tmp+numNodes%numPartitions, mark, graph, entryNodes);
+        	else
+            	bfs(i, tmp, mark, graph, entryNodes);
+    	}
+	}
 
 	static void process(Context& context, bool file_mode){
+		createPartition();
+
 		//for debugging
 		Logger::print_thread_info_locked("process starting...\n", LEVEL_LOG_FUNCTION);
 

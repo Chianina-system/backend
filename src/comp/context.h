@@ -95,14 +95,20 @@ public:
 	static const string folder_mirrors_out;
 	static const string folder_graphs_in;
 
+	void setPartitionInfo(int k, vector<int> &partitionNodes) {
+		for (int i=0; i<partitionNodes.size(); i++) {
+			partitionInfo.insert(make_pair(partitionNodes[i],k));
+		}
+	}
 
 	Partition getPartition(CFGNode* node){
 		return getPartition(node->getCfgNodeId());
 	}
 
 	Partition getPartition(vertexid_t node_id){
-		int mode = this->total_nodes / this->number_partitions + 1;
-		return node_id / mode;
+		// int mode = this->total_nodes / this->number_partitions + 1;
+		// return node_id / mode;
+		return partitionInfo[node_id];
 	}
 
 
@@ -195,6 +201,8 @@ private:
 	string file_entries_init;
 	string file_singletons_init;
 	string file_grammar_init;
+
+	std::unordered_map partitionInfo;
 
 
 	long readTotalNodes(const string& file){
