@@ -198,7 +198,7 @@ public:
     	fin.close();
 	}
 
-	static void bfs(int k, int numPartitionNodes, vector<int> &mark, vector<vector<int>> &graph, queue<int> &entryNodes) {
+	static void bfs(int k, int numPartitionNodes, vector<int> &mark, vector<vector<int>> &graph, queue<int> &entryNodes, Context& context) {
     	vector<int> partitionNodes;
     
     	while (numPartitionNodes>0) {
@@ -212,7 +212,7 @@ public:
         		}
     		}
     		if (startNode==-1) {
-        		for (int i=0; i<mark.size(); i++) {
+        		for (unsigned int i=0; i<mark.size(); i++) {
             		if (mark[i]==0) {
                 		startNode=i;
                 		break;
@@ -228,7 +228,7 @@ public:
     		while (!q.empty() && numPartitionNodes>0) {
         		int tmp = q.front();
         		q.pop();
-        		for (int i=0; i<graph.size(); i++) {
+        		for (unsigned int i=0; i<graph.size(); i++) {
             		if (graph[i][tmp]==1 && mark[i]==0 && numPartitionNodes>0) {
                 		partitionNodes.push_back(i);
                 		numPartitionNodes--;
@@ -236,7 +236,7 @@ public:
                 		q.push(i);
             		}
         		}
-        		for (int i=0; i<graph[tmp].size(); i++) {
+        		for (unsigned int i=0; i<graph[tmp].size(); i++) {
             		if (graph[tmp][i]==1 && mark[i]==0 && numPartitionNodes>0) {
                 		partitionNodes.push_back(i);
                 		numPartitionNodes--;
@@ -250,14 +250,14 @@ public:
 		context.setPartitionInfo(k, partitionNodes);
 	}
 
-	static void createPartition() {
+	static void createPartition(Context& context) {
 		int maxId = getMaxId(context.getFileCfg());
     	// -1: not exists
     	vector<int> mark(maxId+1,-1);
     	vector<vector<int>> graph(maxId+1, vector<int>(maxId+1,0));
     	readEdges(context.getFileCfg(), mark, graph);
     	int numNodes = 0;
-    	for (int i=0; i<mark.size(); i++) {
+    	for (unsigned int i=0; i<mark.size(); i++) {
         	if (mark[i]==0)
             	numNodes++;
     	}
@@ -268,14 +268,14 @@ public:
     	int tmp = numNodes/numPartitions;
     	for (int i=0; i<numPartitions; i++) {
         	if (i==numPartitions-1)
-            	bfs(i, tmp+numNodes%numPartitions, mark, graph, entryNodes);
+            	bfs(i, tmp+numNodes%numPartitions, mark, graph, entryNodes, context);
         	else
-            	bfs(i, tmp, mark, graph, entryNodes);
+            	bfs(i, tmp, mark, graph, entryNodes, context);
     	}
 	}
 
 	static void process(Context& context, bool file_mode){
-		createPartition();
+		createPartition(context);
 
 		//for debugging
 		Logger::print_thread_info_locked("process starting...\n", LEVEL_LOG_FUNCTION);

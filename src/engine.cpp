@@ -296,7 +296,7 @@ void printGraphstoreInfo(Context* context, int graphstore_mode, bool file_mode, 
 		if(graphstore_mode == 1){
 			graphstore = new ItemsetGraphStore(file_mode, buffered_mode);
 		}
-		else if(graphstore_mode == 1){
+		else if(graphstore_mode == 0){
 			graphstore = new NaiveGraphStore(file_mode, buffered_mode);
 		}
 		else if(graphstore_mode == 2){

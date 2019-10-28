@@ -16,8 +16,8 @@
 
 using namespace std;
 
-const string inputFile = "../lib/file/input_itemsets_";
-const string outFile = "../lib/file/out_itemsets_";
+const string inputFile = "/home/nju-seg-hsy/git/backend/lib/file/input_itemsets_";
+const string outFile = "/home/nju-seg-hsy/git/backend/lib/file/out_itemsets_";
 
 
 class ItemsetGraphStore : public GraphStore {
@@ -1997,7 +1997,7 @@ public:
 
 
 			//filter to obtain top-k disjoint frequent itemsets
-			int k = 50;
+			int k = 80;
 //			get_disjoint_itemset(frequency_graph_map, k);
 
 			for(auto it = frequency_graph_map.rbegin(); k > 0 && it != frequency_graph_map.rend(); ++it){
@@ -2018,7 +2018,7 @@ public:
     	for(auto it = intToItemset.cbegin(); it != intToItemset.cend(); ++it){
     		ItemsetGraph* graph = *it;
 
-    		if(get_num_added(base, graph)/base->getLength() < 0.2){
+    		if(get_num_added(base, graph)/base->getLength() < 0.01){
     			return true;
     		}
     	}
@@ -2072,7 +2072,7 @@ public:
 			writeToFile(input_file);
 
 			std::string option = "-tc -s" + to_string(support) + " -m" + to_string(length);
-			std::string command = "../lib/eclat " + option + " " + input_file + " " + output_file;
+			std::string command = "/home/nju-seg-hsy/git/backend/lib/eclat " + option + " " + input_file + " " + output_file;
 			system(command.c_str());
 
 			//put the resulting frequent itemsets into intToItemset while by the ascending order of frequency
