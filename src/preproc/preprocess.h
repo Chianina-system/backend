@@ -259,7 +259,7 @@ public:
 		context.setPartitionInfo(k, partitionNodes);
 	}
 
-	static void createPartition(Context& context) {
+	static void createPartitionBfs(Context& context) {
 		int maxId = getMaxId(context.getFileCfg());
     	// -1: not exists
     	vector<int> mark(maxId+1,-1);
@@ -284,8 +284,108 @@ public:
     	}
 	}
 
+	static void readEdges(string filePath, vector<bool> &exist, vector<vector<int>> &graph) {
+    	ifstream fin;
+    	fin.open(filePath.c_str());
+    	string line;
+    	while (getline(fin, line)) {
+        	istringstream lineStream(line);
+        	int src = atoi(nextItem(lineStream).c_str());
+        	exist[src] = true;
+        	int dst = atoi(nextItem(lineStream).c_str());
+        	exist[dst] = true;
+        	graph[src].push_back(dst);
+    	}
+    	fin.close();
+	}
+
+	static void topSort(vector<vector<int>> &graph, vector<int> &inDegree, vector<int> &res) {
+    	deque<int> q;
+    	for (int i=0; i<inDegree.size(); i++)
+        	if (inDegree[i]==0)
+            	q.push_back(i);
+
+    	while (!q.empty()) {
+        	int from = q.front();
+        	q.pop_front();
+        	res.push_back(from);
+        	for (int i=0; i<graph[from].size(); i++) {
+            	int to = graph[from][i];
+            	if (--inDegree[to]==0) {
+                	q.push_front(to);
+            	}
+        	}
+        
+        	if (q.empty() && res.size()<inDegree.size()) {
+            	int tmp=-1;
+            	for (int i=res.size()-1; i>=0; i--) {
+                	for (int j=0; j<graph[res[i]].size(); j++) {
+                    	if (inDegree[graph[res[i]][j]]>0) {
+                        	tmp = graph[res[i]][j];
+                        	break;
+                    	}
+                	}
+                	if (tmp!=-1)
+                    	break;
+            	}
+            	if (tmp==-1) {
+                	for (int i=0; i<inDegree.size(); i++) {
+                    	if (inDegree[i]>0) {
+                        	tmp = i;
+                        	break;
+                    	}
+                	}
+            	}
+            	inDegree[tmp]=0;
+            	q.push_back(tmp);
+        	}
+    	}
+	}
+
+	static void createPartitionTopSortHelper(int k, int numPartitionNodes, int &idx, vector<int> &sortedNodes, vector<bool> &exist, Context& context) {
+		vector<int> partitionNodes;
+		while (idx<sortedNodes.size() && numPartitionNodes>0) {
+			if (exist[sortedNodes[idx]]) {
+				partitionNodes.push_back(sortedNodes[idx]);
+				numPartitionNodes--;
+			}
+			idx++;
+		}
+		context.setPartitionInfo(k, partitionNodes);
+	}
+
+	static void createPartitionTopSort(Context& context) {
+		int maxId = getMaxId(context.getFileCfg());
+    	vector<bool> exist(maxId+1,false);
+    	vector<vector<int>> graph(maxId+1);
+    	readEdges(context.getFileCfg(), exist, graph);
+    	int numNodes = 0;
+    	for (int i=0; i<exist.size(); i++) {
+        	if (exist[i])
+            	numNodes++;
+    	}
+    	vector<int> inDegree(maxId+1,0);
+    	for (int i=0; i<graph.size(); i++) {
+        	for (int j=0; j<graph[i].size(); j++)
+            	inDegree[graph[i][j]]++;
+    	}
+    	int numPartitions = context.getNumberPartitions();
+    
+    	vector<int> sortedNodes;
+    	topSort(graph, inDegree, sortedNodes);
+
+		int tmp = numNodes/numPartitions;
+		int idx = 0;
+    	for (int i=0; i<numPartitions; i++) {
+        	if (i==numPartitions-1)
+            	createPartitionTopSortHelper(i, tmp+numNodes%numPartitions, idx, sortedNodes, exist, context);
+        	else
+            	createPartitionTopSortHelper(i, tmp, idx, sortedNodes, exist, context);
+    	}
+	}
+
 	static void process(Context& context, bool file_mode){
-		createPartition(context);
+		createPartitionBfs(context);
 
 		//for debugging
 		Logger::print_thread_info_locked("process starting...\n", LEVEL_LOG_FUNCTION);

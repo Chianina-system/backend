@@ -18,6 +18,7 @@ public:
 	Timer_wrapper_ooc(){
 		load_sum = new Timer_sum("load");
 		compute_sum = new Timer_sum("compute");
+		compress_sum = new Timer_sum("compress");
 		pass_sum = new Timer_sum("pass");
 		clean_sum = new Timer_sum("clean");
 
@@ -29,6 +30,7 @@ public:
 	~Timer_wrapper_ooc(){
     	delete load_sum;
     	delete compute_sum;
+    	delete compress_sum;
     	delete pass_sum;
     	delete clean_sum;
 
@@ -40,6 +42,7 @@ public:
 	void print(){
 		load_sum->print();
 		compute_sum->print();
+		compress_sum->print();
 		pass_sum->print();
 		clean_sum->print();
 
@@ -72,9 +75,14 @@ public:
 		return clean_sum;
 	}
 
+	Timer_sum* getCompressSum() const {
+		return compress_sum;
+	}
+
 private:
 	Timer_sum* load_sum;
 	Timer_sum* compute_sum;
+	Timer_sum* compress_sum;
 	Timer_sum* pass_sum;
 	Timer_sum* clean_sum;
 

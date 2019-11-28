@@ -15,7 +15,7 @@ using namespace std;
 class CFGCompute_ooc_syn_naive {
 public:
 
-	static void do_worklist_ooc_synchronous(CFG* cfg_, NaiveGraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode,
+	static long do_worklist_ooc_synchronous(CFG* cfg_, NaiveGraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode,
 			Timer_wrapper_ooc* timer_ooc, Timer_wrapper_inmemory* timer){
 		Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
@@ -35,11 +35,14 @@ public:
 
 	    //initiate a temp graphstore to maintain all the updated graphs
 	    NaiveGraphStore* tmp_graphstore = new NaiveGraphStore();
+	    long supersteps = 0;
 
 	    Concurrent_Worklist<CFGNode*>* worklist_2 = new Concurrent_Workset<CFGNode*>();
 	    while(!worklist_1->isEmpty()){
 	        //for debugging
 	        Logger::print_thread_info_locked("--------------------------------------------------------------- superstep starting ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
+
+	        supersteps++;
 
 	        //for tuning
 	        timer_ooc->getEdgeComputeSum()->start();
@@ -86,6 +89,7 @@ public:
 	    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 //	    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
 //	    dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
+	    return supersteps;
 	}
 
 

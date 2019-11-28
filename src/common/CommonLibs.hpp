@@ -99,7 +99,7 @@ typedef int Partition;
 #define serialize_peg_mode 0
 #define IS_PEGCOMPUTE_PARALLEL_ADD 0
 #define IS_PEGCOMPUTE_PARALLEL_DELETE 0
-#define NUM_THREADS 8
+#define NUM_THREADS 16
 #define NUM_THREADS_CFGCOMPUTE 2
 
 //#define LEVEL_LOG_INFO 1

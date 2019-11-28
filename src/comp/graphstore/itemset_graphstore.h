@@ -16,8 +16,8 @@
 
 using namespace std;
 
-const string inputFile = "/home/nju-seg-hsy/git/backend/lib/file/input_itemsets_";
-const string outFile = "/home/nju-seg-hsy/git/backend/lib/file/out_itemsets_";
+const string inputFile = "/home/dell/git/backend/lib/file/input_itemsets_";
+const string outFile = "/home/dell/git/backend/lib/file/out_itemsets_";
 
 
 class ItemsetGraphStore : public GraphStore {
@@ -1811,7 +1811,7 @@ public:
     }
 
 
-    void getStatistics(int& size_graphs, long& size_edges, long& size_graphitems, long& size_baseitems, const std::unordered_set<PEGraph_Pointer>& mirrors){
+    void getStatistics(int& size_graphs, long& size_vertices, long& size_edges, long& size_graphitems, long& size_baseitems, const std::unordered_set<PEGraph_Pointer>& mirrors){
     	for(auto it = graphs.begin(); it != graphs.end(); ++it){
     		if(mirrors.find(it->first) == mirrors.end()){
     			size_graphitems += it->second->getLength();
@@ -1991,13 +1991,13 @@ public:
 				//transfer itemset into array
 				ItemsetGraph* g = new ItemsetGraph(itemset);
 				//sort itemsets in the ascending order of frequency
-				frequency_graph_map.insert(std::pair<int, ItemsetGraph*>(frequency, g));
+				frequency_graph_map.insert(std::pair<int, ItemsetGraph*>(frequency * g->getLength(), g));
 			}
 			myfile.close();
 
 
 			//filter to obtain top-k disjoint frequent itemsets
-			int k = 80;
+			int k = 40;
 //			get_disjoint_itemset(frequency_graph_map, k);
 
 			for(auto it = frequency_graph_map.rbegin(); k > 0 && it != frequency_graph_map.rend(); ++it){
@@ -2072,7 +2072,7 @@ public:
 			writeToFile(input_file);
 
 			std::string option = "-tc -s" + to_string(support) + " -m" + to_string(length);
-			std::string command = "/home/nju-seg-hsy/git/backend/lib/eclat " + option + " " + input_file + " " + output_file;
+			std::string command = "/home/dell/git/backend/lib/eclat " + option + " " + input_file + " " + output_file;
 			system(command.c_str());
 
 			//put the resulting frequent itemsets into intToItemset while by the ascending order of frequency

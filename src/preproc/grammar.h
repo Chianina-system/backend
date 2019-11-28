@@ -37,6 +37,8 @@ class Grammar {
 
 		inline bool isMemoryAlias(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "M") == 0;}
 
+		inline bool isValueAlias(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "V") == 0;}
+
 		inline bool isPointsTo(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "Pt") == 0;}
 
 		inline bool isDereference(char label) {char* raw = this->getRawLabel(label); return strcmp(raw, "d") == 0;}

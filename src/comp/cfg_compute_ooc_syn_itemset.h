@@ -15,7 +15,7 @@ using namespace std;
 class CFGCompute_ooc_syn_itemset {
 public:
 
-	static void do_worklist_ooc_synchronous(CFG* cfg_, ItemsetGraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode,
+	static long do_worklist_ooc_synchronous(CFG* cfg_, ItemsetGraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode,
 			Timer_wrapper_ooc* timer_ooc, Timer_wrapper_inmemory* timer){
 		Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
@@ -37,7 +37,7 @@ public:
 //	    NaiveGraphStore* tmp_graphstore = new NaiveGraphStore();
 	    HybridGraphStore* tmp_graphs = new HybridGraphStore();
 
-	    int supersteps = 0;
+	    long supersteps = 0;
 
 	    Concurrent_Worklist<CFGNode*>* worklist_2 = new Concurrent_Workset<CFGNode*>();
 	    while(!worklist_1->isEmpty()){
@@ -95,6 +95,7 @@ public:
 	    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 //	    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
 //	    dynamic_cast<NaiveGraphStore*>(graphstore)->printOutInfo();
+	    return supersteps;
 	}
 
 	static void startItemsetGraphs(int supersteps, Concurrent_Worklist<CFGNode*>* worklist, ItemsetGraphStore* graphstore, CFG* cfg){
