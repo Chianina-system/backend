@@ -12,6 +12,8 @@
 #include "../comp/cfg_node.h"
 #include "../comp/context.h"
 
+#include "scc_tarjan.hpp"
+
 
 class Preprocess{
 
@@ -384,8 +386,87 @@ public:
     	}
 	}
 
+	static void createPartitions_scc(Context& context) {
+    	int maxId = getMaxId(context.getFileCfg());
+    	vector<bool> exist(maxId+1,false);
+    	vector<vector<int>> graph(maxId+1);
+    	readEdges(context.getFileCfg(), exist, graph);
+
+    	Graph g(maxId+1);
+    	for (int i=0; i<graph.size(); i++)
+        	for (int j=0; j<graph[i].size(); j++)
+            	g.addEdge(i, graph[i][j]);
+    	g.SCC();
+
+    	int condensationGraph_numNodes = g.sccs.size();
+    	vector<vector<int>> condensationGraph(condensationGraph_numNodes);
+    	for (int i=0; i<condensationGraph_numNodes; i++) {
+        	for (int j=0; j<condensationGraph_numNodes; j++) {
+            	if (j!=i) {
+                	bool b = false;
+                	vector<int> fromNodes = g.sccs[i];
+                	set<int> toNodes;
+                	for (int k=0; k<g.sccs[j].size(); k++)
+                    	toNodes.insert(g.sccs[j][k]);
+                	for (int k=0; k<fromNodes.size(); k++) {
+                    	int fromNode = fromNodes[k];
+                    	for (int ki=0; ki<graph[fromNode].size(); ki++)
+                        	if (toNodes.find(graph[fromNode][ki]) != toNodes.end())
+                            	b = true;
+                	}
+                	if (b==true)
+                    	condensationGraph[i].push_back(j);
+            	}
+        	}
+    	}
+    	vector<int> inDegree(condensationGraph_numNodes,0);
+    	for (int i=0; i<condensationGraph.size(); i++) {
+        	for (int j=0; j<condensationGraph[i].size(); j++)
+            	inDegree[condensationGraph[i][j]]++;
+    	}
+
+    	vector<int> sortedNodes;
+    	topSort(condensationGraph, inDegree, sortedNodes);
+
+    	int numNodes = 0;
+    	for (int i=0; i<exist.size(); i++) {
+        	if (exist[i])
+            	numNodes++;
+    	}
+    	int numPartitions = context.getNumberPartitions();
+    	int avgNumPartitionNodes = numNodes/numPartitions;
+    	int i=0;
+    	int sum=0;
+    	vector<int> partitionNodes;
+    	for (int j=0; j<sortedNodes.size(); j++) {
+        	if (g.sccs[sortedNodes[j]].size()==1 && exist[g.sccs[sortedNodes[j]][0]]==false)
+            	continue;
+        	sum+=g.sccs[sortedNodes[j]].size();
+        	if (sum > avgNumPartitionNodes) {
+            	context.setPartitionInfo(i, partitionNodes);
+            	i++;
+            	partitionNodes.clear();
+            	sum=0;
+            	j--;
+            	if (i==numPartitions-1) {
+                	j++;
+                	for (; j<sortedNodes.size(); j++) {
+                    	if (g.sccs[sortedNodes[j]].size()==1 && exist[g.sccs[sortedNodes[j]][0]]==false)
+                        	continue;
+                    	for (int k=0; k<g.sccs[sortedNodes[j]].size(); k++)
+                        	partitionNodes.push_back(g.sccs[sortedNodes[j]][k]);
+                	}
+                	context.setPartitionInfo(i, partitionNodes);
+            	}
+        	} else {
+            	for (int k=0; k<g.sccs[sortedNodes[j]].size(); k++)
+                	partitionNodes.push_back(g.sccs[sortedNodes[j]][k]);
+        	}
+    	}
+	}
+
 	static void process(Context& context, bool file_mode){
-		createPartitionBfs(context);
+		createPartitions_scc(context);
 
 		//for debugging
 		Logger::print_thread_info_locked("process starting...\n", LEVEL_LOG_FUNCTION);
