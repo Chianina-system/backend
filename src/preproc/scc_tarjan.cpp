@@ -6,6 +6,11 @@ Graph::Graph(int V)
     adj = new std::list<int>[V];
 }
 
+Graph::~Graph()
+{
+    delete [] adj;
+}
+
 void Graph::addEdge(int v, int w)
 {
     adj[v].push_back(w);
@@ -101,4 +106,9 @@ void Graph::SCC()
     for (int i = 0; i < V; i++)
         if (disc[i] == NIL)
             SCCUtil(i, disc, low, st, stackMember);
+    
+    delete [] disc;
+    delete [] low;
+    delete [] stackMember;
+    delete st;
 }
