@@ -7,7 +7,7 @@
 #include <list>
 #include <stack>
 #include <vector>
-#include <set>
+#include <unordered_set>
 #define NIL -1
 
 // A class that represents an directed graph
@@ -21,6 +21,7 @@ class Graph
                 std::stack<int> *st, bool stackMember[]);
 public:
     Graph(int V); // Constructor
+    ~Graph();
     void addEdge(int v, int w); // function to add an edge to graph
     void SCC(); // prints strongly connected components
     
