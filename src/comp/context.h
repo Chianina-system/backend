@@ -51,6 +51,8 @@ public:
 
 		singletons = new Singletons();
 		singletons->loadSingletonSet(file_singletons);
+
+		partitionInfo = new int[this->total_nodes];
 	}
 
 	~Context(){
@@ -80,6 +82,11 @@ public:
 			delete singletons;
 		}
 
+		if(partitionInfo){
+			delete[] partitionInfo;
+			partitionInfo = NULL;
+		}
+
 //		cout << "deleted singletons" << endl;
 	}
 
@@ -97,7 +104,8 @@ public:
 
 	void setPartitionInfo(int k, vector<int> &partitionNodes) {
 		for (unsigned int i=0; i<partitionNodes.size(); i++) {
-			partitionInfo.insert(make_pair(partitionNodes[i],k));
+//			partitionInfo.insert(make_pair(partitionNodes[i],k));
+			partitionInfo[partitionNodes[i]] = k;
 		}
 	}
 
@@ -202,7 +210,8 @@ private:
 	string file_singletons_init;
 	string file_grammar_init;
 
-	std::unordered_map<int, int> partitionInfo;
+//	std::unordered_map<int, int> partitionInfo;
+	int* partitionInfo;
 
 
 	long readTotalNodes(const string& file){

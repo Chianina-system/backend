@@ -265,7 +265,8 @@ PEGraph* CFGCompute_syn::transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar *gramma
     // the KILL set
     std::set<vertexid_t> vertices_changed;
     std::set<vertexid_t> vertices_affected;
-    strong_update(stmt->getDst(),out,vertices_changed,grammar,vertices_affected, singletons);
+//    strong_update(stmt->getDst(),out,vertices_changed,grammar,vertices_affected, singletons);
+    strong_update_simplify(stmt->getDst(),out,vertices_changed,grammar,vertices_affected, singletons);
 
     //for tuning
     diff_update.end();
@@ -305,7 +306,8 @@ PEGraph* CFGCompute_syn::transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar *gr
     // the KILL set
     std::set<vertexid_t> vertices_changed;
     std::set<vertexid_t> vertices_affected;
-    strong_update(stmt->getDst(),out,vertices_changed,grammar,vertices_affected, singletons);
+//    strong_update(stmt->getDst(),out,vertices_changed,grammar,vertices_affected, singletons);
+    strong_update_simplify(stmt->getDst(),out,vertices_changed,grammar,vertices_affected, singletons);
 
     //for tuning
     diff_update.end();
@@ -345,7 +347,8 @@ PEGraph* CFGCompute_syn::transfer_load(PEGraph* in, LoadStmt* stmt,Grammar *gram
     // the KILL set
     std::set<vertexid_t> vertices_changed;
     std::set<vertexid_t> vertices_affected;
-    strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected, singletons);
+//    strong_update(stmt->getDst(),out,vertices_changed,grammar, vertices_affected, singletons);
+    strong_update_simplify(stmt->getDst(),out,vertices_changed,grammar, vertices_affected, singletons);
 
     //for tuning
     diff_update.end();
@@ -388,12 +391,14 @@ PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, StoreStmt* stmt,Grammar *gr
 
     if(out->getGraph().find(stmt->getDst()) != out->getGraph().end()){
 		if(is_strong_update_dst(stmt->getDst(), out, grammar, singletons)) {
-			strong_update_store_dst(stmt->getDst(), out, vertices_changed, grammar, vertices_affected, singletons);
+//			strong_update_store_dst(stmt->getDst(), out, vertices_changed, grammar, vertices_affected, singletons);
+			strong_update_store_dst_simplify(stmt->getDst(), out, vertices_changed, grammar, vertices_affected, singletons);
 		}
     }
     else{
         if(is_strong_update_aux(stmt->getAux(), out, grammar, singletons)) {
-            strong_update_store_aux(stmt->getAux(), stmt->getDst(), out, vertices_changed, grammar, vertices_affected, singletons);
+//            strong_update_store_aux(stmt->getAux(), stmt->getDst(), out, vertices_changed, grammar, vertices_affected, singletons);
+            strong_update_store_aux_simplify(stmt->getAux(), stmt->getDst(), out, vertices_changed, grammar, vertices_affected, singletons);
         }
     }
 
@@ -435,7 +440,8 @@ PEGraph* CFGCompute_syn::transfer_address(PEGraph* in, AllocStmt* stmt,Grammar *
     // the KILL set
     std::set<vertexid_t> vertices_changed;
     std::set<vertexid_t> vertices_affected;
-	strong_update(stmt->getDst(), out, vertices_changed, grammar, vertices_affected, singletons);
+//	strong_update(stmt->getDst(), out, vertices_changed, grammar, vertices_affected, singletons);
+	strong_update_simplify(stmt->getDst(), out, vertices_changed, grammar, vertices_affected, singletons);
 
     //for tuning
     diff_update.end();
@@ -531,9 +537,9 @@ bool isDeletable(vertexid_t src, vertexid_t dst, char label, std::set<vertexid_t
 	}
 
 	//delete all the ('V', 'M', and other temp labels) edges associated with that within vertices_affected
-	else if(vertices_affected.find(src) != vertices_affected.end() || vertices_affected.find(dst) != vertices_affected.end()){
-		return !grammar->isDereference_bidirect(label) && !grammar->isAssign_bidirect(label);
-	}
+//	else if(vertices_affected.find(src) != vertices_affected.end() || vertices_affected.find(dst) != vertices_affected.end()){
+//		return !grammar->isDereference_bidirect(label) && !grammar->isAssign_bidirect(label);
+//	}
 
 	return false;
 }
@@ -577,6 +583,62 @@ void CFGCompute_syn::getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& ve
 
 }
 
+void CFGCompute_syn::strong_update_store_aux_simplify(vertexid_t aux, vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
+	//for debugging
+	Logger::print_thread_info_locked("strong-update-store starting...\n", LEVEL_LOG_FUNCTION);
+
+	assert(out->getGraph().find(x) == out->getGraph().end());
+	assert(out->getGraph().find(aux) != out->getGraph().end());
+
+    // vertices <- must_alias(x); put *x into this set as well
+	must_alias_store_aux(aux, x, out, vertices_changed, grammar, vertices_affected, singletons);
+
+
+    /* remove edges */
+    for(auto it = out->getGraph().begin(); it!= out->getGraph().end(); ){
+    	if(it->second.isEmpty()){
+    		it++;
+    		continue;
+    	}
+
+        vertexid_t src = it->first;
+
+        /* delete all the ('a', '-a', 'V', 'M', and other temp labels) edges associated with a vertex within vertices_changed, and
+         * all the ('V', 'M', and other temp labels) edges associated with that within vertices_affected
+         * */
+        EdgeArray deletedArray = EdgeArray();
+		findDeletedEdges(it->second, src, vertices_changed, vertices_affected, grammar, deletedArray);
+
+//		//for debugging
+//		cout << it->second.toString(grammar) << endl;
+//		cout << deletedArray.toString(grammar) << endl << endl;
+
+        if(deletedArray.getSize()){
+            int n1 = out->getNumEdges(src);
+            int n2 = deletedArray.getSize();
+            auto *edges = new vertexid_t[n1];
+            auto *labels = new label_t[n1];
+            int len = myalgo::minusTwoArray(edges, labels, n1, out->getEdges(src), out->getLabels(src), n2, deletedArray.getEdges(), deletedArray.getLabels());
+            if(len){
+                out->setEdgeArray(src,len,edges,labels);
+                it++;
+            }
+            else{
+//                out->clearEdgeArray(src);
+            	out->getGraph().erase(it++);
+            }
+
+            delete[] edges;
+            delete[] labels;
+        }
+        else{
+        	it++;
+        }
+    }
+
+	//for debugging
+	Logger::print_thread_info_locked("strong-update-store finished.\n", LEVEL_LOG_FUNCTION);
+}
 
 void CFGCompute_syn::strong_update_store_aux(vertexid_t aux, vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
 	//for debugging
@@ -660,6 +722,68 @@ void CFGCompute_syn::strong_update_store_aux(vertexid_t aux, vertexid_t x, PEGra
 	Logger::print_thread_info_locked("strong-update-store finished.\n", LEVEL_LOG_FUNCTION);
 }
 
+
+void CFGCompute_syn::strong_update_store_dst_simplify(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
+	//for debugging
+	Logger::print_thread_info_locked("strong-update starting...\n", LEVEL_LOG_FUNCTION);
+
+//	if(out->getGraph().find(x) == out->getGraph().end()){
+//		//for debugging
+//		Logger::print_thread_info_locked("strong-update finished.\n", LEVEL_LOG_FUNCTION);
+//		return;
+//	}
+
+    // vertices <- must_alias(x); put *x into this set as well
+	must_alias_store_dst(x, out, vertices_changed, grammar, vertices_affected, singletons);
+
+
+    /* remove edges */
+    for(auto it = out->getGraph().begin(); it!= out->getGraph().end(); ){
+    	if(it->second.isEmpty()){
+    		it++;
+    		continue;
+    	}
+
+        vertexid_t src = it->first;
+
+        /* delete all the ('a', '-a', 'V', 'M', and other temp labels) edges associated with a vertex within vertices_changed, and
+         * all the ('V', 'M', and other temp labels) edges associated with that within vertices_affected
+         * */
+        EdgeArray deletedArray = EdgeArray();
+		findDeletedEdges(it->second, src, vertices_changed, vertices_affected, grammar, deletedArray);
+
+//		//for debugging
+//		if(deletedArray.getSize() != 0){
+//			cout << deletedArray << endl;
+//		}
+
+        if(deletedArray.getSize()){
+            int n1 = out->getNumEdges(src);
+            int n2 = deletedArray.getSize();
+            auto *edges = new vertexid_t[n1];
+            auto *labels = new label_t[n1];
+            int len = myalgo::minusTwoArray(edges, labels, n1, out->getEdges(src), out->getLabels(src), n2, deletedArray.getEdges(), deletedArray.getLabels());
+            if(len){
+				out->setEdgeArray(src,len,edges,labels);
+				it++;
+            }
+            else{
+//                out->clearEdgeArray(src);
+            	out->getGraph().erase(it++);
+            }
+
+            delete[] edges;
+            delete[] labels;
+        }
+        else{
+        	it++;
+        }
+    }
+
+	//for debugging
+	Logger::print_thread_info_locked("strong-update finished.\n", LEVEL_LOG_FUNCTION);
+}
+
 void CFGCompute_syn::strong_update_store_dst(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
 	//for debugging
 	Logger::print_thread_info_locked("strong-update starting...\n", LEVEL_LOG_FUNCTION);
@@ -719,7 +843,7 @@ void CFGCompute_syn::strong_update_store_dst(vertexid_t x, PEGraph *out, std::se
             auto *labels = new label_t[n1];
             int len = myalgo::minusTwoArray(edges, labels, n1, out->getEdges(src), out->getLabels(src), n2, deletedArray.getEdges(), deletedArray.getLabels());
             if(len){
-                out->setEdgeArray(src,len,edges,labels);
+				out->setEdgeArray(src,len,edges,labels);
             }
             else{
                 out->clearEdgeArray(src);
@@ -734,6 +858,66 @@ void CFGCompute_syn::strong_update_store_dst(vertexid_t x, PEGraph *out, std::se
 	Logger::print_thread_info_locked("strong-update finished.\n", LEVEL_LOG_FUNCTION);
 }
 
+void CFGCompute_syn::strong_update_simplify(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
+	//for debugging
+	Logger::print_thread_info_locked("strong-update starting...\n", LEVEL_LOG_FUNCTION);
+
+	if(out->getGraph().find(x) == out->getGraph().end()){
+		//for debugging
+		Logger::print_thread_info_locked("strong-update finished.\n", LEVEL_LOG_FUNCTION);
+		return;
+	}
+
+    // vertices <- must_alias(x); put *x into this set as well
+	must_alias(x, out, vertices_changed, grammar, vertices_affected, singletons);
+
+
+    /* remove edges */
+	for(auto it = out->getGraph().begin(); it != out->getGraph().end(); ){
+    	if(it->second.isEmpty()){
+    		it++;
+    		continue;
+    	}
+
+        vertexid_t src = it->first;
+
+        /* delete all the ('a', '-a', 'V', 'M', and other temp labels) edges associated with a vertex within vertices_changed, and
+         * all the ('V', 'M', and other temp labels) edges associated with that within vertices_affected
+         * */
+        EdgeArray deletedArray = EdgeArray();
+		findDeletedEdges(it->second, src, vertices_changed, vertices_affected, grammar, deletedArray);
+
+//		//for debugging
+//		if(deletedArray.getSize() != 0){
+//			cout << deletedArray << endl;
+//		}
+
+        if(deletedArray.getSize()){
+            int n1 = out->getNumEdges(src);
+            int n2 = deletedArray.getSize();
+            auto *edges = new vertexid_t[n1];
+            auto *labels = new label_t[n1];
+            int len = myalgo::minusTwoArray(edges, labels, n1, out->getEdges(src), out->getLabels(src), n2, deletedArray.getEdges(), deletedArray.getLabels());
+            if(len){
+				out->setEdgeArray(src,len,edges,labels);
+				it++;
+            }
+            else{
+//                out->clearEdgeArray(src);
+            	out->getGraph().erase(it++);
+            }
+
+            delete[] edges;
+            delete[] labels;
+        }
+        else{
+        	it++;
+        }
+    }
+
+	//for debugging
+	Logger::print_thread_info_locked("strong-update finished.\n", LEVEL_LOG_FUNCTION);
+}
 
 void CFGCompute_syn::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
 	//for debugging

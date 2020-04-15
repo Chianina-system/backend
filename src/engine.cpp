@@ -21,8 +21,8 @@ using namespace std;
 //const string file_cfg = dir + "final";
 //const string file_stmts = dir + "id_stmt_info.txt";
 //const string file_singletons = dir + "var_singleton_info.txt";
-const string file_grammar = "/home/dell/GraphFlow/Ouroboros-dataset-master/rules_pointsto.txt";
-
+//const string file_grammar = "/home/dell/GraphFlow/Ouroboros-dataset-master/rules_pointsto.txt";
+const string file_grammar = "/home/nju-seg-hsy/GraphFlow-zzq/Ouroboros-dataset-master/rules_pointsto.txt";
 
 /* function declaration */
 void run_inmemory(int, bool, bool, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);
