@@ -405,14 +405,16 @@ public:
             	if (j!=i) {
                 	bool b = false;
                 	vector<int> fromNodes = g.sccs[i];
-                	set<int> toNodes;
+                	unordered_set<int> toNodes;
                 	for (int k=0; k<g.sccs[j].size(); k++)
                     	toNodes.insert(g.sccs[j][k]);
                 	for (int k=0; k<fromNodes.size(); k++) {
                     	int fromNode = fromNodes[k];
                     	for (int ki=0; ki<graph[fromNode].size(); ki++)
-                        	if (toNodes.find(graph[fromNode][ki]) != toNodes.end())
-                            	b = true;
+                        	if (toNodes.find(graph[fromNode][ki]) != toNodes.end()) {
+					b = true; break;
+				}
+			if (b==true) break;
                 	}
                 	if (b==true)
                     	condensationGraph[i].push_back(j);
