@@ -400,27 +400,43 @@ public:
 
     	int condensationGraph_numNodes = g.sccs.size();
     	vector<vector<int>> condensationGraph(condensationGraph_numNodes);
-    	for (int i=0; i<condensationGraph_numNodes; i++) {
-        	for (int j=0; j<condensationGraph_numNodes; j++) {
-            	if (j!=i) {
-                	bool b = false;
-                	vector<int> fromNodes = g.sccs[i];
-                	unordered_set<int> toNodes;
-                	for (int k=0; k<g.sccs[j].size(); k++)
-                    	toNodes.insert(g.sccs[j][k]);
-                	for (int k=0; k<fromNodes.size(); k++) {
-                    	int fromNode = fromNodes[k];
-                    	for (int ki=0; ki<graph[fromNode].size(); ki++)
-                        	if (toNodes.find(graph[fromNode][ki]) != toNodes.end()) {
-					b = true; break;
-				}
-			if (b==true) break;
-                	}
-                	if (b==true)
-                    	condensationGraph[i].push_back(j);
-            	}
+//     	for (int i=0; i<condensationGraph_numNodes; i++) {
+//         	for (int j=0; j<condensationGraph_numNodes; j++) {
+//             	if (j!=i) {
+//                 	bool b = false;
+//                 	vector<int> fromNodes = g.sccs[i];
+//                 	unordered_set<int> toNodes;
+//                 	for (int k=0; k<g.sccs[j].size(); k++)
+//                     	toNodes.insert(g.sccs[j][k]);
+//                 	for (int k=0; k<fromNodes.size(); k++) {
+//                     	int fromNode = fromNodes[k];
+//                     	for (int ki=0; ki<graph[fromNode].size(); ki++)
+//                         	if (toNodes.find(graph[fromNode][ki]) != toNodes.end()) {
+// 					b = true; break;
+// 				}
+// 			if (b==true) break;
+//                 	}
+//                 	if (b==true)
+//                     	condensationGraph[i].push_back(j);
+//             	}
+//         	}
+//     	}
+	vector<int> belong(maxId+1);
+    	for (int i=0; i<g.sccs.size(); i++)
+        	for (int j=0; j<g.sccs[i].size(); j++)
+            		belong[g.sccs[i][j]]=i;
+    	vector<unordered_set<int>> condensationGraph_b(condensationGraph_numNodes);
+    	for (int i=0; i<graph.size(); i++) {
+        	for (int j=0; j<graph[i].size(); j++) {
+            		int fb=belong[i];
+            		int tb=belong[graph[i][j]];
+            		condensationGraph_b[fb].insert(tb);
         	}
     	}
+    	for (int i=0; i<condensationGraph_b.size(); i++)
+        	for (auto it=condensationGraph_b[i].begin(); it!=condensationGraph_b[i].end(); it++)
+            		if (i!=*it)
+                		condensationGraph[i].push_back(*it);
     	vector<int> inDegree(condensationGraph_numNodes,0);
     	for (int i=0; i<condensationGraph.size(); i++) {
         	for (int j=0; j<condensationGraph[i].size(); j++)
