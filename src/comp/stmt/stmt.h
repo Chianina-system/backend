@@ -19,7 +19,9 @@ enum class TYPE {
 	Call,
 	Return,
 	Ret,
-	Skip
+	Skip,
+	Callfptr,
+	Calleefptr
 };
 
 class Stmt{

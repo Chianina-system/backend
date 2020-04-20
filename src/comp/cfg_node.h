@@ -20,6 +20,8 @@
 #include "stmt/stmt_ret.h"
 #include "stmt/stmt_return.h"
 #include "stmt/stmt_call.h"
+#include "stmt/stmt_callfptr.h"
+#include "stmt/stmt_calleefptr.h"
 #include "graphstore/buffer.h"
 
 
@@ -74,6 +76,12 @@ public:
 		else if (type == "block") {
 			stmt = new SkipStmt();
 		}
+		else if(type == "callfptr"){
+			stmt = new CallfptrStmt(stream);
+		}
+		else if(type == "calleefptr"){
+			stmt = new CalleefptrStmt(stream);
+		}
 		else {
 			cout << "wrong stmt type!!!" << endl;
 			exit(EXIT_FAILURE);
@@ -120,6 +128,8 @@ public:
     	case TYPE::Return: stmt = new ReturnStmt(); break;
     	case TYPE::Ret: stmt = new RetStmt(); break;
     	case TYPE::Skip: stmt = new SkipStmt(); break;
+    	case TYPE::Callfptr: stmt = new CallfptrStmt(); break;
+    	case TYPE::Calleefptr: stmt = new CalleefptrStmt(); break;
     	default:
     		cout << "wrong stmt type!!!" << endl;
     		exit(EXIT_FAILURE);

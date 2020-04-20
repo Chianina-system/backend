@@ -74,12 +74,20 @@ public:
             	return transfer_ret(in);
             case TYPE::Skip:
             	return transfer_skip(in);
+            case TYPE::Callfptr:
+            	return transfer_callfptr(in);
+            case TYPE::Calleefptr:
+                return transfer_calleefptr(in);
             default:
                 return nullptr;
         }
     }
 
     static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds);
+
+	static bool isFeasible(Stmt* callee, Stmt* caller, PEGraph* out){
+
+	}
 
 private:
     static void compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
@@ -99,6 +107,14 @@ private:
     }
 
     static PEGraph* transfer_skip(PEGraph* in){
+    	return in;
+    }
+
+    static PEGraph* transfer_callfptr(PEGraph* in){
+    	return in;
+    }
+
+    static PEGraph* transfer_calleefptr(PEGraph* in){
     	return in;
     }
 

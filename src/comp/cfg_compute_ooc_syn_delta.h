@@ -149,27 +149,44 @@ public:
 //		        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", 1);
 
 			if(!isEqual){
-				//propagate
-//				std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
-//				if(successors){
-//					for(auto it = successors->cbegin(); it != successors->cend(); ++it){
-//						worklist_2->push_atomic(*it);
-//					}
-//				}
-	            std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
-	            if(successors){
-					for(auto it = successors->cbegin(); it != successors->cend(); ++it){
-						if(!cfg->isMirror(*it)){
-							worklist_2->push_atomic(*it);
+	            //propagate
+	        	if(cfg_node->getStmt()->getType() == TYPE::Callfptr){
+	        		//to deal with function pointer callsite
+		            std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
+		            if(successors){
+						for(auto it = successors->cbegin(); it != successors->cend(); ++it){
+							CFGNode* suc = *it;
+							if(CFGCompute_syn::isFeasible(suc->getStmt(), cfg_node->getStmt(), out)){
+								if(!cfg->isMirror(*it)){
+									worklist_2->push_atomic(*it);
+								}
+				//                else if(cfg->isInMirror(*it)){
+				//                	worklist_2->push_atomic(*it);
+				//                }
+								else{
+									actives->push_atomic(*it);
+								}
+							}
 						}
-		//                else if(cfg->isInMirror(*it)){
-		//                	worklist_2->push_atomic(*it);
-		//                }
-						else{
-							actives->push_atomic(*it);
+		            }
+	        	}
+	        	else{
+					//propagate
+					std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
+					if(successors){
+						for(auto it = successors->cbegin(); it != successors->cend(); ++it){
+							if(!cfg->isMirror(*it)){
+								worklist_2->push_atomic(*it);
+							}
+			//                else if(cfg->isInMirror(*it)){
+			//                	worklist_2->push_atomic(*it);
+			//                }
+							else{
+								actives->push_atomic(*it);
+							}
 						}
 					}
-	            }
+	        	}
 
 				//store the new graph into tmp_graphstore
 				tmp_graphstore->addOneGraph_atomic(out_pointer, out_delta);

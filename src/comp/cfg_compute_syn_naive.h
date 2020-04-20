@@ -179,12 +179,26 @@ public:
 
 	        if(!isEqual){
 	            //propagate
-	            std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
-	            if(successors){
-					for(auto it = successors->cbegin(); it != successors->cend(); ++it){
-						worklist_2->push_atomic(*it);
+	        	if(cfg_node->getStmt()->getType() == TYPE::Callfptr){
+	        		//to deal with function pointer callsite
+		            std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
+		            if(successors){
+						for(auto it = successors->cbegin(); it != successors->cend(); ++it){
+							CFGNode* suc = *it;
+							if(CFGCompute_syn::isFeasible(suc->getStmt(), cfg_node->getStmt(), out)){
+								worklist_2->push_atomic(*it);
+							}
+						}
+		            }
+	        	}
+	        	else{
+					std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
+					if(successors){
+						for(auto it = successors->cbegin(); it != successors->cend(); ++it){
+							worklist_2->push_atomic(*it);
+						}
 					}
-	            }
+	        	}
 
 	            //store the new graph into tmp_graphstore
 	            dynamic_cast<NaiveGraphStore*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
@@ -209,6 +223,9 @@ public:
 		//for debugging
 		Logger::print_thread_info_locked("compute-synchronous finished.\n", LEVEL_LOG_FUNCTION);
 	}
+
+
+
 
 };
 
