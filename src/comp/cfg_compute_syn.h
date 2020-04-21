@@ -27,6 +27,7 @@
 //#include "../utility/timer_diff.hpp"
 //#include "../utility/timer_sum_sync.hpp"
 //#include "../utility/Timer_wrapper.h"
+//#include "stmt/stmt_callfptr.h"
 
 using namespace std;
 
@@ -85,8 +86,26 @@ public:
 
     static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds);
 
-	static bool isFeasible(Stmt* callee, Stmt* caller, PEGraph* out){
+	static bool isFeasible(Stmt* callee, Stmt* caller, PEGraph* out, Grammar* grammar){
+		vertexid_t caller_variable = ((CallfptrStmt*)caller)->getDst();
+		vertexid_t caller_deref_variable = ((CallfptrStmt*)caller)->getAux();
 
+		vertexid_t callee_variable = ((CalleefptrStmt*)callee)->getDst();
+
+		if(out->getGraph().find(callee_variable) != out->getGraph().end()){
+			int num = out->getNumEdges(callee_variable);
+			vertexid_t* edges = out->getEdges(callee_variable);
+			label_t* labels = out->getLabels(callee_variable);
+			for(int i = 0; i < num; i++){
+				if(edges[i] == caller_variable || edges[i] == caller_deref_variable){
+					if(grammar->isMemoryAlias(labels[i]) || grammar->isValueAlias(labels[i])){
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 
 private:

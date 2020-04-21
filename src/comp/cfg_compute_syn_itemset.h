@@ -203,7 +203,7 @@ public:
 			            if(successors){
 							for(auto it = successors->cbegin(); it != successors->cend(); ++it){
 								CFGNode* suc = *it;
-								if(CFGCompute_syn::isFeasible(suc->getStmt(), cfg_node->getStmt(), out)){
+								if(CFGCompute_syn::isFeasible(suc->getStmt(), cfg_node->getStmt(), out, grammar)){
 									worklist_2->push_atomic(*it);
 								}
 							}
@@ -246,7 +246,7 @@ public:
 			            if(successors){
 							for(auto it = successors->cbegin(); it != successors->cend(); ++it){
 								CFGNode* suc = *it;
-								if(CFGCompute_syn::isFeasible(suc->getStmt(), cfg_node->getStmt(), out)){
+								if(CFGCompute_syn::isFeasible(suc->getStmt(), cfg_node->getStmt(), out, grammar)){
 									worklist_2->push_atomic(*it);
 								}
 							}
