@@ -380,7 +380,7 @@ void printGraphstoreInfo_more(Context* context, int graphstore_mode, bool file_m
 
     	        //merge
     	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(node);
-    	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds);
+    	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds, node);
 
     			Stmt* stmt = node->getStmt();
     			TYPE type = stmt->getType();

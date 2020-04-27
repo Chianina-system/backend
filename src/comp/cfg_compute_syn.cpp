@@ -127,7 +127,7 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 
 		//merge
     	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
-        PEGraph* in = combine_synchronous(graphstore, preds);
+        PEGraph* in = combine_synchronous(graphstore, preds, cfg_node);
 
         //for tuning
         diff_merge.end();
@@ -222,8 +222,29 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 	Logger::print_thread_info_locked("compute-synchronous finished.\n", LEVEL_LOG_FUNCTION);
 }
 
+PEGraph* getPartial(CFGNode* current, CFGNode* pred, PEGraph* graph){
+	if(!graph){
+		return graph;
+	}
+    if(pred->getStmt()->getType() == TYPE::Call || pred->getStmt()->getType() == TYPE::Callfptr){
+    	if(current->getStmt()->getType() == TYPE::Return){
+			if(){//with actual parameters
 
-PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds){
+			}
+			else{//without any parameter
+
+			}
+
+    	}
+    	else {
+
+    	}
+    }
+
+}
+
+
+PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds, CFGNode* cfg_node){
 	//for debugging
 	Logger::print_thread_info_locked("combine starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -237,6 +258,10 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
         CFGNode* pred = preds->at(0);
         PEGraph_Pointer out_pointer = pred->getOutPointer();
         out = graphstore->retrieve(out_pointer);
+
+        //simplify the message passed through calls
+        out = getPartial(cfg_node, pred, out);
+
         if(!out){
         	out = new PEGraph();
         }
@@ -248,6 +273,10 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
             CFGNode* pred = *it;
             PEGraph_Pointer out_pointer = pred->getOutPointer();
             PEGraph* out_graph = graphstore->retrieve(out_pointer);
+
+            //get partial peg
+            out_graph = getPartial(cfg_node, pred, out_graph);
+
             if(!out_graph){
             	continue;
             }

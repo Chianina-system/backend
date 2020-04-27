@@ -112,7 +112,7 @@ public:
 	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
 	//        //for debugging
 	//    	StaticPrinter::print_vector(preds);
-	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds);
+	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds, cfg_node);
 
 	        //for tuning
 	        diff_merge.end();
