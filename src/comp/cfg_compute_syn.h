@@ -84,7 +84,7 @@ public:
         }
     }
 
-    static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds, CFGNode* cfg_node);
+    static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds, CFGNode* cfg_node, Grammar* grammar);
 
 	static bool isFeasible(Stmt* callee, Stmt* caller, PEGraph* out, Grammar* grammar){
 		vertexid_t caller_variable = ((CallfptrStmt*)caller)->getDst();

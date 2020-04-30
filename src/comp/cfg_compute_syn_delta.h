@@ -203,7 +203,7 @@ public:
 
 			//merge
 	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
-	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds, cfg_node);
+	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds, cfg_node, grammar);
 
 	        //for tuning
 	        diff_merge.end();

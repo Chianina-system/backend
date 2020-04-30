@@ -82,9 +82,9 @@ public:
 
 private:
 
-    int length;
-	vertexid_t* src;
-	vertexid_t dst;
+    int length = 0;
+	vertexid_t* src = NULL;
+	vertexid_t dst = -1;
 
     void toString_sub(std::ostringstream& strm) const {
     	strm << "phi" << ", " << getDst() << " <- [";

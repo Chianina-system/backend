@@ -65,10 +65,10 @@ public:
 			stmt = new PhiStmt(stream);
 		}
 		else if (type == "call") {
-			stmt = new CallStmt();
+			stmt = new CallStmt(stream);
 		}
 		else if (type == "return") {
-			stmt = new ReturnStmt();
+			stmt = new ReturnStmt(stream);
 		}
 		else if (type == "ret") {
 			stmt = new RetStmt();
