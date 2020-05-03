@@ -29,6 +29,9 @@ class CFGNode{
 
 	friend std::ostream & operator<<(std::ostream & strm, const CFGNode& cfgNode) {
 		strm << cfgNode.getOutPointer();
+		if(cfgNode.getStmt()){
+			strm << cfgNode.getStmt()->toString();
+		}
 		return strm;
 	}
 
@@ -138,7 +141,7 @@ public:
     	stmt->read_from_buf(buf, offset, bufsize);
     }
 
-    inline Stmt* getStmt(){
+    inline Stmt* getStmt() const {
         return stmt;
     }
 

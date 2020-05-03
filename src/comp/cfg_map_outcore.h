@@ -23,7 +23,7 @@ public:
 //        }
 
         for(auto &mirror: mirrors){
-        	assert(mirror->getStmt() == nullptr);
+//        	assert(mirror->getStmt() == nullptr);
         	delete mirror;
         }
 	}
@@ -57,7 +57,7 @@ public:
 	}
 
 
-	void loadCFG_ooc(bool file_mode, const string& file_cfg, const string& file_stmt, const string& file_mirrors_in, const string& file_mirrors_out, const string& file_actives) {
+	void loadCFG_ooc(bool file_mode, const string& file_cfg, const string& file_stmt, const string& file_mirrors_call, const string& file_mirrors_shallow, const string& file_actives) {
 		//for debugging
 		Logger::print_thread_info_locked("load-cfg-ooc starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -92,9 +92,9 @@ public:
 
 
 			//handle mirrors file
-			fin.open(file_mirrors_in);
+			fin.open(file_mirrors_call);
 			if (!fin) {
-				cout << "can't load file_mirrors_in: " << file_mirrors_in << endl;
+				cout << "can't load file_mirrors_call: " << file_mirrors_call << endl;
 			}
 			else {
 				while (getline(fin, line)) {
@@ -102,25 +102,22 @@ public:
 						continue;
 					}
 
-		//			std::stringstream stream(line);
-		//			std::string item;
-		//			while(getline(stream, item, '\t')){
-		//				this->in_mirrors.insert(m[atoi(item.c_str())]);
-		//			}
+					CFGNode* cfgNode_mirror = new CFGNode(line);
+					assert(m.find(cfgNode_mirror->getCfgNodeId()) == m.end());
+					m[cfgNode_mirror->getCfgNodeId()] = cfgNode_mirror;
 
-					PEGraph_Pointer id = atoi(line.c_str());
-					if(m.find(id) == m.end()){
-						m[id] = new CFGNode(id, nullptr);
-					}
-	//				this->in_mirrors.insert(m[id]);
-					this->mirrors.insert(m[id]);
+//					PEGraph_Pointer id = atoi(line.c_str());
+//					if(m.find(id) == m.end()){
+//						m[id] = new CFGNode(id, nullptr);
+//					}
+					this->mirrors.insert(cfgNode_mirror);
 				}
 				fin.close();
 			}
 
-			fin.open(file_mirrors_out);
+			fin.open(file_mirrors_shallow);
 			if (!fin) {
-				cout << "can't load file_mirrors_out: " << file_mirrors_out << endl;
+				cout << "can't load file_mirrors_shallow: " << file_mirrors_shallow << endl;
 			}
 			else{
 				while (getline(fin, line)) {
@@ -128,17 +125,10 @@ public:
 						continue;
 					}
 
-		//			std::stringstream stream(line);
-		//			std::string item;
-		//			while(getline(stream, item, '\t')){
-		//				this->out_mirrors.insert(m[atoi(item.c_str())]);
-		//			}
-
 					PEGraph_Pointer id = atoi(line.c_str());
 					if(m.find(id) == m.end()){
 						m[id] = new CFGNode(id, nullptr);
 					}
-	//				this->out_mirrors.insert(m[id]);
 					this->mirrors.insert(m[id]);
 				}
 				fin.close();
@@ -175,7 +165,7 @@ public:
 			fin.open(file_actives);
 			if (!fin) {
 				cout << "can't load file_actives: " << file_actives << endl;
-				exit(EXIT_FAILURE);
+//				exit(EXIT_FAILURE);
 			}
 			while (getline(fin, line)) {
 				if(line == ""){
@@ -222,49 +212,36 @@ public:
 
 
 			//handle mirrors file
-			int fp_mirrors_in = open(file_mirrors_in.c_str(), O_RDONLY);
-    		if(!(fp_mirrors_in > 0)) {
-    			cout << "can't load file_mirrors_in: " << file_mirrors_in << endl;
+    		FILE* fp_mirrors_call = fopen(file_mirrors_call.c_str(), "rb");
+    		if(!fp_mirrors_call) {
+    			cout << "can't load file_mirrors_call: " << file_mirrors_call << endl;
 //    			exit(-1);
     		}
     		else{
-				long mirrors_in_file_size = io_manager::get_filesize(fp_mirrors_in);
-				char* buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
-				long real_io_size = get_real_io_size(IO_SIZE, sizeof(vertexid_t));
-				int streaming_counter = mirrors_in_file_size / real_io_size + 1;
+				size_t freadRes = 0; //clear warnings
+				size_t bufsize;
+				while(fread(&bufsize, sizeof(size_t), 1, fp_mirrors_call) != 0) {
+					char *buf = (char*)malloc(bufsize);
+					freadRes = fread(buf, bufsize, 1, fp_mirrors_call);
 
-				long offset_read = 0;
+					CFGNode* cfgNode = new CFGNode();
+					cfgNode->read_from_buf(buf, bufsize);
+					assert(m.find(cfgNode->getCfgNodeId()) == m.end());
+					m[cfgNode->getCfgNodeId()] = cfgNode;
+					this->mirrors.insert(cfgNode);
 
-				for(int counter = 0; counter < streaming_counter; counter++) {
-					long valid_io_size = 0;
-					if (counter == streaming_counter - 1)
-						valid_io_size = mirrors_in_file_size - real_io_size * (streaming_counter - 1);
-					else
-						valid_io_size = real_io_size;
-
-					io_manager::read_from_file(fp_mirrors_in, buf, valid_io_size, offset_read);
-					offset_read += valid_io_size;
-
-					for(long offset = 0; offset < valid_io_size; offset += sizeof(vertexid_t)) {
-						PEGraph_Pointer id = *((vertexid_t*)(buf + offset));
-						if (m.find(id) == m.end()) {
-							m[id] = new CFGNode(id, nullptr);
-						}
-						this->mirrors.insert(m[id]);
-					}
+					free(buf);
 				}
-				free(buf);
-
-				close(fp_mirrors_in);
+				fclose(fp_mirrors_call);
     		}
 
-			int fp_mirrors_out = open(file_mirrors_out.c_str(), O_RDONLY);
-    		if(!(fp_mirrors_out > 0)) {
-    			cout << "can't load file_mirrors_out: " << file_mirrors_out << endl;
+			int fp_mirrors_shallow = open(file_mirrors_shallow.c_str(), O_RDONLY);
+    		if(!(fp_mirrors_shallow > 0)) {
+    			cout << "can't load file_mirrors_shallow: " << file_mirrors_shallow << endl;
 //    			exit(-1);
     		}
     		else{
-				long mirrors_out_file_size = io_manager::get_filesize(fp_mirrors_out);
+				long mirrors_out_file_size = io_manager::get_filesize(fp_mirrors_shallow);
 				char* buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
 				long real_io_size = get_real_io_size(IO_SIZE, sizeof(vertexid_t));
 				int streaming_counter = mirrors_out_file_size / real_io_size + 1;
@@ -278,7 +255,7 @@ public:
 					else
 						valid_io_size = real_io_size;
 
-					io_manager::read_from_file(fp_mirrors_out, buf, valid_io_size, offset_read);
+					io_manager::read_from_file(fp_mirrors_shallow, buf, valid_io_size, offset_read);
 					offset_read += valid_io_size;
 
 					for(long offset = 0; offset < valid_io_size; offset += sizeof(vertexid_t)) {
@@ -291,7 +268,7 @@ public:
 				}
 				free(buf);
 
-				close(fp_mirrors_out);
+				close(fp_mirrors_shallow);
     		}
 
 

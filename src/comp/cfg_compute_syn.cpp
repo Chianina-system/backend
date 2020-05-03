@@ -172,27 +172,7 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 
         if(!isEqual){
             //propagate
-        	if(cfg_node->getStmt()->getType() == TYPE::Callfptr){
-        		//to deal with function pointer callsite
-	            std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
-	            if(successors){
-					for(auto it = successors->cbegin(); it != successors->cend(); ++it){
-						CFGNode* suc = *it;
-						if(CFGCompute_syn::isFeasible(suc->getStmt(), cfg_node->getStmt(), out, grammar)){
-							worklist_2->push_atomic(*it);
-						}
-					}
-	            }
-        	}
-        	else{
-				//propagate
-				std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
-				if(successors){
-					for(auto it = successors->cbegin(); it != successors->cend(); ++it){
-						worklist_2->push_atomic(*it);
-					}
-				}
-        	}
+			propagate(cfg_node, cfg, out, grammar, worklist_2);
 
             //store the new graph into tmp_graphstore
             dynamic_cast<NaiveGraphStore*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
@@ -330,7 +310,7 @@ PEGraph* getPartial(Stmt* current, Stmt* pred, PEGraph* pred_graph, Grammar *gra
 		return pred_graph;
 	}
 
-    if(pred->getType() == TYPE::Callfptr){
+    if(pred && pred->getType() == TYPE::Callfptr){
    		CallfptrStmt* callfptrstmt = (CallfptrStmt*)(pred);
     	if(current->getType() == TYPE::Return){
 			PEGraph* toCaller = extractSubGraph_left(pred_graph, callfptrstmt->getArgs(), callfptrstmt->getLength(), callfptrstmt->getRet(), grammar);
@@ -341,7 +321,7 @@ PEGraph* getPartial(Stmt* current, Stmt* pred, PEGraph* pred_graph, Grammar *gra
 			return toCallee;
     	}
     }
-    else if(pred->getType() == TYPE::Call){
+    else if(pred && pred->getType() == TYPE::Call){
    		CallStmt* callstmt = (CallStmt*)(pred);
     	if(current->getType() == TYPE::Return){
 			PEGraph* toCaller = extractSubGraph_left(pred_graph, callstmt->getArgs(), callstmt->getLength(), callstmt->getRet(), grammar);

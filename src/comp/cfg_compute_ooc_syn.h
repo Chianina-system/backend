@@ -28,8 +28,8 @@ public:
 
 		string partition = to_string(part);
 		const string filename_cfg = Context::file_cfg + partition;
-		const string filename_mirrors_in = Context::folder_mirrors_in + partition;
-		const string filename_mirrors_out = Context::folder_mirrors_out + partition;
+		const string filename_mirrors_in = Context::folder_mirrors_call + partition;
+		const string filename_mirrors_out = Context::folder_mirrors_shallow + partition;
 		const string foldername_actives = Context::folder_actives + partition;
 		const string filename_stmt = Context::file_stmts + partition;
 		const string filename_singleton = context->getFileSingletons();
@@ -234,43 +234,7 @@ public:
 
 	        if(!isEqual){
 	            //propagate
-	        	if(cfg_node->getStmt()->getType() == TYPE::Callfptr){
-	        		//to deal with function pointer callsite
-		            std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
-		            if(successors){
-						for(auto it = successors->cbegin(); it != successors->cend(); ++it){
-							CFGNode* suc = *it;
-							if(CFGCompute_syn::isFeasible(suc->getStmt(), cfg_node->getStmt(), out, grammar)){
-								if(!cfg->isMirror(*it)){
-									worklist_2->push_atomic(*it);
-								}
-				//                else if(cfg->isInMirror(*it)){
-				//                	worklist_2->push_atomic(*it);
-				//                }
-								else{
-									actives->push_atomic(*it);
-								}
-							}
-						}
-		            }
-	        	}
-	        	else{
-					//propagate
-					std::vector<CFGNode*>* successors = cfg->getSuccessors(cfg_node);
-					if(successors){
-						for(auto it = successors->cbegin(); it != successors->cend(); ++it){
-							if(!cfg->isMirror(*it)){
-								worklist_2->push_atomic(*it);
-							}
-			//                else if(cfg->isInMirror(*it)){
-			//                	worklist_2->push_atomic(*it);
-			//                }
-							else{
-								actives->push_atomic(*it);
-							}
-						}
-					}
-	        	}
+				propagate(cfg_node, cfg, out, grammar, worklist_2, actives);
 
 	            //store the new graph into tmp_graphstore
 //	            tmp_graphstore->addOneGraph_atomic(out_pointer, out);
@@ -296,6 +260,49 @@ public:
 //	        //for debugging
 //	        Logger::print_thread_info_locked("1-> " + worklist_1->toString() + "\t2-> " + worklist_2->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);
 	    }
+	}
+
+	static void propagate(CFGNode *cfg_node, CFG_map_outcore *cfg, PEGraph *out,
+			Grammar *grammar, Concurrent_Worklist<CFGNode*> *worklist_2,
+			Concurrent_Worklist<CFGNode*> *actives) {
+		//propagate
+//		if (cfg_node->getStmt()->getType() == TYPE::Callfptr) {
+//			//to deal with function pointer callsite
+//			std::vector<CFGNode*> *successors = cfg->getSuccessors(cfg_node);
+//			if (successors) {
+//				for (auto it = successors->cbegin(); it != successors->cend(); ++it) {
+//					CFGNode *suc = *it;
+//					if(suc->getStmt() && suc->getStmt()->getType() == TYPE::Calleefptr){
+//						if (CFGCompute_syn::isFeasible(suc->getStmt(), cfg_node->getStmt(), out, grammar)) {
+//							if (!cfg->isMirror(*it)) {
+//								worklist_2->push_atomic(*it);
+//							}
+//							else{
+//								actives->push_atomic(*it);
+//							}
+//						}
+//					}
+//					else{
+//
+//					}
+//
+//				}
+//			}
+//		}
+//		else {
+			//propagate
+			std::vector<CFGNode*> *successors = cfg->getSuccessors(cfg_node);
+			if (successors) {
+				for (auto it = successors->cbegin(); it != successors->cend(); ++it) {
+					if (!cfg->isMirror(*it)) {
+						worklist_2->push_atomic(*it);
+					}
+					else {
+						actives->push_atomic(*it);
+					}
+				}
+			}
+//		}
 	}
 
 
@@ -399,6 +406,7 @@ private:
 //    		}
 //		}
 	}
+
 
 };
 

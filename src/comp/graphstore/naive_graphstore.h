@@ -512,9 +512,17 @@ public:
 
     	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
 
+    	std::map<PEGraph_Pointer, int> sorted;
+
     	for(auto it = map.begin(); it != map.end(); ++it){
-//    		cout << it->first << "\t" << it->second->getNumEdges() << endl;
+    		cout << it->first << "\t" << it->second->getNumEdges() << endl;
+    		sorted[it->first] = it->second->getNumEdges();
     		size_edges += it->second->getNumEdges();
+    	}
+
+    	cout << "\n\n";
+    	for(auto& it: sorted){
+    		cout << it.first << "\t" << it.second << endl;
     	}
 
     	cout << "Number of graphs: " << size_graphs << endl;

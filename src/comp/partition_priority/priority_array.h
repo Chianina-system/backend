@@ -29,7 +29,7 @@ public:
 	}
 
 	bool schedule(Partition& part){
-		assert(part <= num_partitions);
+//		assert(part <= num_partitions);
 		int max = 0;
 		for(int i = 0; i < this->num_partitions; i++){
 			if(max < scores[i]){

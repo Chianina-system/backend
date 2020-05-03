@@ -15,8 +15,8 @@ const string Context::file_singletons = working_path + "singleton_";
 
 const string Context::folder_actives = working_path + "actives_";
 const string Context::file_graphstore = working_path + "graphstore_";
-const string Context::folder_mirrors_in = working_path + "mirrors_in_";
-const string Context::folder_mirrors_out = working_path + "mirrors_out_";
+const string Context::folder_mirrors_call = working_path + "mirrors_call_";
+const string Context::folder_mirrors_shallow = working_path + "mirrors_shallow_";
 const string Context::folder_graphs_in = working_path + "graphstore_in_";
 
 

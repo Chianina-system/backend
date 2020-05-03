@@ -39,7 +39,7 @@ public:
 
 		std::string arg;
 		std::unordered_set<std::string> set_string;
-		while(getline(stream, arg, '\t')){
+		while(stream >> arg){
 			if(arg.at(0) == 'a'){
 				set_string.insert(arg.substr(2));
 			}
@@ -125,7 +125,11 @@ private:
 	vertexid_t ret = -1;
 
     void toString_sub(std::ostringstream& strm) const {
-    	strm << "callfptr" << ", " << getDst() << ", " << getAux();
+    	strm << "callfptr" << ", " << getDst() << ", " << getAux() << ", " << getRet() << " <- [";
+    	for(int i = 0; i < length; i++){
+    		strm << args[i] << ", ";
+    	}
+    	strm << "]";
     }
 
 };

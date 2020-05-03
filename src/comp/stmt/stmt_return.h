@@ -29,11 +29,12 @@ public:
 	}
 
 	ReturnStmt(std::stringstream& stream){
-		this->t = TYPE::Call;
+		this->t = TYPE::Return;
 
 		std::string arg;
 		std::unordered_set<std::string> set_string;
-		while(getline(stream, arg, '\t')){
+
+		while(stream >> arg){
 			if(arg.at(0) == 'a'){
 				set_string.insert(arg.substr(2));
 			}
@@ -96,7 +97,11 @@ private:
 
 
     void toString_sub(std::ostringstream& strm) const {
-    	strm << "return";
+    	strm << "return" << ", " << getRet() << " <- [";
+    	for(int i = 0; i < length; i++){
+    		strm << args[i] << ", ";
+    	}
+    	strm << "]";
     }
 
 

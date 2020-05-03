@@ -332,8 +332,8 @@ void PEGCompute::genD_RuleEdges_delta(vertexid_t index, ComputationSet *compset,
 //}
 
 void PEGCompute::postProcessOneIteration(ComputationSet *compset, bool isDelete, std::unordered_map<vertexid_t, EdgeArray> *m) {
-	//for debugging
-	Logger::print_thread_info_locked("postprocess-one-iteration starting...\n", LEVEL_LOG_FUNCTION);
+//	//for debugging
+//	Logger::print_thread_info_locked("postprocess-one-iteration starting...\n", LEVEL_LOG_FUNCTION);
 
 	// oldsV <- {oldsV,deltasV}
 	for (auto it = compset->getOlds().begin(); it != compset->getOlds().end(); it++) {
@@ -399,8 +399,8 @@ void PEGCompute::postProcessOneIteration(ComputationSet *compset, bool isDelete,
 		it = compset->getNews().erase(it);
 	}
 
-	//for debugging
-	Logger::print_thread_info_locked("postprocess-one-iteration finished.\n", LEVEL_LOG_FUNCTION);
+//	//for debugging
+//	Logger::print_thread_info_locked("postprocess-one-iteration finished.\n", LEVEL_LOG_FUNCTION);
 }
 
 void PEGCompute::mergeToDeletedGraph(vertexid_t i_new, std::unordered_map<vertexid_t, EdgeArray>* m, ComputationSet* compset) {

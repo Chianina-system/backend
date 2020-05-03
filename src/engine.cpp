@@ -188,14 +188,14 @@ void readAllGraphs(NaiveGraphStore *graphstore, Context* context){
 	}
 }
 
-void loadMirrors(const string& file_mirrors_in, const string& file_mirrors_out, std::unordered_set<PEGraph_Pointer>& mirrors, bool file_mode){
+void loadMirrors(const string& file_mirrors_call, const string& file_mirrors_shallow, std::unordered_set<PEGraph_Pointer>& mirrors, bool file_mode){
 	//handle mirrors file
 	if(file_mode){
 		std::ifstream fin;
 		std::string line;
-		fin.open(file_mirrors_in);
+		fin.open(file_mirrors_call);
 		if (!fin) {
-			cout << "can't load file_mirrors_in: " << file_mirrors_in << endl;
+			cout << "can't load file_mirrors_call: " << file_mirrors_call << endl;
 		}
 		else {
 			while (getline(fin, line)) {
@@ -203,15 +203,16 @@ void loadMirrors(const string& file_mirrors_in, const string& file_mirrors_out, 
 					continue;
 				}
 
-				PEGraph_Pointer id = atoi(line.c_str());
-				mirrors.insert(id);
+				CFGNode* cfgNode_mirror = new CFGNode(line);
+				mirrors.insert(cfgNode_mirror->getCfgNodeId());
+				delete cfgNode_mirror;
 			}
 			fin.close();
 		}
 
-		fin.open(file_mirrors_out);
+		fin.open(file_mirrors_shallow);
 		if (!fin) {
-			cout << "can't load file_mirrors_out: " << file_mirrors_out << endl;
+			cout << "can't load file_mirrors_shallow: " << file_mirrors_shallow << endl;
 		}
 		else{
 			while (getline(fin, line)) {
@@ -227,27 +228,48 @@ void loadMirrors(const string& file_mirrors_in, const string& file_mirrors_out, 
 	}
 	else{
 		//handle mirrors file
-		int fp_mirrors_in = open(file_mirrors_in.c_str(), O_RDONLY);
-		if(!(fp_mirrors_in > 0)) {
-			cout << "can't load file_mirrors_in: " << file_mirrors_in << endl;
+		FILE* fp_mirrors_call = fopen(file_mirrors_call.c_str(), "rb");
+		if(!fp_mirrors_call) {
+			cout << "can't load file_mirrors_call: " << file_mirrors_call << endl;
 //    			exit(-1);
 		}
 		else{
-			long mirrors_in_file_size = io_manager::get_filesize(fp_mirrors_in);
+			size_t freadRes = 0; //clear warnings
+			size_t bufsize;
+			while(fread(&bufsize, sizeof(size_t), 1, fp_mirrors_call) != 0) {
+				char *buf = (char*)malloc(bufsize);
+				freadRes = fread(buf, bufsize, 1, fp_mirrors_call);
+
+				CFGNode* cfgNode = new CFGNode();
+				cfgNode->read_from_buf(buf, bufsize);
+				mirrors.insert(cfgNode->getCfgNodeId());
+
+				free(buf);
+			}
+			fclose(fp_mirrors_call);
+		}
+
+		int fp_mirrors_shallow = open(file_mirrors_shallow.c_str(), O_RDONLY);
+		if(!(fp_mirrors_shallow > 0)) {
+			cout << "can't load file_mirrors_shallow: " << file_mirrors_shallow << endl;
+//    			exit(-1);
+		}
+		else{
+			long mirrors_shallow_file_size = io_manager::get_filesize(fp_mirrors_shallow);
 			char* buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
 			long real_io_size = get_real_io_size(IO_SIZE, sizeof(vertexid_t));
-			int streaming_counter = mirrors_in_file_size / real_io_size + 1;
+			int streaming_counter = mirrors_shallow_file_size / real_io_size + 1;
 
 			long offset_read = 0;
 
 			for(int counter = 0; counter < streaming_counter; counter++) {
 				long valid_io_size = 0;
 				if (counter == streaming_counter - 1)
-					valid_io_size = mirrors_in_file_size - real_io_size * (streaming_counter - 1);
+					valid_io_size = mirrors_shallow_file_size - real_io_size * (streaming_counter - 1);
 				else
 					valid_io_size = real_io_size;
 
-				io_manager::read_from_file(fp_mirrors_in, buf, valid_io_size, offset_read);
+				io_manager::read_from_file(fp_mirrors_shallow, buf, valid_io_size, offset_read);
 				offset_read += valid_io_size;
 
 				for(long offset = 0; offset < valid_io_size; offset += sizeof(vertexid_t)) {
@@ -257,40 +279,7 @@ void loadMirrors(const string& file_mirrors_in, const string& file_mirrors_out, 
 			}
 			free(buf);
 
-			close(fp_mirrors_in);
-		}
-
-		int fp_mirrors_out = open(file_mirrors_out.c_str(), O_RDONLY);
-		if(!(fp_mirrors_out > 0)) {
-			cout << "can't load file_mirrors_out: " << file_mirrors_out << endl;
-//    			exit(-1);
-		}
-		else{
-			long mirrors_out_file_size = io_manager::get_filesize(fp_mirrors_out);
-			char* buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
-			long real_io_size = get_real_io_size(IO_SIZE, sizeof(vertexid_t));
-			int streaming_counter = mirrors_out_file_size / real_io_size + 1;
-
-			long offset_read = 0;
-
-			for(int counter = 0; counter < streaming_counter; counter++) {
-				long valid_io_size = 0;
-				if (counter == streaming_counter - 1)
-					valid_io_size = mirrors_out_file_size - real_io_size * (streaming_counter - 1);
-				else
-					valid_io_size = real_io_size;
-
-				io_manager::read_from_file(fp_mirrors_out, buf, valid_io_size, offset_read);
-				offset_read += valid_io_size;
-
-				for(long offset = 0; offset < valid_io_size; offset += sizeof(vertexid_t)) {
-					PEGraph_Pointer id = *((vertexid_t*)(buf + offset));
-					mirrors.insert(id);
-				}
-			}
-			free(buf);
-
-			close(fp_mirrors_out);
+			close(fp_mirrors_shallow);
 		}
 	}
 }
@@ -404,14 +393,11 @@ void printGraphstoreInfo_more(Context* context, int graphstore_mode, bool file_m
     			delete in;
     		}
     	}
+    	delete cfg;
 
 		std::unordered_set<PEGraph_Pointer> mirrors;
-
-//		const string filename_graphs = Context::file_graphstore + to_string(partition);
-//		graphstore->deserialize(filename_graphs);
-
-		const string filename_mirrors_in = Context::folder_mirrors_in + to_string(partition);
-		const string filename_mirrors_out = Context::folder_mirrors_out + to_string(partition);
+		const string filename_mirrors_in = Context::folder_mirrors_call + to_string(partition);
+		const string filename_mirrors_out = Context::folder_mirrors_shallow + to_string(partition);
 		loadMirrors(filename_mirrors_in, filename_mirrors_out, mirrors, file_mode);
 
     	int size_graphs = 0;
@@ -433,7 +419,7 @@ void printGraphstoreInfo_more(Context* context, int graphstore_mode, bool file_m
     	cout << endl;
 
     	delete graphstore;
-    	delete cfg;
+
 
     	num_edges += size_edges;
     	num_vertices += size_vertices;
@@ -491,8 +477,8 @@ void printGraphstoreInfo(Context* context, int graphstore_mode, bool file_mode, 
 		const string filename_graphs = Context::file_graphstore + to_string(partition);
 		graphstore->deserialize(filename_graphs);
 
-		const string filename_mirrors_in = Context::folder_mirrors_in + to_string(partition);
-		const string filename_mirrors_out = Context::folder_mirrors_out + to_string(partition);
+		const string filename_mirrors_in = Context::folder_mirrors_call + to_string(partition);
+		const string filename_mirrors_out = Context::folder_mirrors_shallow + to_string(partition);
 		loadMirrors(filename_mirrors_in, filename_mirrors_out, mirrors, file_mode);
 
     	int size_graphs = 0;
@@ -578,7 +564,7 @@ void run_ooc(int mining_mode, int support, int length, bool buffered_mode, bool 
 	//for tuning
 	sum_compute.end();
 
-	//for debugging
+//	//for debugging
 //	NaiveGraphStore *graphstore = new NaiveGraphStore();
 //	readAllGraphs(graphstore, context);
 //	graphstore->printOutInfo();

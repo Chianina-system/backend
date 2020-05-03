@@ -98,8 +98,8 @@ public:
 	static const string file_grammar;
 	static const string folder_actives;
 	static const string file_graphstore;
-	static const string folder_mirrors_in;
-	static const string folder_mirrors_out;
+	static const string folder_mirrors_call;
+	static const string folder_mirrors_shallow;
 	static const string folder_graphs_in;
 
 	void setPartitionInfo(int k, vector<int> &partitionNodes) {

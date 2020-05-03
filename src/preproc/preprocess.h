@@ -48,22 +48,22 @@ public:
 		}
 	}
 
-	static void write_to_partition_mirrors_in(string& src_id, Partition dst_p){
-		string stmt_partition_file = Context::folder_mirrors_in + to_string(dst_p);
+	static void write_to_partition_mirrors_call(string& stmt, Partition part){
+		string stmt_partition_file = Context::folder_mirrors_call + to_string(part);
 		ofstream myfile;
 		myfile.open(stmt_partition_file, std::ofstream::out | std::ofstream::app);
 		if (myfile.is_open()){
-			myfile << src_id << "\n";
+			myfile << stmt << "\n";
 			myfile.close();
 		}
 	}
 
-	static void write_to_partition_mirrors_out(string& dst_id, Partition src_p){
-		string stmt_partition_file = Context::folder_mirrors_out + to_string(src_p);
+	static void write_to_partition_mirrors_shallow(string& id, Partition part){
+		string stmt_partition_file = Context::folder_mirrors_shallow + to_string(part);
 		ofstream myfile;
 		myfile.open(stmt_partition_file, std::ofstream::out | std::ofstream::app);
 		if (myfile.is_open()){
-			myfile << dst_id << "\n";
+			myfile << id << "\n";
 			myfile.close();
 		}
 	}
@@ -109,31 +109,32 @@ public:
 		node->write_to_buf(buf);
 	}
 
-	static void write_to_partition_mirrors_in_binary(vertexid_t src_id, Partition dst_p, Buffer& buf){
-		memcpy(buf.getData() + buf.getSize(), (char*)& src_id, sizeof(vertexid_t));
-		buf.setSize(buf.getSize() + sizeof(vertexid_t));
-
-		if(buf.isFull()){
-			string mirrors_in_file = Context::folder_mirrors_in + to_string(dst_p);
-			FILE *f_mirrors_in = fopen(mirrors_in_file.c_str(), "ab");
-			assert(f_mirrors_in);
-			fwrite(buf.getData(), buf.getSize(), 1, f_mirrors_in);
+	static void write_to_partition_mirrors_call_binary(CFGNode* node, Partition part, Buffer& buf){
+		size_t s = node->get_size_bytes();
+		assert(s + sizeof(size_t) <= buf.getCapacity());
+		if(buf.getSize() + s + sizeof(size_t) > buf.getCapacity()){
+			string mirrors_call_file = Context::folder_mirrors_call + to_string(part);
+			FILE *f_mirrors_call = fopen(mirrors_call_file.c_str(), "ab");
+			assert(f_mirrors_call);
+			fwrite(buf.getData(), buf.getSize(), 1, f_mirrors_call);
 			buf.setSize(0);
-			fclose(f_mirrors_in);
+			fclose(f_mirrors_call);
 		}
+
+		node->write_to_buf(buf);
 	}
 
-	static void write_to_partition_mirrors_out_binary(vertexid_t dst_id, Partition src_p, Buffer& buf){
-		memcpy(buf.getData() + buf.getSize(), (char*)& dst_id, sizeof(vertexid_t));
+	static void write_to_partition_mirrors_shallow_binary(vertexid_t id, Partition part, Buffer& buf){
+		memcpy(buf.getData() + buf.getSize(), (char*)& id, sizeof(vertexid_t));
 		buf.setSize(buf.getSize() + sizeof(vertexid_t));
 
 		if(buf.isFull()){
-			string mirrors_out_file = Context::folder_mirrors_out + to_string(src_p);
-			FILE *f_mirrors_out = fopen(mirrors_out_file.c_str(), "ab");
-			assert(f_mirrors_out);
-			fwrite(buf.getData(), buf.getSize(), 1, f_mirrors_out);
+			string mirrors_shallow_file = Context::folder_mirrors_shallow + to_string(part);
+			FILE *f_mirrors_shallow = fopen(mirrors_shallow_file.c_str(), "ab");
+			assert(f_mirrors_shallow);
+			fwrite(buf.getData(), buf.getSize(), 1, f_mirrors_shallow);
 			buf.setSize(0);
-			fclose(f_mirrors_out);
+			fclose(f_mirrors_shallow);
 		}
 	}
 
@@ -492,7 +493,11 @@ public:
 		//clear the folder for storing the tmp data
 		FileUtil::reset_folder(Context::working_path);
 
+		//record the mirrors-in statements
+		std::unordered_map<vertexid_t, unordered_set<Partition>> mirrors_map;
+
 		if(file_mode){
+			cout << "text read starting..." << endl;
 			//deal with cfg file
 			ifstream myfile_cfg(context.getFileCfg());
 			if (myfile_cfg.is_open()) {
@@ -515,13 +520,26 @@ public:
 						write_to_partition_cfg(src_p, line);
 						write_to_partition_cfg(dst_p, line);
 
-						//deal with mirrors
-						write_to_partition_mirrors_in(src_id, dst_p);
-						write_to_partition_mirrors_out(dst_id, src_p);
+						//deal with mirrors in
+//						write_to_partition_mirrors_in(src_id, dst_p);
+						vertexid_t src_id_int = atoi(src_id.c_str());
+						if(mirrors_map.find(src_id_int) == mirrors_map.end()){
+							mirrors_map[src_id_int] = unordered_set<Partition>();
+						}
+						mirrors_map[src_id_int].insert(dst_p);
+
+						//deal with mirrors out
+//						write_to_partition_mirrors_out(dst_id, src_p);
+						vertexid_t dst_id_int = atoi(dst_id.c_str());
+						if(mirrors_map.find(dst_id_int) == mirrors_map.end()){
+							mirrors_map[dst_id_int] = unordered_set<Partition>();
+						}
+						mirrors_map[dst_id_int].insert(src_p);
 					}
 				}
 				myfile_cfg.close();
 			}
+			cout << "text cfg done" << endl;
 
 			//deal with stmt file
 			ifstream myfile_stmt(context.getFileStmts());
@@ -533,74 +551,32 @@ public:
 					}
 
 					std::stringstream stream(line);
-					std::string id;
-					stream >> id;
+					std::string id, type;
+					stream >> id >> type;
 					vertexid_t node_id = atoi(id.c_str());
 
 					Partition p = context.getPartition(node_id);
 					//write to the respectively stmt files
 					write_to_partition_stmt(p, line);
 
-	//				//initialize graphs by adding self-loop edges
-	//				Stmt* stmt = new Stmt(stream);
-	//			    vertexid_t src = stmt->getSrc();
-	//			    EdgeArray edges_src = EdgeArray();
-	//
-	//			    vertexid_t dst = stmt->getDst();
-	//			    EdgeArray edges_dst = EdgeArray();
-	//
-	//			    vertexid_t aux = stmt->getAux();
-	//			    EdgeArray edges_aux = EdgeArray();
-	//
-	//				//self-loop edges
-	//				for (int i = 0; i < context.getGrammar()->getNumErules(); ++i) {
-	//					char label = context.getGrammar()->getErule(i);
-	//					edges_src.addOneEdge(src, label);
-	//					edges_dst.addOneEdge(dst, label);
-	//					if (stmt->isValidAux()) {
-	//						edges_aux.addOneEdge(aux, label);
-	//					}
-	//				}
-	//
-	//			    //merge and sort
-	//			    edges_src.merge();
-	//			    edges_dst.merge();
-	//			    if(stmt->isValidAux()){
-	//					edges_aux.merge();
-	//			    }
-	//
-	//			    PEGraph* pegraph = new PEGraph();
-	//			    pegraph->setEdgeArray(src, edges_src);
-	//			    pegraph->setEdgeArray(dst, edges_dst);
-	//			    if(stmt->isValidAux()){
-	//			    	pegraph->setEdgeArray(aux, edges_aux);
-	//			    }
-	//
-	//			    //write to file
-	//				const string file_graphs_in = Context::folder_graphs_in + std::to_string(p);
-	//				if(readable){
-	//					ofstream myfile;
-	//					myfile.open(file_graphs_in, std::ofstream::out | std::ofstream::app);
-	//					if (myfile.is_open()){
-	//						//write a pegraph into file
-	//					    myfile << node_id << "\t";
-	//					    pegraph->write_readable(myfile);
-	//					    myfile << "\n";
-	//
-	//						myfile.close();
-	//					}
-	//				}
-	//				else{
-	//
-	//				}
-	//
-	//				//clean
-	//				delete stmt;
-	//				delete pegraph;
+					//deal with mirrors statements
+					if(mirrors_map.find(node_id) != mirrors_map.end()){
+						if (type == "call" || type == "callfptr" || type == "calleefptr") {
+							for(auto& partition: mirrors_map[node_id]){
+								write_to_partition_mirrors_call(line, partition);
+							}
+						}
+						else {
+							for(auto& partition: mirrors_map[node_id]){
+								write_to_partition_mirrors_shallow(id, partition);
+							}
+						}
+					}
 
 				}
 				myfile_stmt.close();
 			}
+			cout << "text stmt done" << endl;
 
 			//initialize active nodes
 			ifstream myfile_entries(context.getFileEntries());
@@ -612,7 +588,9 @@ public:
 					}
 
 					vertexid_t id = atoi(line.c_str());
+					cout << "id: " << id << endl;
 					Partition part = context.getPartition(id);
+					cout << "part: " << part << endl;
 					write_to_partition_actives(part, id);
 
 					//update entry partitions according to entry nodes
@@ -624,11 +602,12 @@ public:
 
 				myfile_entries.close();
 			}
+			cout << "text actives done" << endl;
 
 		}
 		else{//binary format
+			cout << "binary read starting..." << endl;
 			//deal with cfg file
-//			cout << "deal with cfg file..." << endl;
 			ifstream myfile_cfg(context.getFileCfg());
 			if (myfile_cfg.is_open()) {
 				unsigned int num_partitions = context.getNumberPartitions();
@@ -658,8 +637,17 @@ public:
 						write_to_partition_cfg_binary(dst_p, src_id, dst_id, buffers[dst_p]);
 
 						//deal with mirrors
-						write_to_partition_mirrors_in_binary(src_id, dst_p, buffers_mirrors_in[dst_p]);
-						write_to_partition_mirrors_out_binary(dst_id, src_p, buffers_mirrors_out[src_p]);
+//						write_to_partition_mirrors_in_binary(src_id, dst_p, buffers_mirrors_in[dst_p]);
+						if(mirrors_map.find(src_id) == mirrors_map.end()){
+							mirrors_map[src_id] = unordered_set<Partition>();
+						}
+						mirrors_map[src_id].insert(dst_p);
+
+//						write_to_partition_mirrors_out_binary(dst_id, src_p, buffers_mirrors_out[src_p]);
+						if(mirrors_map.find(dst_id) == mirrors_map.end()){
+							mirrors_map[dst_id] = unordered_set<Partition>();
+						}
+						mirrors_map[dst_id].insert(src_p);
 					}
 				}
 
@@ -674,28 +662,28 @@ public:
 						fclose(f_cfg);
 					}
 
-					if(!buffers_mirrors_in[i].isEmpty()){
-						string mirrors_in_file = Context::folder_mirrors_in + to_string(i);
-						FILE *f_mirrors_in = fopen(mirrors_in_file.c_str(), "ab");
-						assert(f_mirrors_in);
-						fwrite(buffers_mirrors_in[i].getData(), buffers_mirrors_in[i].getSize(), 1, f_mirrors_in);
-						buffers_mirrors_in[i].setSize(0);
-						fclose(f_mirrors_in);
-					}
-
-					if(!buffers_mirrors_out[i].isEmpty()){
-						string mirrors_out_file = Context::folder_mirrors_out + to_string(i);
-						FILE *f_mirrors_out = fopen(mirrors_out_file.c_str(), "ab");
-						assert(f_mirrors_out);
-						fwrite(buffers_mirrors_out[i].getData(), buffers_mirrors_out[i].getSize(), 1, f_mirrors_out);
-						buffers_mirrors_out[i].setSize(0);
-						fclose(f_mirrors_out);
-					}
+//					if(!buffers_mirrors_in[i].isEmpty()){
+//						string mirrors_in_file = Context::folder_mirrors_call + to_string(i);
+//						FILE *f_mirrors_in = fopen(mirrors_in_file.c_str(), "ab");
+//						assert(f_mirrors_in);
+//						fwrite(buffers_mirrors_in[i].getData(), buffers_mirrors_in[i].getSize(), 1, f_mirrors_in);
+//						buffers_mirrors_in[i].setSize(0);
+//						fclose(f_mirrors_in);
+//					}
+//
+//					if(!buffers_mirrors_out[i].isEmpty()){
+//						string mirrors_out_file = Context::folder_mirrors_shallow + to_string(i);
+//						FILE *f_mirrors_out = fopen(mirrors_out_file.c_str(), "ab");
+//						assert(f_mirrors_out);
+//						fwrite(buffers_mirrors_out[i].getData(), buffers_mirrors_out[i].getSize(), 1, f_mirrors_out);
+//						buffers_mirrors_out[i].setSize(0);
+//						fclose(f_mirrors_out);
+//					}
 				}
 
 				myfile_cfg.close();
 			}
-//			cout << "cfg done" << endl;
+			cout << "binary cfg done" << endl;
 
 
 			//deal with stmt file
@@ -703,6 +691,8 @@ public:
 			if (myfile_stmt.is_open()) {
 				unsigned int num_partitions = context.getNumberPartitions();
 				Buffer buffers_stmts[num_partitions];
+				Buffer buffers_mirrors_call[num_partitions];
+				Buffer buffers_mirrors_shallow[num_partitions];
 
 				string line;
 				while (getline(myfile_stmt, line)) {
@@ -715,6 +705,21 @@ public:
 					Partition p = context.getPartition(cfgNode->getCfgNodeId());
 					//write to the respectively stmt files
 					write_to_partition_stmt_binary(p, cfgNode, buffers_stmts[p]);
+
+					//deal with mirrors statements
+					if(mirrors_map.find(cfgNode->getCfgNodeId()) != mirrors_map.end()){
+						TYPE type = cfgNode->getStmt()->getType();
+						if (type == TYPE::Call || type == TYPE::Callfptr || type == TYPE::Calleefptr) {
+							for(auto& partition: mirrors_map[cfgNode->getCfgNodeId()]){
+								write_to_partition_mirrors_call_binary(cfgNode, partition, buffers_mirrors_call[partition]);
+							}
+						}
+						else {
+							for(auto& partition: mirrors_map[cfgNode->getCfgNodeId()]){
+								write_to_partition_mirrors_shallow_binary(cfgNode->getCfgNodeId(), partition, buffers_mirrors_shallow[partition]);
+							}
+						}
+					}
 
 					delete cfgNode;
 				}
@@ -729,11 +734,30 @@ public:
 						buffers_stmts[i].setSize(0);
 						fclose(f_stmts);
 					}
+
+					if(!buffers_mirrors_call[i].isEmpty()){
+						string mirrors_call_file = Context::folder_mirrors_call + to_string(i);
+						FILE *f_mirrors_call = fopen(mirrors_call_file.c_str(), "ab");
+						assert(f_mirrors_call);
+						fwrite(buffers_mirrors_call[i].getData(), buffers_mirrors_call[i].getSize(), 1, f_mirrors_call);
+						buffers_mirrors_call[i].setSize(0);
+						fclose(f_mirrors_call);
+					}
+
+					if(!buffers_mirrors_shallow[i].isEmpty()){
+						string mirrors_shallow_file = Context::folder_mirrors_shallow + to_string(i);
+						FILE *f_mirrors_shallow = fopen(mirrors_shallow_file.c_str(), "ab");
+						assert(f_mirrors_shallow);
+						fwrite(buffers_mirrors_shallow[i].getData(), buffers_mirrors_shallow[i].getSize(), 1, f_mirrors_shallow);
+						buffers_mirrors_shallow[i].setSize(0);
+						fclose(f_mirrors_shallow);
+					}
+
 				}
 
 				myfile_stmt.close();
 			}
-//			cout << "stmt file done" << endl;
+			cout << "binary stmt done" << endl;
 
 
 			//initialize active nodes
@@ -749,7 +773,9 @@ public:
 					}
 
 					vertexid_t id = atoi(line.c_str());
+					cout << "id: " << id << endl;
 					Partition part = context.getPartition(id);
+					cout << "part: " << part << endl;
 					write_to_partition_actives_binary(part, id, buffers_actives[part]);
 
 					//update entry partitions according to entry nodes
@@ -769,6 +795,7 @@ public:
 				}
 				myfile_entries.close();
 			}
+			cout << "binary actives done" << endl;
 
 		}
 
