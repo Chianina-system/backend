@@ -476,12 +476,17 @@ public:
                         	partitionNodes.push_back(g.sccs[sortedNodes[j]][k]);
                 	}
                 	context.setPartitionInfo(i, partitionNodes);
+			i++;
+			partitionNodes.clear();
             	}
         	} else {
             	for (int k=0; k<g.sccs[sortedNodes[j]].size(); k++)
                 	partitionNodes.push_back(g.sccs[sortedNodes[j]][k]);
         	}
     	}
+	if (partitionNodes.size() != 0) {
+		context.setPartitionInfo(i, partitionNodes);
+	}	
 	}
 
 	static void process(Context& context, bool file_mode){
