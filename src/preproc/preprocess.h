@@ -593,9 +593,9 @@ public:
 					}
 
 					vertexid_t id = atoi(line.c_str());
-					cout << "id: " << id << endl;
+//					cout << "id: " << id << endl;
 					Partition part = context.getPartition(id);
-					cout << "part: " << part << endl;
+//					cout << "part: " << part << endl;
 					write_to_partition_actives(part, id);
 
 					//update entry partitions according to entry nodes
@@ -778,9 +778,9 @@ public:
 					}
 
 					vertexid_t id = atoi(line.c_str());
-					cout << "id: " << id << endl;
+//					cout << "id: " << id << endl;
 					Partition part = context.getPartition(id);
-					cout << "part: " << part << endl;
+//					cout << "part: " << part << endl;
 					write_to_partition_actives_binary(part, id, buffers_actives[part]);
 
 					//update entry partitions according to entry nodes

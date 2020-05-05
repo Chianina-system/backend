@@ -202,6 +202,109 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 	Logger::print_thread_info_locked("compute-synchronous finished.\n", LEVEL_LOG_FUNCTION);
 }
 
+//void collect_associated_variables_summary(std::unordered_set<vertexid_t> &ids, vertexid_t *args, int len, vertexid_t ret, PEGraph *graph, Grammar *grammar) {
+//	vector<vertexid_t> worklist;
+//	for (int i = 0; i < len; i++) {
+//		ids.insert(args[i]);
+//		worklist.push_back(args[i]);
+//	}
+//	if (ret != -1) {
+//		ids.insert(ret);
+//		worklist.push_back(ret);
+//	}
+//	while (!worklist.empty()) {
+//		vertexid_t id = worklist.back();
+//		worklist.pop_back();
+//		if (graph->getGraph().find(id) != graph->getGraph().end()) {
+//			for (int i = 0; i < graph->getNumEdges(id); i++) {
+//				vertexid_t dst = graph->getEdges(id)[i];
+//				label_t label = graph->getLabels(id)[i];
+//				if (grammar->isDereference(label)) {
+//					ids.insert(dst);
+//					worklist.push_back(dst);
+//					break;
+//				}
+//			}
+//		}
+//	}
+//}
+
+//PEGraph* extractSubGraph_left_summary(PEGraph* graph, vertexid_t* args, int len, vertexid_t ret, Grammar *grammar){
+//	if(len == 0 && ret == -1){
+//		return graph;
+//	}
+//
+//	std::unordered_set<vertexid_t> ids;
+//	collect_associated_variables_summary(ids, args, len, ret, graph, grammar);
+//
+//    /* remove edges associated with ids and deref_ids */
+//	for(auto it = ids.begin(); it != ids.end(); ++it){
+//		vertexid_t id = *it;
+//		if(graph->getGraph().find(id) != graph->getGraph().end()){
+//			EdgeArray deletedArray = EdgeArray();
+//			for(int i = 0; i < graph->getNumEdges(id); i++){
+//				vertexid_t dst = graph->getEdges(id)[i];
+//				label_t label = graph->getLabels(id)[i];
+//				if(ids.find(dst) != ids.end()){
+//					deletedArray.addOneEdge(dst, label);
+//				}
+//			}
+//
+//			if(deletedArray.getSize() != 0){
+//	            int n1 = graph->getNumEdges(id);
+//	            auto *edges = new vertexid_t[n1];
+//	            auto *labels = new label_t[n1];
+//	            int len = myalgo::minusTwoArray(edges, labels, n1, graph->getEdges(id), graph->getLabels(id), deletedArray.getSize(), deletedArray.getEdges(), deletedArray.getLabels());
+//	            if(len){
+//	            	graph->setEdgeArray(id,len,edges,labels);
+//	            }
+//	            else{
+//	            	graph->clearEdgeArray(id);
+//	            }
+//
+//	            delete[] edges;
+//	            delete[] labels;
+//			}
+//		}
+//	}
+//
+//	return graph;
+//
+//}
+
+//PEGraph* extractSubGraph_summary(PEGraph* graph, vertexid_t* args, int len, vertexid_t ret, Grammar *grammar){
+//	if(len == 0 && ret == -1){
+//		delete graph;
+//		return new PEGraph();
+//	}
+//
+//	std::unordered_set<vertexid_t> ids;
+//	collect_associated_variables_summary(ids, args, len, ret, graph, grammar);
+//
+//	PEGraph* out = new PEGraph();
+//    /* extract edges associated with ids and deref_ids */
+//	for(auto it = ids.begin(); it != ids.end(); ++it){
+//		vertexid_t id = *it;
+//		if(graph->getGraph().find(id) != graph->getGraph().end()){
+//			EdgeArray deletedArray = EdgeArray();
+//			for(int i = 0; i < graph->getNumEdges(id); i++){
+//				vertexid_t dst = graph->getEdges(id)[i];
+//				label_t label = graph->getLabels(id)[i];
+//				if(ids.find(dst) != ids.end()){
+//					deletedArray.addOneEdge(dst, label);
+//				}
+//			}
+//
+//			if(deletedArray.getSize() != 0){
+//				out->setEdgeArray(id, deletedArray);
+//			}
+//		}
+//	}
+//
+//	delete graph;
+//	return out;
+//}
+
 void collect_associated_variables(std::unordered_set<vertexid_t> &ids, vertexid_t *args, int len, vertexid_t ret, PEGraph *graph, Grammar *grammar) {
 	vector<vertexid_t> worklist;
 	for (int i = 0; i < len; i++) {
@@ -218,59 +321,15 @@ void collect_associated_variables(std::unordered_set<vertexid_t> &ids, vertexid_
 		if (graph->getGraph().find(id) != graph->getGraph().end()) {
 			for (int i = 0; i < graph->getNumEdges(id); i++) {
 				vertexid_t dst = graph->getEdges(id)[i];
-				label_t label = graph->getLabels(id)[i];
-				if (grammar->isDereference(label)) {
+				if(ids.find(dst) == ids.end()){
 					ids.insert(dst);
 					worklist.push_back(dst);
-					break;
 				}
 			}
 		}
 	}
 }
 
-PEGraph* extractSubGraph_left(PEGraph* graph, vertexid_t* args, int len, vertexid_t ret, Grammar *grammar){
-	if(len == 0 && ret == -1){
-		return graph;
-	}
-
-	std::unordered_set<vertexid_t> ids;
-	collect_associated_variables(ids, args, len, ret, graph, grammar);
-
-    /* remove edges associated with ids and deref_ids */
-	for(auto it = ids.begin(); it != ids.end(); ++it){
-		vertexid_t id = *it;
-		if(graph->getGraph().find(id) != graph->getGraph().end()){
-			EdgeArray deletedArray = EdgeArray();
-			for(int i = 0; i < graph->getNumEdges(id); i++){
-				vertexid_t dst = graph->getEdges(id)[i];
-				label_t label = graph->getLabels(id)[i];
-				if(ids.find(dst) != ids.end()){
-					deletedArray.addOneEdge(dst, label);
-				}
-			}
-
-			if(deletedArray.getSize() != 0){
-	            int n1 = graph->getNumEdges(id);
-	            auto *edges = new vertexid_t[n1];
-	            auto *labels = new label_t[n1];
-	            int len = myalgo::minusTwoArray(edges, labels, n1, graph->getEdges(id), graph->getLabels(id), deletedArray.getSize(), deletedArray.getEdges(), deletedArray.getLabels());
-	            if(len){
-	            	graph->setEdgeArray(id,len,edges,labels);
-	            }
-	            else{
-	            	graph->clearEdgeArray(id);
-	            }
-
-	            delete[] edges;
-	            delete[] labels;
-			}
-		}
-	}
-
-	return graph;
-
-}
 
 PEGraph* extractSubGraph(PEGraph* graph, vertexid_t* args, int len, vertexid_t ret, Grammar *grammar){
 	if(len == 0 && ret == -1){
@@ -281,22 +340,88 @@ PEGraph* extractSubGraph(PEGraph* graph, vertexid_t* args, int len, vertexid_t r
 	std::unordered_set<vertexid_t> ids;
 	collect_associated_variables(ids, args, len, ret, graph, grammar);
 
+    /* keep edges associated with ids */
+    for(auto it = graph->getGraph().begin(); it!= graph->getGraph().end(); ){
+        if(it->second.isEmpty()){
+        	graph->getGraph().erase(it++);
+        	continue;
+        }
+
+        vertexid_t src = it->first;
+        if(ids.find(src) == ids.end()){
+        	graph->getGraph().erase(it++);
+        }
+        else{
+        	it++;
+        }
+    }
+
+	return graph;
+}
+
+PEGraph* extractSubGraph_left(PEGraph* graph, vertexid_t* args, int len, vertexid_t ret, Grammar *grammar){
+	if(len == 0 && ret == -1){
+		return graph;
+	}
+
+	std::unordered_set<vertexid_t> ids;
+	collect_associated_variables(ids, args, len, ret, graph, grammar);
+
+    /* remove edges associated with ids */
+    for(auto it = graph->getGraph().begin(); it!= graph->getGraph().end(); ){
+        if(it->second.isEmpty()){
+        	graph->getGraph().erase(it++);
+        	continue;
+        }
+
+        vertexid_t src = it->first;
+        if(ids.find(src) != ids.end()){
+        	graph->getGraph().erase(it++);
+        }
+        else{
+        	it++;
+        }
+    }
+
+	return graph;
+}
+
+PEGraph* extractSubGraph_exit(PEGraph* graph, vertexid_t* args, int len, vertexid_t ret, Grammar *grammar, std::vector<CFGNode*>* preds, GraphStore* graphstore){
+	if(len == 0 && ret == -1){
+		delete graph;
+		return new PEGraph();
+	}
+
+	std::unordered_set<vertexid_t> ids;
+	for(auto it = preds->cbegin(); it != preds->cend(); it++){
+		CFGNode* pred = *it;
+		if(pred->getStmt() && (pred->getStmt()->getType() == TYPE::Call || pred->getStmt()->getType() == TYPE::Callfptr)){
+			PEGraph_Pointer out_pointer = pred->getOutPointer();
+			PEGraph* pred_graph = graphstore->retrieve(out_pointer);
+			if(pred_graph){
+				collect_associated_variables(ids, args, len, ret, pred_graph, grammar);
+				delete pred_graph;
+			}
+			break;
+		}
+	}
+
 	PEGraph* out = new PEGraph();
-    /* extract edges associated with ids and deref_ids */
+    /* extract edges associated with ids */
 	for(auto it = ids.begin(); it != ids.end(); ++it){
 		vertexid_t id = *it;
 		if(graph->getGraph().find(id) != graph->getGraph().end()){
-			EdgeArray deletedArray = EdgeArray();
+			EdgeArray edges = EdgeArray();
 			for(int i = 0; i < graph->getNumEdges(id); i++){
 				vertexid_t dst = graph->getEdges(id)[i];
 				label_t label = graph->getLabels(id)[i];
 				if(ids.find(dst) != ids.end()){
-					deletedArray.addOneEdge(dst, label);
+					edges.addOneEdge(dst, label);
 				}
 			}
 
-			if(deletedArray.getSize() != 0){
-				out->setEdgeArray(id, deletedArray);
+			if(edges.getSize() != 0){
+				out->setEdgeArray(id, edges);
 			}
 		}
 	}
@@ -305,7 +430,7 @@ PEGraph* extractSubGraph(PEGraph* graph, vertexid_t* args, int len, vertexid_t r
 	return out;
 }
 
-PEGraph* getPartial(Stmt* current, Stmt* pred, PEGraph* pred_graph, Grammar *grammar){
+PEGraph* getPartial(Stmt* current, Stmt* pred, PEGraph* pred_graph, Grammar *grammar, std::vector<CFGNode*>* preds, GraphStore* graphstore){
 	if(!pred_graph){
 		return pred_graph;
 	}
@@ -334,13 +459,72 @@ PEGraph* getPartial(Stmt* current, Stmt* pred, PEGraph* pred_graph, Grammar *gra
     }
     else if(current->getType() == TYPE::Return){
     	ReturnStmt* returnstmt = (ReturnStmt*)(current);
-		PEGraph* toCaller = extractSubGraph(pred_graph, returnstmt->getArgs(), returnstmt->getLength(), returnstmt->getRet(), grammar);
+		PEGraph* toCaller = extractSubGraph_exit(pred_graph, returnstmt->getArgs(), returnstmt->getLength(), returnstmt->getRet(), grammar, preds, graphstore);
 		return toCaller;
     }
     else{
     	return pred_graph;
     }
 }
+
+//PEGraph* getPartial_summary(Stmt* current, Stmt* pred, PEGraph* pred_graph, Grammar *grammar){
+//	if(!pred_graph){
+//		return pred_graph;
+//	}
+//
+//    if(pred && pred->getType() == TYPE::Callfptr){
+//   		CallfptrStmt* callfptrstmt = (CallfptrStmt*)(pred);
+//    	if(current->getType() == TYPE::Return){
+//			PEGraph* toCaller = extractSubGraph_left_summary(pred_graph, callfptrstmt->getArgs(), callfptrstmt->getLength(), callfptrstmt->getRet(), grammar);
+//			return toCaller;
+//    	}
+//    	else {//other entry node in callee
+//			PEGraph* toCallee = extractSubGraph_summary(pred_graph, callfptrstmt->getArgs(), callfptrstmt->getLength(), callfptrstmt->getRet(), grammar);
+//			return toCallee;
+//    	}
+//    }
+//    else if(pred && pred->getType() == TYPE::Call){
+//   		CallStmt* callstmt = (CallStmt*)(pred);
+//    	if(current->getType() == TYPE::Return){
+//			PEGraph* toCaller = extractSubGraph_left_summary(pred_graph, callstmt->getArgs(), callstmt->getLength(), callstmt->getRet(), grammar);
+//			return toCaller;
+//    	}
+//    	else {//other entry node in callee
+//			PEGraph* toCallee = extractSubGraph_summary(pred_graph, callstmt->getArgs(), callstmt->getLength(), callstmt->getRet(), grammar);
+//			return toCallee;
+//    	}
+//    }
+//    else if(current->getType() == TYPE::Return){
+//    	ReturnStmt* returnstmt = (ReturnStmt*)(current);
+//		PEGraph* toCaller = extractSubGraph_summary(pred_graph, returnstmt->getArgs(), returnstmt->getLength(), returnstmt->getRet(), grammar);
+//		return toCaller;
+//    }
+//    else{
+//    	return pred_graph;
+//    }
+//}
+
+//PEGraph* getPartial_naive(Stmt* current, Stmt* pred, PEGraph* pred_graph, Grammar *grammar){
+//	if(!pred_graph){
+//		return pred_graph;
+//	}
+//
+//    if(pred && pred->getType() == TYPE::Callfptr){
+//   		CallfptrStmt* callfptrstmt = (CallfptrStmt*)(pred);
+//    	if(current->getType() == TYPE::Return && callfptrstmt->getLength() > 0){
+//			delete pred_graph;
+//			return nullptr;
+//    	}
+//    }
+//    if(pred && pred->getType() == TYPE::Call){
+//   		CallStmt* callstmt = (CallStmt*)(pred);
+//    	if(current->getType() == TYPE::Return && callstmt->getLength() > 0){
+//			delete pred_graph;
+//			return nullptr;
+//    	}
+//    }
+//    return pred_graph;
+//}
 
 
 PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds, CFGNode* cfg_node, Grammar *grammar){
@@ -359,7 +543,9 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
         out = graphstore->retrieve(out_pointer);
 
         //simplify the message passed through calls
-        out = getPartial(cfg_node->getStmt(), pred->getStmt(), out, grammar);
+        out = getPartial(cfg_node->getStmt(), pred->getStmt(), out, grammar, preds, graphstore);
+//        out = getPartial_summary(cfg_node->getStmt(), pred->getStmt(), out, grammar);
+//        out = getPartial_naive(cfg_node->getStmt(), pred->getStmt(), out, grammar);
 
         if(!out){
         	out = new PEGraph();
@@ -374,7 +560,9 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
             PEGraph* out_graph = graphstore->retrieve(out_pointer);
 
             //get partial peg
-            out_graph = getPartial(cfg_node->getStmt(), pred->getStmt(), out_graph, grammar);
+            out_graph = getPartial(cfg_node->getStmt(), pred->getStmt(), out_graph, grammar, preds, graphstore);
+//            out_graph = getPartial_summary(cfg_node->getStmt(), pred->getStmt(), out_graph, grammar);
+//            out_graph = getPartial_naive(cfg_node->getStmt(), pred->getStmt(), out_graph, grammar);
 
             if(!out_graph){
             	continue;

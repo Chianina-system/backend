@@ -22,12 +22,12 @@ private:
 
 public:
 	static void print_thread_info_locked(const std::string & info, const int level){
-		std::unique_lock<std::mutex> lock(lock_log);
-		if(level == 0){
-			return;
-		}
-		pid_t x = syscall(__NR_gettid);
-		std::cout << "thread " << x << ": " << info;
+//		std::unique_lock<std::mutex> lock(lock_log);
+//		if(level == 0){
+//			return;
+//		}
+//		pid_t x = syscall(__NR_gettid);
+//		std::cout << "thread " << x << ": " << info;
 	}
 
 //	static void print_thread_info(const std::string & info){
