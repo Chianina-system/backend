@@ -431,6 +431,81 @@ PEGraph* extractSubGraph_left(PEGraph* graph, vertexid_t* args, int len, vertexi
 	return graph;
 }
 
+PEGraph* extractSubGraph_exit_or_extract(PEGraph* graph, vertexid_t* args, int len, vertexid_t ret, Grammar *grammar, std::vector<CFGNode*>* preds, GraphStore* graphstore){
+	if(len == 0 && ret == -1){
+		delete graph;
+		return new PEGraph();
+	}
+
+	std::unordered_set<vertexid_t> ids;
+
+	PEGraph* pred_graph = nullptr;
+	for(auto it = preds->cbegin(); it != preds->cend(); it++){
+		CFGNode* pred = *it;
+		if(pred->getStmt() && (pred->getStmt()->getType() == TYPE::Call || pred->getStmt()->getType() == TYPE::Callfptr)){
+			PEGraph_Pointer out_pointer = pred->getOutPointer();
+			pred_graph = graphstore->retrieve(out_pointer);
+			if(pred_graph){
+				collect_associated_variables(ids, args, len, ret, pred_graph, grammar);
+//				delete pred_graph;
+			}
+			break;
+		}
+	}
+
+	PEGraph* fromExit = new PEGraph();
+    /* extract edges associated with ids */
+	for(auto it = ids.begin(); it != ids.end(); ++it){
+		vertexid_t id = *it;
+		if(graph->getGraph().find(id) != graph->getGraph().end()){
+			EdgeArray edges = EdgeArray();
+			for(int i = 0; i < graph->getNumEdges(id); i++){
+				vertexid_t dst = graph->getEdges(id)[i];
+				label_t label = graph->getLabels(id)[i];
+				if(ids.find(dst) != ids.end()){
+					edges.addOneEdge(dst, label);
+				}
+			}
+
+			if(edges.getSize() != 0){
+				fromExit->setEdgeArray(id, edges);
+			}
+		}
+	}
+
+	if(pred_graph && fromExit->isEmpty()){
+		delete fromExit;
+		fromExit = extractSubGraph(pred_graph, args, len, ret, grammar);
+	}
+
+
+
+//	//for debugging
+//	//check the subsumption between the extracted to entry and the extracted from exit
+//	if(pred_graph){
+//        //for debugging
+//        Logger::print_thread_info_locked("The call PEG after transformation:\n" + pred_graph->toString(grammar) + "\n", LEVEL_LOG_PEG);
+//
+//		PEGraph* toEntry = extractSubGraph(pred_graph, args, len, ret, grammar);
+//        //for debugging
+//        Logger::print_thread_info_locked("The toEntry PEG after transformation:\n" + toEntry->toString(grammar) + "\n", LEVEL_LOG_PEG);
+//
+//        //for debugging
+//        Logger::print_thread_info_locked("The exit PEG after transformation:\n" + graph->toString(grammar) + "\n", LEVEL_LOG_PEG);
+//        //for debugging
+//        Logger::print_thread_info_locked("The fromExit PEG after transformation:\n" + fromExit->toString(grammar) + "\n", LEVEL_LOG_PEG);
+//
+//
+//        toEntry->subtract(fromExit);
+//        //for debugging
+//        Logger::print_thread_info_locked("The toEntry PEG after subtraction:\n" + toEntry->toString(grammar) + "\n", LEVEL_LOG_PEG);
+//		assert(toEntry->isEmpty());
+//		delete toEntry;
+//	}
+	delete graph;
+	return fromExit;
+}
+
 PEGraph* extractSubGraph_exit(PEGraph* graph, vertexid_t* args, int len, vertexid_t ret, Grammar *grammar, std::vector<CFGNode*>* preds, GraphStore* graphstore){
 	if(len == 0 && ret == -1){
 		delete graph;
@@ -443,22 +518,21 @@ PEGraph* extractSubGraph_exit(PEGraph* graph, vertexid_t* args, int len, vertexi
 	for(auto it = preds->cbegin(); it != preds->cend(); it++){
 		CFGNode* pred = *it;
 		if(pred->getStmt() && (pred->getStmt()->getType() == TYPE::Call || pred->getStmt()->getType() == TYPE::Callfptr)){
-			//for debugging
-//			cout << "call node: " << *pred << endl;
-			if(pred->getStmt()->getType() == TYPE::Call){
-				CallStmt* callstmt = (CallStmt*)(pred->getStmt());
-				assert(len == callstmt->getLength() && ret == callstmt->getRet());
-				for(int i = 0; i < len; i++){
-					assert(args[i] == callstmt->getArgs()[i]);
-				}
-			}
-			else if(pred->getStmt()->getType() == TYPE::Callfptr){
-				CallfptrStmt* callfptrstmt = (CallfptrStmt*)(pred->getStmt());
-				assert(len == callfptrstmt->getLength() && ret == callfptrstmt->getRet());
-				for(int i = 0; i < len; i++){
-					assert(args[i] == callfptrstmt->getArgs()[i]);
-				}
-			}
+//			//for debugging
+//			if(pred->getStmt()->getType() == TYPE::Call){
+//				CallStmt* callstmt = (CallStmt*)(pred->getStmt());
+//				assert(len == callstmt->getLength() && ret == callstmt->getRet());
+//				for(int i = 0; i < len; i++){
+//					assert(args[i] == callstmt->getArgs()[i]);
+//				}
+//			}
+//			else if(pred->getStmt()->getType() == TYPE::Callfptr){
+//				CallfptrStmt* callfptrstmt = (CallfptrStmt*)(pred->getStmt());
+//				assert(len == callfptrstmt->getLength() && ret == callfptrstmt->getRet());
+//				for(int i = 0; i < len; i++){
+//					assert(args[i] == callfptrstmt->getArgs()[i]);
+//				}
+//			}
 
 			PEGraph_Pointer out_pointer = pred->getOutPointer();
 			pred_graph = graphstore->retrieve(out_pointer);
@@ -490,31 +564,10 @@ PEGraph* extractSubGraph_exit(PEGraph* graph, vertexid_t* args, int len, vertexi
 		}
 	}
 
-//	//for debugging
-//	//check the subsumption between the extracted to entry and the extracted from exit
-//	if(pred_graph){
-//        //for debugging
-//        Logger::print_thread_info_locked("The call PEG after transformation:\n" + pred_graph->toString(grammar) + "\n", LEVEL_LOG_PEG);
-//
-//		PEGraph* toEntry = extractSubGraph(pred_graph, args, len, ret, grammar);
-//        //for debugging
-//        Logger::print_thread_info_locked("The toEntry PEG after transformation:\n" + toEntry->toString(grammar) + "\n", LEVEL_LOG_PEG);
-//
-//        //for debugging
-//        Logger::print_thread_info_locked("The exit PEG after transformation:\n" + graph->toString(grammar) + "\n", LEVEL_LOG_PEG);
-//        //for debugging
-//        Logger::print_thread_info_locked("The fromExit PEG after transformation:\n" + fromExit->toString(grammar) + "\n", LEVEL_LOG_PEG);
-//
-//
-//        toEntry->subtract(fromExit);
-//        //for debugging
-//        Logger::print_thread_info_locked("The toEntry PEG after subtraction:\n" + toEntry->toString(grammar) + "\n", LEVEL_LOG_PEG);
-//		assert(toEntry->isEmpty());
-//		delete toEntry;
-//	}
 	delete graph;
 	return fromExit;
 }
+
 
 PEGraph* extractSubGraph_all_exit(PEGraph* graph, vertexid_t* args, int len, vertexid_t ret, Grammar *grammar, std::vector<CFGNode*>* preds, GraphStore* graphstore){
 	if(len == 0 && ret == -1){
@@ -567,57 +620,146 @@ PEGraph* getPartial(Stmt* current, Stmt* pred, PEGraph* pred_graph, Grammar *gra
 
 	PEGraph* out;
 
-	if(!pred_graph){
-		out = pred_graph;
+	if(SUMMARY_MODE == 0){//call -> return: full; call -> entry: extract; exit -> return: extract_exit
+		if(!pred_graph){
+			out = pred_graph;
+		}
+		else if(pred && pred->getType() == TYPE::Callfptr){
+	   		CallfptrStmt* callfptrstmt = (CallfptrStmt*)(pred);
+	    	if(current->getType() == TYPE::Return){
+	    		if(callfptrstmt->getLength() == 0){
+		    		out = pred_graph;
+	    		}
+	    		else {
+	    			out = pred_graph;
+	    		}
+	    	}
+	    	else {//other entry node in callee
+				out = extractSubGraph(pred_graph, callfptrstmt->getArgs(), callfptrstmt->getLength(), callfptrstmt->getRet(), grammar);
+	    	}
+	    }
+	    else if(pred && pred->getType() == TYPE::Call){
+	   		CallStmt* callstmt = (CallStmt*)(pred);
+	    	if(current->getType() == TYPE::Return){
+	    		if(callstmt->getLength() == 0){
+					out = pred_graph;
+	    		}
+	    		else{
+	    			out = pred_graph;
+	    		}
+	    	}
+	    	else {//other entry node in callee
+				out = extractSubGraph(pred_graph, callstmt->getArgs(), callstmt->getLength(), callstmt->getRet(), grammar);
+	    	}
+	    }
+	    else if(current->getType() == TYPE::Return){
+	    	ReturnStmt* returnstmt = (ReturnStmt*)(current);
+	    	if(returnstmt->getLength() == 0){
+	    		delete pred_graph;
+	    		out = new PEGraph();
+	    	}
+	    	else{
+				out = extractSubGraph_exit(pred_graph, returnstmt->getArgs(), returnstmt->getLength(), returnstmt->getRet(), grammar, preds, graphstore);
+	    	}
+	    }
+	    else{
+	    	out = pred_graph;
+	    }
 	}
-	else if(pred && pred->getType() == TYPE::Callfptr){
-   		CallfptrStmt* callfptrstmt = (CallfptrStmt*)(pred);
-    	if(current->getType() == TYPE::Return){
-    		if(callfptrstmt->getLength() == 0){
-	    		out = pred_graph;
-    		}
-    		else {
-//				out = extractSubGraph_left(pred_graph, callfptrstmt->getArgs(), callfptrstmt->getLength(), callfptrstmt->getRet(), grammar);
-//				out = extractSubGraph_left_summary(pred_graph, callfptrstmt->getArgs(), callfptrstmt->getLength(), callfptrstmt->getRet(), grammar);
-    			out = pred_graph;
-    		}
-    	}
-    	else {//other entry node in callee
-			out = extractSubGraph(pred_graph, callfptrstmt->getArgs(), callfptrstmt->getLength(), callfptrstmt->getRet(), grammar);
-//    		out = pred_graph;
-    	}
-    }
-    else if(pred && pred->getType() == TYPE::Call){
-   		CallStmt* callstmt = (CallStmt*)(pred);
-    	if(current->getType() == TYPE::Return){
-    		if(callstmt->getLength() == 0){
-				out = pred_graph;
-    		}
-    		else{
-//				out = extractSubGraph_left(pred_graph, callstmt->getArgs(), callstmt->getLength(), callstmt->getRet(), grammar);
-//				out = extractSubGraph_left_summary(pred_graph, callstmt->getArgs(), callstmt->getLength(), callstmt->getRet(), grammar);
-    			out = pred_graph;
-    		}
-    	}
-    	else {//other entry node in callee
-			out = extractSubGraph(pred_graph, callstmt->getArgs(), callstmt->getLength(), callstmt->getRet(), grammar);
-//    		out = pred_graph;
-    	}
-    }
-    else if(current->getType() == TYPE::Return){
-    	ReturnStmt* returnstmt = (ReturnStmt*)(current);
-    	if(returnstmt->getLength() == 0){
-    		delete pred_graph;
-    		out = new PEGraph();
-    	}
-    	else{
-			out = extractSubGraph_exit(pred_graph, returnstmt->getArgs(), returnstmt->getLength(), returnstmt->getRet(), grammar, preds, graphstore);
-//	    	out = extractSubGraph_summary(pred_graph, returnstmt->getArgs(), returnstmt->getLength(), returnstmt->getRet(), grammar);
-    	}
-    }
-    else{
-    	out = pred_graph;
-    }
+	else if(SUMMARY_MODE == 1){//call -> return: extract_left; call -> entry: extract; exit -> return: extract_exit or extract
+		if(!pred_graph){
+			out = pred_graph;
+		}
+		else if(pred && pred->getType() == TYPE::Callfptr){
+	   		CallfptrStmt* callfptrstmt = (CallfptrStmt*)(pred);
+	    	if(current->getType() == TYPE::Return){
+	    		if(callfptrstmt->getLength() == 0){
+		    		out = pred_graph;
+	    		}
+	    		else {
+					out = extractSubGraph_left(pred_graph, callfptrstmt->getArgs(), callfptrstmt->getLength(), callfptrstmt->getRet(), grammar);
+	    		}
+	    	}
+	    	else {//other entry node in callee
+				out = extractSubGraph(pred_graph, callfptrstmt->getArgs(), callfptrstmt->getLength(), callfptrstmt->getRet(), grammar);
+	    	}
+	    }
+	    else if(pred && pred->getType() == TYPE::Call){
+	   		CallStmt* callstmt = (CallStmt*)(pred);
+	    	if(current->getType() == TYPE::Return){
+	    		if(callstmt->getLength() == 0){
+					out = pred_graph;
+	    		}
+	    		else{
+					out = extractSubGraph_left(pred_graph, callstmt->getArgs(), callstmt->getLength(), callstmt->getRet(), grammar);
+	    		}
+	    	}
+	    	else {//other entry node in callee
+				out = extractSubGraph(pred_graph, callstmt->getArgs(), callstmt->getLength(), callstmt->getRet(), grammar);
+	    	}
+	    }
+	    else if(current->getType() == TYPE::Return){
+	    	ReturnStmt* returnstmt = (ReturnStmt*)(current);
+	    	if(returnstmt->getLength() == 0){
+	    		delete pred_graph;
+	    		out = new PEGraph();
+	    	}
+	    	else{
+				out = extractSubGraph_exit_or_extract(pred_graph, returnstmt->getArgs(), returnstmt->getLength(), returnstmt->getRet(), grammar, preds, graphstore);
+	    	}
+	    }
+	    else{
+	    	out = pred_graph;
+	    }
+	}
+	else if(SUMMARY_MODE == 2){//call -> return: extract_left_summary; call -> entry: extract_summary; exit -> return: extract_summary
+		if(!pred_graph){
+			out = pred_graph;
+		}
+		else if(pred && pred->getType() == TYPE::Callfptr){
+	   		CallfptrStmt* callfptrstmt = (CallfptrStmt*)(pred);
+	    	if(current->getType() == TYPE::Return){
+	    		if(callfptrstmt->getLength() == 0){
+		    		out = pred_graph;
+	    		}
+	    		else {
+					out = extractSubGraph_left_summary(pred_graph, callfptrstmt->getArgs(), callfptrstmt->getLength(), callfptrstmt->getRet(), grammar);
+	    		}
+	    	}
+	    	else {//other entry node in callee
+				out = extractSubGraph_summary(pred_graph, callfptrstmt->getArgs(), callfptrstmt->getLength(), callfptrstmt->getRet(), grammar);
+	    	}
+	    }
+	    else if(pred && pred->getType() == TYPE::Call){
+	   		CallStmt* callstmt = (CallStmt*)(pred);
+	    	if(current->getType() == TYPE::Return){
+	    		if(callstmt->getLength() == 0){
+					out = pred_graph;
+	    		}
+	    		else{
+					out = extractSubGraph_left_summary(pred_graph, callstmt->getArgs(), callstmt->getLength(), callstmt->getRet(), grammar);
+	    		}
+	    	}
+	    	else {//other entry node in callee
+				out = extractSubGraph_summary(pred_graph, callstmt->getArgs(), callstmt->getLength(), callstmt->getRet(), grammar);
+	    	}
+	    }
+	    else if(current->getType() == TYPE::Return){
+	    	ReturnStmt* returnstmt = (ReturnStmt*)(current);
+	    	if(returnstmt->getLength() == 0){
+	    		delete pred_graph;
+	    		out = new PEGraph();
+	    	}
+	    	else{
+		    	out = extractSubGraph_summary(pred_graph, returnstmt->getArgs(), returnstmt->getLength(), returnstmt->getRet(), grammar);
+	    	}
+	    }
+	    else{
+	    	out = pred_graph;
+	    }
+	}
+
+
 
 	//for debugging
 	Logger::print_thread_info_locked("get-partial finished.\n", LEVEL_LOG_FUNCTION);
