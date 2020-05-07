@@ -75,7 +75,12 @@ void PEGraph::subtract(PEGraph * graph_toSubtract){
 					n2, this->getEdges(it->first), this->getLabels(it->first),
 					n1, it->second.getEdges(), it->second.getLabels());
 
-			this->graph[it->first].set(len, edges, labels);
+			if(len){
+				this->graph[it->first].set(len, edges, labels);
+			}
+			else{
+				this->graph.erase(it->first);
+			}
 
 			delete[] edges;
 			delete[] labels;

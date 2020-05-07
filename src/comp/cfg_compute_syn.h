@@ -110,27 +110,38 @@ public:
 
 	static void propagate(CFGNode *cfg_node, CFG *cfg, PEGraph *out, Grammar *grammar, Concurrent_Worklist<CFGNode*> *worklist_2) {
 		//propagate
-//		if (cfg_node->getStmt()->getType() == TYPE::Callfptr) {
-//			//to deal with function pointer callsite
-//			std::vector<CFGNode*> *successors = cfg->getSuccessors(cfg_node);
-//			if (successors) {
-//				for (auto it = successors->cbegin(); it != successors->cend(); ++it) {
-//					CFGNode *suc = *it;
-//					if (CFGCompute_syn::isFeasible(suc->getStmt(), cfg_node->getStmt(), out, grammar)) {
-//						worklist_2->push_atomic(*it);
-//					}
-//				}
-//			}
-//		}
-//		else {
+		if (cfg_node->getStmt()->getType() == TYPE::Callfptr) {
+			//to deal with function pointer callsite
+			std::vector<CFGNode*> *successors = cfg->getSuccessors(cfg_node);
+			if (successors) {
+				for (auto it = successors->cbegin(); it != successors->cend(); ++it) {
+					CFGNode *suc = *it;
+					if(suc->getStmt() && suc->getStmt()->getType() == TYPE::Calleefptr){
+						if (CFGCompute_syn::isFeasible(suc->getStmt(), cfg_node->getStmt(), out, grammar)) {
+							worklist_2->push_atomic(*it);
+						}
+					}
+					else{
+						worklist_2->push_atomic(*it);
+					}
+				}
+			}
+		}
+		else {
 			//propagate
 			std::vector<CFGNode*> *successors = cfg->getSuccessors(cfg_node);
 			if (successors) {
 				for (auto it = successors->cbegin(); it != successors->cend(); ++it) {
+					CFGNode* suc = *it;
+					if(suc->getStmt() && suc->getStmt()->getType() == TYPE::Return && ((ReturnStmt*)(suc->getStmt()))->getLength() == 0 &&
+							(cfg_node->getStmt()->getType() == TYPE::Callfptr || cfg_node->getStmt()->getType() == TYPE::Call)){
+						continue;
+					}
+
 					worklist_2->push_atomic(*it);
 				}
 			}
-//		}
+		}
 	}
 
 private:

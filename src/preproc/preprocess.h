@@ -566,7 +566,7 @@ public:
 
 					//deal with mirrors statements
 					if(mirrors_map.find(node_id) != mirrors_map.end()){
-						if (type == "call" || type == "callfptr" || type == "calleefptr") {
+						if (type == "call" || type == "callfptr" || type == "calleefptr" || type == "return") {
 							for(auto& partition: mirrors_map[node_id]){
 								write_to_partition_mirrors_call(line, partition);
 							}
@@ -714,7 +714,7 @@ public:
 					//deal with mirrors statements
 					if(mirrors_map.find(cfgNode->getCfgNodeId()) != mirrors_map.end()){
 						TYPE type = cfgNode->getStmt()->getType();
-						if (type == TYPE::Call || type == TYPE::Callfptr || type == TYPE::Calleefptr) {
+						if (type == TYPE::Call || type == TYPE::Callfptr || type == TYPE::Calleefptr || type == TYPE::Return) {
 							for(auto& partition: mirrors_map[cfgNode->getCfgNodeId()]){
 								write_to_partition_mirrors_call_binary(cfgNode, partition, buffers_mirrors_call[partition]);
 							}
