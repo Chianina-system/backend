@@ -473,37 +473,80 @@ PEGraph* extractSubGraph_exit_or_extract(PEGraph* graph, vertexid_t* args, int l
 		}
 	}
 
-	if(pred_graph && fromExit->isEmpty()){
+	delete graph;
+
+	if(!pred_graph){
+		return fromExit;
+	}
+	else if(fromExit->isEmpty()){
 		delete fromExit;
-		fromExit = extractSubGraph(pred_graph, args, len, ret, grammar);
+		return extractSubGraph(pred_graph, args, len, ret, grammar);
+	}
+	else{
+		delete pred_graph;
+		return fromExit;
+	}
+}
+
+PEGraph* extractSubGraph_exit_plus_extract(PEGraph* graph, vertexid_t* args, int len, vertexid_t ret, Grammar *grammar, std::vector<CFGNode*>* preds, GraphStore* graphstore){
+	if(len == 0 && ret == -1){
+		delete graph;
+		return new PEGraph();
 	}
 
+	std::unordered_set<vertexid_t> ids;
 
+	PEGraph* pred_graph = nullptr;
+	for(auto it = preds->cbegin(); it != preds->cend(); it++){
+		CFGNode* pred = *it;
+		if(pred->getStmt() && (pred->getStmt()->getType() == TYPE::Call || pred->getStmt()->getType() == TYPE::Callfptr)){
+			PEGraph_Pointer out_pointer = pred->getOutPointer();
+			pred_graph = graphstore->retrieve(out_pointer);
+			if(pred_graph){
+				collect_associated_variables(ids, args, len, ret, pred_graph, grammar);
+//				delete pred_graph;
+			}
+			break;
+		}
+	}
 
-//	//for debugging
-//	//check the subsumption between the extracted to entry and the extracted from exit
-//	if(pred_graph){
-//        //for debugging
-//        Logger::print_thread_info_locked("The call PEG after transformation:\n" + pred_graph->toString(grammar) + "\n", LEVEL_LOG_PEG);
-//
-//		PEGraph* toEntry = extractSubGraph(pred_graph, args, len, ret, grammar);
-//        //for debugging
-//        Logger::print_thread_info_locked("The toEntry PEG after transformation:\n" + toEntry->toString(grammar) + "\n", LEVEL_LOG_PEG);
-//
-//        //for debugging
-//        Logger::print_thread_info_locked("The exit PEG after transformation:\n" + graph->toString(grammar) + "\n", LEVEL_LOG_PEG);
-//        //for debugging
-//        Logger::print_thread_info_locked("The fromExit PEG after transformation:\n" + fromExit->toString(grammar) + "\n", LEVEL_LOG_PEG);
-//
-//
-//        toEntry->subtract(fromExit);
-//        //for debugging
-//        Logger::print_thread_info_locked("The toEntry PEG after subtraction:\n" + toEntry->toString(grammar) + "\n", LEVEL_LOG_PEG);
-//		assert(toEntry->isEmpty());
-//		delete toEntry;
-//	}
+	PEGraph* fromExit = new PEGraph();
+    /* extract edges associated with ids */
+	for(auto it = ids.begin(); it != ids.end(); ++it){
+		vertexid_t id = *it;
+		if(graph->getGraph().find(id) != graph->getGraph().end()){
+			EdgeArray edges = EdgeArray();
+			for(int i = 0; i < graph->getNumEdges(id); i++){
+				vertexid_t dst = graph->getEdges(id)[i];
+				label_t label = graph->getLabels(id)[i];
+				if(ids.find(dst) != ids.end()){
+					edges.addOneEdge(dst, label);
+				}
+			}
+
+			if(edges.getSize() != 0){
+				fromExit->setEdgeArray(id, edges);
+			}
+		}
+	}
+
 	delete graph;
-	return fromExit;
+
+	if(!pred_graph){
+		return fromExit;
+	}
+	else{
+		PEGraph* extract = extractSubGraph(pred_graph, args, len, ret, grammar);
+		if(fromExit->isEmpty()) {
+			delete fromExit;
+			return extract;
+		}
+		else {
+			fromExit->merge(extract);
+			delete extract;
+			return fromExit;
+		}
+	}
 }
 
 PEGraph* extractSubGraph_exit(PEGraph* graph, vertexid_t* args, int len, vertexid_t ret, Grammar *grammar, std::vector<CFGNode*>* preds, GraphStore* graphstore){
@@ -666,7 +709,7 @@ PEGraph* getPartial(Stmt* current, Stmt* pred, PEGraph* pred_graph, Grammar *gra
 	    	out = pred_graph;
 	    }
 	}
-	else if(SUMMARY_MODE == 1){//call -> return: extract_left; call -> entry: extract; exit -> return: extract_exit or extract
+	else if(SUMMARY_MODE == 2){//call -> return: extract_left; call -> entry: extract; exit -> return: extract_exit or extract
 		if(!pred_graph){
 			out = pred_graph;
 		}
@@ -706,13 +749,14 @@ PEGraph* getPartial(Stmt* current, Stmt* pred, PEGraph* pred_graph, Grammar *gra
 	    	}
 	    	else{
 				out = extractSubGraph_exit_or_extract(pred_graph, returnstmt->getArgs(), returnstmt->getLength(), returnstmt->getRet(), grammar, preds, graphstore);
+//	    		out = extractSubGraph_exit_plus_extract(pred_graph, returnstmt->getArgs(), returnstmt->getLength(), returnstmt->getRet(), grammar, preds, graphstore);
 	    	}
 	    }
 	    else{
 	    	out = pred_graph;
 	    }
 	}
-	else if(SUMMARY_MODE == 2){//call -> return: extract_left_summary; call -> entry: extract_summary; exit -> return: extract_summary
+	else if(SUMMARY_MODE == 1){//call -> return: extract_left_summary; call -> entry: extract_summary; exit -> return: extract_summary
 		if(!pred_graph){
 			out = pred_graph;
 		}
@@ -844,9 +888,7 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
         out = graphstore->retrieve(out_pointer);
 
         //simplify the message passed through calls
-//        cout << "current node: " << *cfg_node << "; pred node: " << *pred << endl;
         out = getPartial(cfg_node->getStmt(), pred->getStmt(), out, grammar, preds, graphstore);
-//        out = getPartial_summary(cfg_node->getStmt(), pred->getStmt(), out, grammar);
 //        out = getPartial_naive(cfg_node->getStmt(), pred->getStmt(), out, grammar);
 
         if(!out){
@@ -862,9 +904,7 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
             PEGraph* out_graph = graphstore->retrieve(out_pointer);
 
             //get partial peg
-//            cout << "current node: " << *cfg_node << "; pred node: " << *pred << endl;
             out_graph = getPartial(cfg_node->getStmt(), pred->getStmt(), out_graph, grammar, preds, graphstore);
-//            out_graph = getPartial_summary(cfg_node->getStmt(), pred->getStmt(), out_graph, grammar);
 //            out_graph = getPartial_naive(cfg_node->getStmt(), pred->getStmt(), out_graph, grammar);
 
             if(!out_graph){
