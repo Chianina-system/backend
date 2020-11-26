@@ -1,6 +1,8 @@
 # GraphFlow (also named as Chianina)
 A Disk-based Envolving Graph System for Context- and Flow-Sensitive Static Analyses on Million Lines of C Code.
 
+More information about the usage of Chianina will be given shortly. 
+
 
 ### Project Contributors
 * [**Zhiqiang Zuo**](http://z-zhiqiang.github.io/) - *Assistant Professor, Nanjing University*
