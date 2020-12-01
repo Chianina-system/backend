@@ -20,7 +20,7 @@ Make sure that you have the Boost library installed in your environment. Here yo
 $ git clone https://github.com/GraphFlow-system/backend.git
 ```
 
-2. get into the folder where contains the makefile.
+2. Get into the folder where contains the makefile.
 
 ```bash
 $ cd backend/Debug/
@@ -38,34 +38,34 @@ After compiling, there should be a `backend` binary executable file in `Debug` f
 
 GraphFlow needs five input files:
 
-1. file_total: record total number of nodes in the cfg 
+1. **file_total**: record total number of nodes in the cfg 
 
-2. file_entries: record entry nodes' id
+2. **file_entries**: record entry nodes' id
 
-3. file_cfg: record the whole program(inter) cfg which GraphFlow can perform computation
+3. **file_cfg**: record the whole program(inter) cfg which GraphFlow can perform computation
 
-4. file_stmts: record a map from node id to statement
+4. **file_stmts**: record a map from node id to statement
 
-5. file_singletons: record singleton variable ids
+5. **file_singletons**: record singleton variable ids
 
 And there are also seven parameters used to fit your own program and running environment: 
 
-1. graphstore_mode: 0 -- naive, 1 -- itemset
+1. **graphstore_mode**: `0 -- naive, 1 -- itemset`
 
-2. update_mode: 0 -- sequential, 1 -- parallel
+2. **update_mode**: `0 -- sequential, 1 -- parallel`
 
-3. comp_mode: 0 -- in-memory, 1 -- out-of-core
+3. **comp_mode**: `0 -- in-memory, 1 -- out-of-core`
 
-4. num_partitions: the number of partitions you want to part the in the computation cfg (if comp_mode == 1)
+4. **num_partitions**: the number of partitions you want to part the in the computation cfg (if comp_mode == 1)
 
-5. file_mode: 0 -- binary, 1 -- text (if comp_mode == 1)
+5. **file_mode**: `0 -- binary, 1 -- text` (if comp_mode == 1)
 
-6. buffered_mode: 0 --deflated, 1 -- specified (if comp_mode == 1)
+6. **buffered_mode**: `0 --default, 1 -- specified` (if comp_mode == 1)
 
-7. mining_mode: 0 -- eclat, 1 -- apriori, 2 -- fg-growth (if comp_mode == 1)
+7. **mining_mode**: `0 -- eclat, 1 -- apriori, 2 -- fg-growth` (if comp_mode == 1)
 
 ```bash
-./backend <file_total> <file_entries> <file_cfg> <file_stmts> <file_singletons> <graphstore_mode> <update_mode> <comp_mode> <num_partitions> <file_mode> <buffered_mode> <mining_mode> <support_threshold> <lengthen_threshold>
+./backend <file_total> <file_entries> <file_cfg> <file_stmts> <file_singletons> <graphstore_mode> <update_mode> <comp_mode> <num_partitions> <file_mode> <buffered_mode> <mining_mode>
 ```
 
 #### Usage example
