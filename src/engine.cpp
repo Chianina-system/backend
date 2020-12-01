@@ -30,11 +30,12 @@ void run_ooc(int, int, int, bool, bool, int, bool, int, bool, const string& file
 
 
 int main(int argc, char* argv[]) {
-	if(argc != 9 && argc != 15){
+	if(argc != 9 && argc != 13 /*15*/){
 		cout << "Usage: ./backend file_total file_entries file_cfg file_stmts file_singletons "
 				  << "graphstore_mode(0: naive; 1: itemset) update_mode(0: sequential; 1: parallel) "
 						<< "computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1) file_mode(0: binary; 1: text) buffered_mode(0: default; 1: user-specified) "
-						<< "mining_mode(0: eclat; 1: apriori; 2: fp-growth) support_threshold length_threshold" << endl;
+						/*<< "mining_mode(0: eclat; 1: apriori; 2: fp-growth) support_threshold length_threshold" << endl;*/
+						<< "mining_mode(0: eclat; 1: apriori; 2: fp-growth)" << endl;
 		return 0;
 	}
 
@@ -43,7 +44,8 @@ int main(int argc, char* argv[]) {
 			cout << "Usage: ./backend file_total file_entries file_cfg file_stmts file_singletons "
 					<< "graphstore_mode(0: naive; 1: itemset) update_mode(0: sequential; 1: parallel) "
 						<< "computation_mode(0: in-memory; 1: out-of-core) num_partitions(if mode == 1) file_mode(0: binary; 1: text) buffered_mode(0: default; 1: user-specified) "
-						<< "mining_mode(0: eclat; 1: apriori; 2: fp-growth) support_threshold length_threshold" << endl;
+						/*<< "mining_mode(0: eclat; 1: apriori; 2: fp-growth) support_threshold length_threshold" << endl;*/
+						<< "mining_mode(0: eclat; 1: apriori; 2: fp-growth)" << endl;
 			return 0;
 		}
 	}
@@ -59,7 +61,7 @@ int main(int argc, char* argv[]) {
 	auto start_fsm = std::chrono::high_resolution_clock::now();
 
 	if(atoi(argv[8])){
-		run_ooc(atoi(argv[12]), atoi(argv[13]), atoi(argv[14]), (bool)atoi(argv[11]), (bool)atoi(argv[10]), atoi(argv[6]), (bool)atoi(argv[7]), atoi(argv[9]), true, file_total, file_entries, file_cfg, file_stmts, file_singletons);
+		run_ooc(atoi(argv[12]), 0/*atoi(argv[13])*/, 0/*atoi(argv[14])*/, (bool)atoi(argv[11]), (bool)atoi(argv[10]), atoi(argv[6]), (bool)atoi(argv[7]), atoi(argv[9]), true, file_total, file_entries, file_cfg, file_stmts, file_singletons);
 	}
 	else{
 		run_inmemory(atoi(argv[6]), (bool)atoi(argv[7]), true, file_total, file_entries, file_cfg, file_stmts, file_singletons);
