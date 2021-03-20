@@ -80,10 +80,7 @@ And there are also seven parameters used to fit your own program and running env
 
 ### Project Contributors
 * [**Zhiqiang Zuo**](http://z-zhiqiang.github.io/) - *Assistant Professor, Nanjing University*
-* **Yue Li** - *Associate Professor, Nanjing University*
 * [**Guoqing Harry Xu**](http://web.cs.ucla.edu/~harryxu/) - *Associate Professor, UCLA*
-* **Linzhang Wang** - *Professor, Nanjing University*
-* **Xuandong Li** - *Professor, Nanjing University*
 * **Yiyu Zhang** - *PhD Student, Nanjing University*
 * **Qiuhong Pan** - *Master Student, Nanjing University*
 * **Shenming Lu** - *Master Student, Nanjing University*
