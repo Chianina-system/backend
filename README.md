@@ -1,10 +1,10 @@
-# GraphFlow (also named as Chianina)
+# Chianina (also named as GraphFlow)
 
-Welcome to the home repository of GraphFlow.
+Welcome to the home repository of Chianina.
 
-GraphFlow --- A Disk-based Envolving Graph System for Context- and Flow-Sensitive Static Analyses on Million Lines of C Code.
+Chianina --- A Disk-based Envolving Graph System for Context- and Flow-Sensitive Static Analyses on Million Lines of C Code.
 
-This README provides a how-to-use guide for GraphFlow. 
+This README provides a how-to-use guide for Chianina. 
 
 ## Getting started
 
@@ -12,12 +12,12 @@ This README provides a how-to-use guide for GraphFlow.
 
 Make sure that you have the Boost library installed in your environment. Here you can get started using [Boost](https://www.boost.org/doc/libs/1_69_0/more/getting_started/index.html).
 
-### Compiling GraphFlow
+### Compiling Chianina
 
-1. Download the entire GraphFlow source code into your machine.
+1. Download the entire Chianina source code into your machine.
 
 ```bash
-$ git clone https://github.com/GraphFlow-system/backend.git
+$ git clone https://github.com/Chianina-system/backend.git
 ```
 
 2. Get into the folder where contains the makefile.
@@ -34,15 +34,15 @@ $ make
 
 After compiling, there should be a `backend` binary executable file in `Debug` folder.
 
-### Running GraphFlow
+### Running Chianina
 
-GraphFlow needs five input files:
+Chianina needs five input files:
 
 1. **file_total**: record total number of nodes in the cfg 
 
 2. **file_entries**: record entry nodes' id
 
-3. **file_cfg**: record the whole program(inter) cfg which GraphFlow can perform computation
+3. **file_cfg**: record the whole program(inter) cfg which Chianina can perform computation
 
 4. **file_stmts**: record a map from node id to statement
 
