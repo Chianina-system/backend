@@ -16,7 +16,7 @@ const long IO_SIZE = 16 * 1024 * 1024; // 16M
 const long CHUNK_SIZE = IO_SIZE * 2;
 const long PAGE_SIZE = 4 * 1024; // 4K
 const int MAX_QUEUE_SIZE = 65536;
-const long BUF_SIZE = 1 * 1024 * 1024;
+const long BUF_SIZE = 9 * 1024 * 1024;
 
 static long get_real_io_size(long io_size, int size_of_unit){
 	long real_io_size = io_size - io_size % size_of_unit;

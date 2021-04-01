@@ -21,9 +21,10 @@ using namespace std;
 class Context {
 
 public:
+    // Context(num_partitions, file_total, file_cfg, file_stmts, file_entries, file_singletons, file_grammar)
 	Context(unsigned int n_parts, const string& file_total, const string& file_cfg, const string& file_stmts, const string& file_entries, const string& file_singletons, const string& file_grammar){
-		this->number_partitions = n_parts;
-		this->total_nodes = readTotalNodes(file_total);
+		this->number_partitions = n_parts; // 记录用户设置的分区数量
+		this->total_nodes = readTotalNodes(file_total);// 记录处理节点的总数
 		assert(this->total_nodes != -1);
 
 //		this->partitions = new unsigned int[this->number_partitions];
@@ -37,7 +38,7 @@ public:
 //			this->priority_set.insert(partition_info(i, 0));
 //		}
 //		priority_list = new Priority_set();
-		priority_list = new Priority_array(this->number_partitions);
+		priority_list = new Priority_array(this->number_partitions); //创建优先数组,记录partition的总数，并且将每个partition的优先级设置为0（优先级用数字表示）
 
 		//file path initialization
 		this->file_cfg_init = file_cfg;
@@ -47,10 +48,10 @@ public:
 		this->file_singletons_init = file_singletons;
 
 		grammar = new Grammar();
-		grammar->loadGrammar(file_grammar.c_str());
+		//grammar->loadGrammar(file_grammar.c_str());
 
 		singletons = new Singletons();
-		singletons->loadSingletonSet(file_singletons);
+		//singletons->loadSingletonSet(file_singletons);
 
 		partitionInfo = new int[this->total_nodes];
 	}
@@ -211,7 +212,7 @@ private:
 	string file_grammar_init;
 
 //	std::unordered_map<int, int> partitionInfo;
-	int* partitionInfo;
+	int* partitionInfo; // 下标为节点编号，数组内容为节点所属partition编号
 
 
 	long readTotalNodes(const string& file){

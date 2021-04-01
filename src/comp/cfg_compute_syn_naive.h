@@ -98,7 +98,7 @@ public:
 
 	    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 	//    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
-	    graphstore->printOutInfo();
+	    //graphstore->printOutInfo();
 
 	    //for tuning
 	    sum_compute.print();
@@ -163,7 +163,7 @@ public:
 
 	        //update and propagate
 	        PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-	        PEGraph* old_out = graphstore->retrieve_shallow(out_pointer);
+	        PEGraph* old_out = nullptr;//graphstore->retrieve_shallow(out_pointer);
 	        bool isEqual = out->equals(old_out);
 
 	//        //for debugging
@@ -182,7 +182,7 @@ public:
 	        	CFGCompute_syn::propagate(cfg_node, cfg, out, grammar, worklist_2);
 
 	            //store the new graph into tmp_graphstore
-	            dynamic_cast<NaiveGraphStore*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
+	            //dynamic_cast<NaiveGraphStore*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
 	        }
 	        else{
 				delete out;

@@ -57,8 +57,8 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
         sum_update.start();
 
         //synchronize and communicate
-        graphstore->update_graphs(tmp_graphstore, update_mode);
-        tmp_graphstore->clear();
+//        graphstore->update_graphs(tmp_graphstore, update_mode);
+//        tmp_graphstore->clear();
 
         //for tuning
         sum_update.end();
@@ -91,7 +91,7 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
 
     Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 //    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
-    graphstore->printOutInfo();
+    //graphstore->printOutInfo();
 
     //for tuning
     sum_compute.print();
@@ -156,7 +156,7 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-        PEGraph* old_out = graphstore->retrieve(out_pointer);
+        PEGraph* old_out;// = graphstore->retrieve(out_pointer);
         bool isEqual = out->equals(old_out);
 
 //        //for debugging
@@ -175,7 +175,7 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 			propagate(cfg_node, cfg, out, grammar, worklist_2);
 
             //store the new graph into tmp_graphstore
-            dynamic_cast<NaiveGraphStore*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
+           // dynamic_cast<NaiveGraphStore*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
         }
         else{
 			delete out;
@@ -444,7 +444,7 @@ PEGraph* extractSubGraph_exit_or_extract(PEGraph* graph, vertexid_t* args, int l
 		CFGNode* pred = *it;
 		if(pred->getStmt() && (pred->getStmt()->getType() == TYPE::Call || pred->getStmt()->getType() == TYPE::Callfptr)){
 			PEGraph_Pointer out_pointer = pred->getOutPointer();
-			pred_graph = graphstore->retrieve(out_pointer);
+			pred_graph;// = graphstore->retrieve(out_pointer);
 			if(pred_graph){
 				collect_associated_variables(ids, args, len, ret, pred_graph, grammar);
 //				delete pred_graph;
@@ -501,7 +501,7 @@ PEGraph* extractSubGraph_exit_plus_extract(PEGraph* graph, vertexid_t* args, int
 		CFGNode* pred = *it;
 		if(pred->getStmt() && (pred->getStmt()->getType() == TYPE::Call || pred->getStmt()->getType() == TYPE::Callfptr)){
 			PEGraph_Pointer out_pointer = pred->getOutPointer();
-			pred_graph = graphstore->retrieve(out_pointer);
+			pred_graph;// = graphstore->retrieve(out_pointer);
 			if(pred_graph){
 				collect_associated_variables(ids, args, len, ret, pred_graph, grammar);
 //				delete pred_graph;
@@ -578,7 +578,7 @@ PEGraph* extractSubGraph_exit(PEGraph* graph, vertexid_t* args, int len, vertexi
 //			}
 
 			PEGraph_Pointer out_pointer = pred->getOutPointer();
-			pred_graph = graphstore->retrieve(out_pointer);
+			pred_graph;// = graphstore->retrieve(out_pointer);
 			if(pred_graph){
 				collect_associated_variables(ids, args, len, ret, pred_graph, grammar);
 				delete pred_graph;
@@ -624,7 +624,7 @@ PEGraph* extractSubGraph_all_exit(PEGraph* graph, vertexid_t* args, int len, ver
 		CFGNode* pred = *it;
 		if(pred->getStmt() && (pred->getStmt()->getType() == TYPE::Call || pred->getStmt()->getType() == TYPE::Callfptr)){
 			PEGraph_Pointer out_pointer = pred->getOutPointer();
-			PEGraph* pred_graph = graphstore->retrieve(out_pointer);
+			PEGraph* pred_graph;// = graphstore->retrieve(out_pointer);
 			if(pred_graph){
 				collect_associated_variables_all(ids, args, len, ret, pred_graph, grammar);
 				delete pred_graph;
@@ -882,10 +882,10 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
         //return an empty graph
         out = new PEGraph();
     }
-    else if(preds->size() == 1){
+    else if(preds->size() == 1) {
         CFGNode* pred = preds->at(0);
         PEGraph_Pointer out_pointer = pred->getOutPointer();
-        out = graphstore->retrieve(out_pointer);
+        //out = graphstore->retrieve(out_pointer);
 
         //simplify the message passed through calls
         out = getPartial(cfg_node->getStmt(), pred->getStmt(), out, grammar, preds, graphstore);
@@ -901,7 +901,7 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
         for(auto it = preds->cbegin(); it != preds->cend(); it++){
             CFGNode* pred = *it;
             PEGraph_Pointer out_pointer = pred->getOutPointer();
-            PEGraph* out_graph = graphstore->retrieve(out_pointer);
+            PEGraph* out_graph;// = graphstore->retrieve(out_pointer);
 
             //get partial peg
             out_graph = getPartial(cfg_node->getStmt(), pred->getStmt(), out_graph, grammar, preds, graphstore);

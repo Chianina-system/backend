@@ -1,0 +1,114 @@
+cmake_minimum_required(VERSION 3.17)
+project(backend_tuning)
+
+set(CMAKE_CXX_STANDARD 14)
+
+include_directories(src/common)
+include_directories(src/comp)
+include_directories(src/comp/array)
+include_directories(src/comp/concurrent_worklist)
+include_directories(src/comp/graphstore)
+include_directories(src/comp/list)
+include_directories(src/comp/partition_priority)
+include_directories(src/comp/stmt)
+include_directories(src/preproc)
+include_directories(src/utility)
+
+add_executable(backend_tuning
+        src/common/CommonLibs.hpp
+        src/comp/array/arraystomerge.cpp
+        src/comp/array/arraystomerge.h
+        src/comp/concurrent_worklist/concurrent_worklist.h
+        src/comp/concurrent_worklist/concurrent_workqueue.h
+        src/comp/concurrent_worklist/concurrent_workset.h
+        src/comp/graphstore/buffer.h
+        src/comp/graphstore/delta_graph.h
+        src/comp/graphstore/delta_graphstore.h
+        src/comp/graphstore/edge.h
+        src/comp/graphstore/fptree.cpp
+        src/comp/graphstore/fptree.hpp
+        src/comp/graphstore/graphstore.h
+        src/comp/graphstore/hybrid_graph.h
+        src/comp/graphstore/hybrid_graphstore.h
+        src/comp/graphstore/itemset_graph.h
+        src/comp/graphstore/itemset_graphstore.h
+        src/comp/graphstore/myarray.h
+        src/comp/graphstore/naive_graphstore.h
+        src/comp/list/edgelist.cpp
+        src/comp/list/edgelist.h
+        src/comp/list/liststomerge.cpp
+        src/comp/list/liststomerge.h
+        src/comp/partition_priority/partition_priority.h
+        src/comp/partition_priority/priority_array.h
+        src/comp/partition_priority/priority_set.h
+        src/comp/stmt/stmt.h
+        src/comp/stmt/stmt_alloc.h
+        src/comp/stmt/stmt_assign.h
+        src/comp/stmt/stmt_call.h
+        src/comp/stmt/stmt_calleefptr.h
+        src/comp/stmt/stmt_callfptr.h
+        src/comp/stmt/stmt_load.h
+        src/comp/stmt/stmt_phi.h
+        src/comp/stmt/stmt_ret.h
+        src/comp/stmt/stmt_return.h
+        src/comp/stmt/stmt_skip.h
+        src/comp/stmt/stmt_store.h
+        src/comp/cfg.h
+        src/comp/cfg_compute_asyn.h
+        src/comp/cfg_compute_ooc_asyn.h
+        src/comp/cfg_compute_ooc_syn.h
+        src/comp/cfg_compute_ooc_syn_delta.h
+        src/comp/cfg_compute_ooc_syn_itemset.h
+        src/comp/cfg_compute_ooc_syn_naive.h
+        src/comp/cfg_compute_syn.cpp
+        src/comp/cfg_compute_syn.h
+        src/comp/cfg_compute_syn_delta.h
+        src/comp/cfg_compute_syn_itemset.h
+        src/comp/cfg_compute_syn_naive.h
+        src/comp/cfg_map.h
+        src/comp/cfg_map_outcore.h
+        src/comp/cfg_node.h
+        src/comp/computationset.cpp
+        src/comp/computationset.h
+        src/comp/containerstomerge.h
+        src/comp/context.cpp
+        src/comp/context.h
+        src/comp/edgearray.cpp
+        src/comp/edgearray.h
+        src/comp/io_manager.hpp
+        src/comp/minheap.cpp
+        src/comp/minheap.h
+        src/comp/myalgorithm.cpp
+        src/comp/myalgorithm.h
+        src/comp/peg_compute.cpp
+        src/comp/peg_compute.h
+        src/comp/peg_compute_parallel.cpp
+        src/comp/peg_compute_parallel.h
+        src/comp/pegraph.cpp
+        src/comp/pegraph.h
+        src/preproc/grammar.cpp
+        src/preproc/grammar.h
+        src/preproc/preprocess.h
+        src/preproc/scc_tarjan.cpp
+        src/preproc/scc_tarjan.hpp
+        src/preproc/singletons.h
+        src/utility/FileUtil.hpp
+        src/utility/IO_Manager.hpp
+        src/utility/Logger.cpp
+        src/utility/Logger.hpp
+        src/utility/ResourceManager.cpp
+        src/utility/ResourceManager.hpp
+        src/utility/StaticPrinter.h
+        src/utility/Timer.cpp
+        src/utility/Timer.hpp
+        src/utility/timer_diff.hpp
+        src/utility/timer_sum.hpp
+        src/utility/timer_sum_sync.hpp
+        src/utility/Timer_wrapper_inmemory.h
+        src/utility/Timer_wrapper_ooc.h
+        src/utility/uintseqhash.cc
+        src/utility/uintseqhash.hh
+        src/engine.cpp
+        src/comp/cachestate.h
+        src/comp/cachestate.cpp)
+SET(CMAKE_CXX_FLAGS -pthread)

@@ -14,7 +14,7 @@
 class Graph
 {
     int V; // No. of vertices
-    std::list<int> *adj; // A dynamic array of adjacency lists
+    std::list<int> *adj; // A dynamic array of adjacency lists 每个节点对应一个list
 
     // A Recursive DFS based function used by SCC()
     void SCCUtil(int u, int disc[], int low[],

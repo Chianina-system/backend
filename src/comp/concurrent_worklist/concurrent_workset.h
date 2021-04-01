@@ -62,9 +62,9 @@ public:
 //    }
 
 
-
+    std::set<T, cfgnode_pointer_compare<T>> set;
 private:
-	std::set<T, cfgnode_pointer_compare<T>> set;
+
 
 
 protected:

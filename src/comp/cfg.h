@@ -12,7 +12,16 @@
 #include "../utility/Logger.hpp"
 #include "graphstore/buffer.h"
 #include "io_manager.hpp"
-
+struct suc {
+    suc(CFGNode* c, std::string s, int n) {
+        node = c;
+        type = s;
+        num = n;
+    }
+    CFGNode* node;
+    std::string type;
+    int num;
+};
 
 class CFG{
 
@@ -30,6 +39,13 @@ public:
         for (auto &node : nodes) {
             delete node;
         }
+
+        for (auto &it : succes) {
+            for (auto &k : it.second) {
+                delete k;
+            }
+        }
+
     }
 
 //    virtual std::vector<CFGNode*>* getPredesessors(const CFGNode* node) = 0;
@@ -49,17 +65,31 @@ public:
         }
     }
 
-    std::vector<CFGNode*>* getSuccessors(const CFGNode* node) {
+    std::vector<suc* >* getSuccessors(const CFGNode* node) {
+    //std::vector<CFGNode*>* getSuccessors(const CFGNode* node) {
+        //cout << "node in getSuccessors: " << node << endl;
         auto it = succes.find(node);
+
         if(it != succes.end()){
+            //return &(it->second);
             return &(it->second);
         }
         else{
 //        	return std::vector<CFGNode*>();
-        	return nullptr;
+            return nullptr;
 //            perror("invalid key!");
 //            exit (EXIT_FAILURE);
         }
+//        auto it = succes.find(node);
+//        if(it != succes.end()){
+//            return &(it->second);
+//        }
+//        else{
+////        	return std::vector<CFGNode*>();
+//        	return nullptr;
+////            perror("invalid key!");
+////            exit (EXIT_FAILURE);
+//        }
     }
 
     inline std::vector<CFGNode*>& getNodes() {
@@ -73,14 +103,15 @@ public:
 protected:
     virtual void print(std::ostream& str) const = 0;
 
-
     std::vector<CFGNode*> nodes;
 
     vertexid_t number_edges = 0;
 
     std::unordered_map<const CFGNode*, std::vector<CFGNode*>> predes;
 
-    std::unordered_map<const CFGNode*, std::vector<CFGNode*>> succes;
+    //std::unordered_map<const CFGNode*, std::vector<CFGNode*>> succes;
+
+    std::unordered_map<const CFGNode*, std::vector<suc*>> succes;
 
 
 };
