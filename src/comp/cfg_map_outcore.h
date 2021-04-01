@@ -280,7 +280,7 @@ public:
 
 					CFGNode* cfgNode = new CFGNode();
 					cfgNode->read_from_buf(buf, bufsize);
-					if (2463342 == cfgNode->getCfgNodeId()) cout << "have 2463342" << endl;
+					//if (2463342 == cfgNode->getCfgNodeId()) cout << "have 2463342" << endl;
 					m[cfgNode->getCfgNodeId()] = cfgNode;
 //					cout << "cfg node: " << cfgNode->getCfgNodeId() << endl;
 //                    cout << "content: ";
@@ -348,7 +348,7 @@ public:
 					for(long offset = 0; offset < valid_io_size; offset += sizeof(vertexid_t)) {
 						PEGraph_Pointer id = *((vertexid_t*)(buf + offset));
 						if (m.find(id) == m.end()) {
-							m[id] = new CFGNode(id, nullptr);
+							m[id] = new CFGNode(id);
 						}
 						this->mirrors.insert(m[id]);
 						//cout << "id: " << m[id]->getCfgNodeId() << endl;
@@ -369,7 +369,7 @@ public:
     		else{
 				long cfg_file_size = io_manager::get_filesize(fp_cfg);
 				char* buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
-				long real_io_size = get_real_io_size(IO_SIZE, sizeof(vertexid_t) * 2 + sizeof(char));
+				long real_io_size = get_real_io_size(IO_SIZE, sizeof(vertexid_t) * 2);
 				int streaming_counter = cfg_file_size / real_io_size + 1;
 
 				long offset_read = 0;
@@ -384,40 +384,11 @@ public:
 					io_manager::read_from_file(fp_cfg, buf, valid_io_size, offset_read);
 					offset_read += valid_io_size;
 
-					for(long offset = 0; offset < valid_io_size; offset += (sizeof(vertexid_t) * 2 + sizeof(char))) {
+					for(long offset = 0; offset < valid_io_size; offset += (sizeof(vertexid_t) * 2)) {
 						vertexid_t pred_id = *((vertexid_t*)(buf + offset));
 						vertexid_t succ_id = *((vertexid_t*)(buf + offset + sizeof(vertexid_t)));
-						char type = *((char*)(buf + offset + sizeof(vertexid_t) + sizeof(vertexid_t)));
-						if (pred_id == 2451646) {
-						    cout << "pred_id: " << pred_id;
-						    cout << " succ_id: " << succ_id;
-						    cout << " type:" << type << endl;
-						}
-
-                        if (type == 'T' ) {
-                            //src->addTchild(dst->getCfgNodeId());
-                            this->addOneSucc(m[pred_id], m[succ_id],  "TEdge", 0);
-                            this->addOnePred(m[succ_id], m[pred_id]);
-                        }
-                        else if (type == 'C') {
-                            this->addOneSucc(m[pred_id], m[succ_id],  "CallEdge", 0);
-                            this->addOnePred(m[succ_id], m[pred_id]);
-                        }
-                        else if(type == 'B' || type == 'R') {
-                            //this->addBackEdge(stoi(edgePair[0]), stoi(edgePair[1]));
-                            this->addOneSucc(m[pred_id], m[succ_id], "BackEdge", 0);
-                            this->addOnePred(m[succ_id], m[pred_id]);
-                        }
-                        else {
-                            //src->addFchild(dst->getCfgNodeId());
-                            this->addOneSucc(m[pred_id], m[succ_id], "FEdge", 0);
-                            this->addOnePred(m[succ_id], m[pred_id]);
-                        }
-
-//						this->addOneSucc(m[pred_id], m[succ_id]);
-//						this->addOnePred(m[succ_id], m[pred_id]);
-//						cout << "m[pred_id], m[succ_id]: " << m[pred_id]->getCfgNodeId() << " " << m[succ_id]->getCfgNodeId()
-//						<< " type: " << type << endl;
+						this->addOneSucc(m[pred_id], m[succ_id]);
+						this->addOnePred(m[succ_id], m[pred_id]);
 					}
 				}
 				free(buf);
@@ -509,17 +480,12 @@ public:
 		predes[succ].push_back(pred);
     }
 
-    void addOneSucc(CFGNode *pred, CFGNode *succ, string edgeType, int num)  {
+    void addOneSucc(CFGNode *pred, CFGNode *succ)  {
         if(succes.find(pred) == succes.end()){
-            succes[pred] = std::vector<suc*>();
-            //succes[pred] = std::vector<std::pair<CFGNode*, std::string>>();
-            //succes[pred] = tmp;
+            succes[pred] = std::vector<CFGNode*>();
         }
-        //succes[pred].push_back(succ);
-        suc * tmp = new suc(succ, edgeType, num);
-        //std::pair<CFGNode*, std::string> p1(succ,edgeType);
-        succes[pred].push_back(tmp);
-        //this->number_edges++;
+        succes[pred].push_back(succ);
+        this->number_edges++;
     }
 
 //    void addOneSucc(CFGNode *pred, CFGNode *succ)  {
@@ -550,11 +516,10 @@ public:
                 cout << "test2" << endl;
                 cout << " - ";
                 if (it->second[i] == nullptr) cout << "null!" << endl;
-                if (it->second[i]->node == nullptr) cout << "node null!" << endl;
-                cout << it->second[i]->node->getCfgNodeId();
+                if (it->second[i] == nullptr) cout << "node null!" << endl;
+                cout << it->second[i]->getCfgNodeId();
                 cout << "test3" << endl;
                 cout << " " ;
-                cout << it->second[i]->type << endl;
                 cout << "test4" << endl;
             }
         }

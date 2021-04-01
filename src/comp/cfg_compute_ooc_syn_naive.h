@@ -25,6 +25,7 @@ public:
 	    CFG_map_outcore* cfg = dynamic_cast<CFG_map_outcore*>(cfg_);
 
 	    std::unordered_set<CFGNode*> nodes = cfg->getActiveNodes();
+//	    auto tmp = &nodes;
 //	    std::vector<CFGNode*> nodes = cfg->getNodes();
 
 	//    //for debugging
@@ -45,7 +46,7 @@ public:
 
 	        supersteps++;
 
-            cout << endl << "worklist size: " << worklist_1->size() << endl;
+            //cout << endl << "worklist size: " << worklist_1->size() << endl;
 
 	        //for tuning
 	        timer_ooc->getEdgeComputeSum()->start();
@@ -107,7 +108,7 @@ public:
         unsigned hit_Icache = predModel->AccessIC(I);  //只凭地址进行访问
 
         if (hit_Icache == 1) {
-            predModel->HitCount_Icache++;
+            //predModel->HitCount_Icache++;
         }
         else if (hit_Icache == 0) {
             predModel->MissCount_Icache++;
@@ -118,114 +119,70 @@ public:
         }
     }
 
-    static bool IsFEdge(CFG *pCfg, CFGNode *pNode, CFGNode *cfg_node) {
-        std::vector<suc*>* tmp = pCfg->getSuccessors(pNode);
-        std::string edgeType = "";
-        for(auto iter : *tmp)
-        {
-            if (iter->node->getCfgNodeId() == cfg_node->getCfgNodeId()) {
-                edgeType = iter->type;
-                break;
-            }
-        }
-        if (edgeType == "") {
-            cout << "edge type error";
-            exit(EXIT_FAILURE);
-        }
-        if (edgeType == "FEdge") {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    static bool IsBackEdge(CFG *pCfg, CFGNode *pNode, CFGNode *cfg_node) {
-        std::vector<suc*>* tmp = pCfg->getSuccessors(pNode);
-        std::string edgeType = "";
-        for(auto iter : *tmp)
-        {
-            if (iter->node->getCfgNodeId() == cfg_node->getCfgNodeId()) {
-                edgeType = iter->type;
-                break;
-            }
-        }
-        if (edgeType == "") {
-            cout << "edge type error";
-            exit(EXIT_FAILURE);
-        }
-        if (edgeType == "BackEdge") {
-            return true;
-        } else {
-            return false;
-        }
-    }
+//    static bool IsFEdge(CFG *pCfg, CFGNode *pNode, CFGNode *cfg_node) {
+//        std::vector<suc*>* tmp = pCfg->getSuccessors(pNode);
+//        std::string edgeType = "";
+//        for(auto iter : *tmp)
+//        {
+//            if (iter->node->getCfgNodeId() == cfg_node->getCfgNodeId()) {
+//                edgeType = iter->type;
+//                break;
+//            }
+//        }
+//        if (edgeType == "") {
+//            cout << "edge type error";
+//            exit(EXIT_FAILURE);
+//        }
+//        if (edgeType == "FEdge") {
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
+//    static bool IsBackEdge(CFG *pCfg, CFGNode *pNode, CFGNode *cfg_node) {
+//        std::vector<suc*>* tmp = pCfg->getSuccessors(pNode);
+//        std::string edgeType = "";
+//        for(auto iter : *tmp)
+//        {
+//            if (iter->node->getCfgNodeId() == cfg_node->getCfgNodeId()) {
+//                edgeType = iter->type;
+//                break;
+//            }
+//        }
+//        if (edgeType == "") {
+//            cout << "edge type error";
+//            exit(EXIT_FAILURE);
+//        }
+//        if (edgeType == "BackEdge") {
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
 
-    static void propagate(CFG_map_outcore* cfg, CFGNode* cfg_node, vector<suc* > *pSucs, Concurrent_Worklist<CFGNode *> *pWorklist, Concurrent_Worklist<CFGNode*> *actives) {
+    static void propagate(CFG_map_outcore* cfg, CFGNode* cfg_node, std::vector<CFGNode*> *pSucs, Concurrent_Worklist<CFGNode *> *pWorklist, Concurrent_Worklist<CFGNode*> *actives) {
         //cout << "successor number: " << pSucs->size() << endl;
         //mtx.lock();
         if (pSucs) {
             for (auto it = pSucs->cbegin(); it != pSucs->cend(); ++it) {
-                if (IsBackEdge(cfg, cfg_node, (*it)->node)) {
-                    (*it)->num ++;
-                    if ((*it)->num <= bound) {
-                        //if (it->first->getOutPointer() != cfg_node->getOutPointer()) {
-                        if ((*it)->node->getOutPointer() != cfg_node->getOutPointer()) {
-                            if (!cfg->isMirror((*it)->node)) {
-                                pWorklist->push_atomic((*it)->node);
-							}
-							else{
-								actives->push_atomic((*it)->node);
-							}
-
-                            //pWorklist->push_atomic((*it)->node);
-                        }
-                    }
+                CFGNode *suc = *it;
+                if (!cfg->isMirror(suc)) {
+                    pWorklist->push_atomic(suc);
                 }
-                else if (IsFEdge(cfg, cfg_node, (*it)->node)) {
-                    (*it)->num ++;
-                    if ((*it)->num <= bound/2) {
-                        //if (it->first->getOutPointer() != cfg_node->getOutPointer()) {
-                        if ((*it)->node->getOutPointer() != cfg_node->getOutPointer()) {
-                            if (!cfg->isMirror((*it)->node)) {
-                                pWorklist->push_atomic((*it)->node);
-                            }
-                            else{
-                                actives->push_atomic((*it)->node);
-                            }
-                            //pWorklist->push_atomic((*it)->node);
-                        }
-                    }
+                else{
+                    actives->push_atomic(suc);
                 }
-                else {
-                    //cout << "is not b" << cfg_node->getOutPointer() << " -> " << it->first->getOutPointer() << endl;
-                    if ((*it)->node->getOutPointer() != cfg_node->getOutPointer()) {
-                        //if (it->first->getOutPointer() != cfg_node->getOutPointer()) {
-                        //pWorklist->push_atomic(it->first);
-                        if (!cfg->isMirror((*it)->node)) {
-                            pWorklist->push_atomic((*it)->node);
-                        }
-                        else{
-                            actives->push_atomic((*it)->node);
-                        }
-                        //pWorklist->push_atomic((*it)->node);
-                    }
-                }
+//                if (suc->getOutPointer() != cfg_node->getOutPointer()) {
+//                        if (!cfg->isMirror(suc)) {
+//                            pWorklist->push_atomic(suc);
+//                        }
+//                        else{
+//                            actives->push_atomic(suc);
+//                        }
+//                }
 
-
-                //pWorklist->push_atomic(*it);
-
-//            if (it->first->getOutPointer() != cfg_node->getOutPointer())
-//            {
-//                cout << cfg_node->getOutPointer() << " -> " << it->first->getOutPointer() << endl;
-//                pWorklist->push_atomic(it->first);
-//            }
-                // cout << cfg_node->getOutPointer() << " -> " << (*it)->node->getOutPointer() << " " << (*it)->num << endl;
             }
         }
-//    cout << "backLoopCount.size(): " << backLoopCount->size() << endl;
-//    for (auto i : *backLoopCount) {
-//        cout << i.first.first << " -> " << i.first.second << "num: " << i.second << endl;
-//    }
-        //   mtx.unlock();
     }
 
 
@@ -251,9 +208,6 @@ public:
 
 	    CFGNode* cfg_node;
 		while(worklist_1->pop_atomic(cfg_node)){
-//		    cout << "node id: " << cfg_node->getCfgNodeId() << endl;
-//            for ()
-//		    cfg_node->getAllContent()
 //	    	//for debugging
 //	    	Logger::print_thread_info_locked("----------------------- CFG Node "
 //	    			+ to_string(cfg_node->getCfgNodeId())
@@ -264,50 +218,28 @@ public:
 			diff_merge.start();
 
             cachestate* predModel = nullptr;
-
-	        //merge
-	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
-
-            int num = 0;
+//            if(pre->find(cfg_node->getCfgNodeId()) != pre->end()){
+//                predModel = new cachestate();
+//            }
+            //merge
+            std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
             if (preds != nullptr) {
-                num = preds->size();
-            }
-            else predModel = new cachestate(64, 512, 4);
+                for (int p = 0; p < preds->size(); p++) {
+                    CFGNode* it = preds->at(p);
 
-            bool allIsNull = true;
-            for (int p = 0; p < num; p++) {
-                CFGNode* it = preds->at(p);
-                if (graphstore->retrieve_shallow(it->getCfgNodeId()) != nullptr) {
-                    allIsNull = false;
-                    break;
+                    //if (this->cacheTrace.find(it.getID()) == this->cacheTrace.end()) {//pred不在WL中
+                    //case1: it是当前block的前继，在以往的WL扫描中未访问过
+                    if (graphstore->getMap().find(it->getCfgNodeId()) != graphstore->getMap().end()) {//pred不在graphstore中
+
+                        if (predModel != nullptr)
+                            predModel->merge(graphstore->retrieve_shallow(it->getCfgNodeId())); //前继合并后的model不为空，可直接merge(直接与空merge会出错)
+                        else
+                            predModel = graphstore->retrieve(it->getCfgNodeId()); //深拷贝
+                    }
                 }
             }
-            if (allIsNull) predModel = new cachestate(64, 512, 4);
 
-
-            for (int p = 0; p < num; p++) {
-                CFGNode* it = preds->at(p);
-
-                //if (this->cacheTrace.find(it.getID()) == this->cacheTrace.end()) {//pred不在WL中
-                //case1: it是当前block的前继，在以往的WL扫描中未访问过
-                if (graphstore->getMap().find(it->getCfgNodeId()) == graphstore->getMap().end()) {//pred不在graphstore中
-                    continue;
-                }
-                else {
-                    //predModel->merge(dynamic_cast<State*>(graphstore->retrieve(it->getCfgNodeId()))); //前继合并后的model不为空，可直接merge(直接与空merge会出错)
-                    //pair<int , int> p1(it->getOutPointer(), cfg_node->getOutPointer());
-                    //if (IsBackEdge(cfg, it, cfg_node) && backLoopCount[p1] >= 5)
-                    //    continue;
-                    //else{
-                    if (predModel != nullptr)
-                        //predModel->merge(this->cacheTrace[it.getID()]); //合并
-                        predModel->merge(dynamic_cast<cachestate*>(graphstore->retrieve(it->getCfgNodeId()))); //前继合并后的model不为空，可直接merge(直接与空merge会出错)
-                    else
-                        //predModel = this->cacheTrace[it.getID()]->fork(); //深拷贝
-                        predModel = dynamic_cast<cachestate*>(graphstore->retrieve_shallow(it->getCfgNodeId()))->fork(); //深拷贝
-                    // }
-                }
-            }
+            if (predModel == nullptr) predModel = new cachestate();
 
             ScanBlockIR(cfg_node->getOutPointer(), cfg_node, predModel);
 
@@ -325,7 +257,8 @@ public:
             } else {
                 if (predModel->CacheConsistent(graphstore->retrieve_shallow(out_pointer))) {
                     predModel->count = old->count + 1;
-                    tmp_graphstore->addOneGraph_atomic(out_pointer, predModel);
+                    delete predModel;
+                    //tmp_graphstore->addOneGraph_atomic(out_pointer, predModel);
 //                if (predModel->MissCount_Icache == graphstore->retrieve_shallow(out_pointer)->MissCount_Icache)
 //                {
 //                    tmp_graphstore->addOneGraph_atomic(out_pointer, predModel);

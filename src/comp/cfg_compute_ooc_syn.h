@@ -42,7 +42,7 @@ public:
         cfg->loadCFG_ooc(file_mode, filename_cfg, filename_stmt, filename_mirrors_in, filename_mirrors_out,
                          foldername_actives);
         //cfg->print();
-        cout << "test!" << endl;
+        //cout << "test!" << endl;
 
 //		graphstore->init(cfg_);
         graphstore->loadGraphStore(filename_graphs, foldername_graphs_in, part, mining_mode, support, length);

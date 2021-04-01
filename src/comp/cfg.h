@@ -12,16 +12,16 @@
 #include "../utility/Logger.hpp"
 #include "graphstore/buffer.h"
 #include "io_manager.hpp"
-struct suc {
-    suc(CFGNode* c, std::string s, int n) {
-        node = c;
-        type = s;
-        num = n;
-    }
-    CFGNode* node;
-    std::string type;
-    int num;
-};
+//struct suc {
+//    suc(CFGNode* c, std::string s, int n) {
+//        node = c;
+//        type = s;
+//        num = n;
+//    }
+//    CFGNode* node;
+//    std::string type;
+//    int num;
+//};
 
 class CFG{
 
@@ -40,11 +40,11 @@ public:
             delete node;
         }
 
-        for (auto &it : succes) {
-            for (auto &k : it.second) {
-                delete k;
-            }
-        }
+//        for (auto &it : succes) {
+//            for (auto &k : it.second) {
+//                delete k;
+//            }
+//        }
 
     }
 
@@ -65,8 +65,8 @@ public:
         }
     }
 
-    std::vector<suc* >* getSuccessors(const CFGNode* node) {
-    //std::vector<CFGNode*>* getSuccessors(const CFGNode* node) {
+    //std::vector<suc* >* getSuccessors(const CFGNode* node) {
+    std::vector<CFGNode*>* getSuccessors(const CFGNode* node) {
         //cout << "node in getSuccessors: " << node << endl;
         auto it = succes.find(node);
 
@@ -109,9 +109,9 @@ protected:
 
     std::unordered_map<const CFGNode*, std::vector<CFGNode*>> predes;
 
-    //std::unordered_map<const CFGNode*, std::vector<CFGNode*>> succes;
+    std::unordered_map<const CFGNode*, std::vector<CFGNode*>> succes;
 
-    std::unordered_map<const CFGNode*, std::vector<suc*>> succes;
+    //std::unordered_map<const CFGNode*, std::vector<suc*>> succes;
 
 
 };

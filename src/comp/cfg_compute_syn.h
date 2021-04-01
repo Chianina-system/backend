@@ -56,32 +56,32 @@ public:
 
     static PEGraph* transfer(PEGraph* in, Stmt* stmt, Grammar* grammar, Singletons* singletons, bool flag,
     		Timer_wrapper_inmemory* timer = nullptr){
-        switch(stmt->getType()){
-            case TYPE::Assign:
-                return transfer_copy(in, (AssignStmt*)stmt, grammar, singletons, flag, timer);
-            case TYPE::Load:
-                return transfer_load(in, (LoadStmt*)stmt, grammar, singletons, flag, timer);
-            case TYPE::Store:
-                return transfer_store(in, (StoreStmt*)stmt, grammar, singletons, flag, timer);
-            case TYPE::Alloca:
-                return transfer_address(in, (AllocStmt*)stmt, grammar, singletons, flag, timer);
-            case TYPE::Phi:
-            	return transfer_phi(in, (PhiStmt*)stmt, grammar, singletons, flag, timer);
-            case TYPE::Call:
-            	return transfer_call(in);
-            case TYPE::Return:
-            	return transfer_return(in);
-            case TYPE::Ret:
-            	return transfer_ret(in);
-            case TYPE::Skip:
-            	return transfer_skip(in);
-            case TYPE::Callfptr:
-            	return transfer_callfptr(in);
-            case TYPE::Calleefptr:
-                return transfer_calleefptr(in);
-            default:
+//        switch(stmt->getType()){
+//            case TYPE::Assign:
+//                return transfer_copy(in, (AssignStmt*)stmt, grammar, singletons, flag, timer);
+//            case TYPE::Load:
+//                return transfer_load(in, (LoadStmt*)stmt, grammar, singletons, flag, timer);
+//            case TYPE::Store:
+//                return transfer_store(in, (StoreStmt*)stmt, grammar, singletons, flag, timer);
+//            case TYPE::Alloca:
+//                return transfer_address(in, (AllocStmt*)stmt, grammar, singletons, flag, timer);
+//            case TYPE::Phi:
+//            	return transfer_phi(in, (PhiStmt*)stmt, grammar, singletons, flag, timer);
+//            case TYPE::Call:
+//            	return transfer_call(in);
+//            case TYPE::Return:
+//            	return transfer_return(in);
+//            case TYPE::Ret:
+//            	return transfer_ret(in);
+//            case TYPE::Skip:
+//            	return transfer_skip(in);
+//            case TYPE::Callfptr:
+//            	return transfer_callfptr(in);
+//            case TYPE::Calleefptr:
+//                return transfer_calleefptr(in);
+//            default:
                 return nullptr;
-        }
+
     }
 
     static PEGraph* combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds, CFGNode* cfg_node, Grammar* grammar);

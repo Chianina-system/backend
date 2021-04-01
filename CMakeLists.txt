@@ -3,6 +3,10 @@ project(backend_tuning)
 
 set(CMAKE_CXX_STANDARD 14)
 
+SET(CMAKE_BUILD_TYPE Release)
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+
 include_directories(src/common)
 include_directories(src/comp)
 include_directories(src/comp/array)

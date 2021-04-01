@@ -40,12 +40,15 @@ class CFGNode{
 public:
     CFGNode(){
     	id = -1;
-    	stmt = NULL;
+    	//len1= len;
+    	// content = new int[len1];
+
+
+    	//stmt = NULL;
     }
 
-    CFGNode(int _id, Stmt* _stmt) {
+    CFGNode(int _id) {
     	id = _id;
-    	stmt = _stmt;
     }
 
 //    CFGNode(std::string& line){
@@ -108,9 +111,9 @@ public:
 	}
 
     ~CFGNode(){
-    	if(stmt){
-			delete stmt;
-    	}
+//    	if(stmt){
+//			delete stmt;
+//    	}
     }
 
     int getHexValue(char a) {
@@ -235,7 +238,8 @@ public:
     }
 
     inline Stmt* getStmt() const {
-        return stmt;
+        //return stmt;
+        return nullptr;
     }
 
 //	inline PEGraph_Pointer getInPointer() const {
@@ -260,6 +264,7 @@ public:
 
     inline void addIR(IR inst) {
         content.push_back(inst);
+
     }
 
     inline std::vector<int> getAllContent() {
@@ -275,8 +280,10 @@ private:
     PEGraph_Pointer id;
 
     std::vector<IR> content;
+    // int len = 0;
+    //std:: int *content;
 
-    Stmt* stmt = nullptr;
+    //Stmt* stmt = nullptr;
 
 
 

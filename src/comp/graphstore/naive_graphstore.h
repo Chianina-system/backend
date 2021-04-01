@@ -209,7 +209,7 @@ public:
     				while(fread(&bufsize, sizeof(size_t), 1, fp) != 0) {
     					char *buf = (char*)malloc(bufsize);
     					freadRes = fread(buf, bufsize, 1, fp);
-    					cachestate* state = new cachestate(64, 512, 4);
+    					cachestate* state = new cachestate();
     					PEGraph_Pointer graph_pointer = state->read_from_buf(buf, bufsize);
     					free(buf);
 						//since the file is appended, we just use the recent updated pegraph
@@ -357,7 +357,7 @@ public:
             //out = new State(map[graph_pointer]);
         }
         else {
-            out = new cachestate(64, 512, 1);
+            out = new cachestate();
             //out = nullptr;
         }
         return out;
@@ -477,7 +477,7 @@ public:
 
 			//initialize the graphstore
 	        if(cache_map.find(it.first) == cache_map.end()){
-                cache_map[it.first] = new cachestate(64, 512, 1);
+                cache_map[it.first] = new cachestate();
 	        }
 	    }
 
@@ -565,17 +565,19 @@ public:
     }
 
 
-//    void getStatistics(int& size_graphs, long& size_vertices, long& size_edges, long& size_graphitems, long& size_baseitems, const std::unordered_set<PEGraph_Pointer>& mirrors){
-//    	for(auto it = map.begin(); it != map.end(); ++it){
-//    		if(mirrors.find(it->first) == mirrors.end()){
-//				size_edges += it->second->getNumEdges();
-//				size_vertices += it->second->getNumVertices();
-//				size_graphs++;
-//    		}
-//    	}
-//    	size_graphitems = size_edges;
-//    	size_baseitems = 0;
-//    }
+    void getStatistics(int& size_graphs, long& size_graphitems, const std::unordered_set<PEGraph_Pointer>& mirrors){
+    	for(auto it = cache_map.begin(); it != cache_map.end(); ++it){
+    	    //cout << "id: " << it->first << endl;
+    		if(mirrors.find(it->first) == mirrors.end()){
+                for (int i = 0; i < CacheLinesPerSet; ++i) {
+                    size_graphitems += it->second->IRs_Icache[i].size();
+                    //if(it->second->IRs_Icache[i].size() != 0);
+                    //cout << it->second->IRs_Icache[i].getStatisticssize() << endl;
+                }
+				size_graphs++;
+    		}
+    	}
+    }
 
 
 protected:

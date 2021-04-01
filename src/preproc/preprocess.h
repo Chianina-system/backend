@@ -78,18 +78,13 @@ public:
 		}
 	}
 
-	static void write_to_partition_cfg_binary(Partition partition, vertexid_t src_id, vertexid_t dst_id, char type, Buffer& buf){
+	static void write_to_partition_cfg_binary(Partition partition, vertexid_t src_id, vertexid_t dst_id, Buffer& buf){
 		memcpy(buf.getData() + buf.getSize(), (char*)& src_id, sizeof(vertexid_t));
 		buf.setSize(buf.getSize() + sizeof(vertexid_t));
 		memcpy(buf.getData() + buf.getSize(), (char*)& dst_id, sizeof(vertexid_t));
 		buf.setSize(buf.getSize() + sizeof(vertexid_t));
-		//cout << "start: " << buf.getSize() << endl;
-		//cout << "(char*)& type: " << *(char*)& type << endl;
-        //cout << "sizeof char" << sizeof(type)  << endl;
-        memcpy(buf.getData() + buf.getSize(), (char*)& type, sizeof(char));
-        buf.setSize(buf.getSize() + sizeof(char));
-        //cout << "end: " << buf.getSize() << endl;
-        //cout << "type: " << type << endl;
+//        memcpy(buf.getData() + buf.getSize(), (char*)& type, sizeof(char));
+//        buf.setSize(buf.getSize() + sizeof(char));
 
 		if(buf.isFull()){
 			string cfg_partition_file = Context::file_cfg + to_string(partition);
@@ -268,6 +263,17 @@ public:
     
 		context.setPartitionInfo(k, partitionNodes);
 	}
+
+    static void createPartition_naive(Context& context){
+        int total = context.getTotalNodes();//id range: [0, total-1]
+        int numPartitions = context.getNumberPartitions();
+
+        int mode = total / numPartitions + 1;
+        for(unsigned int i = 0; i < total; i++){
+            int part = i / mode;
+            context.setPartitionInfoElement(part, i);
+        }
+    }
 
 	static void createPartitionBfs(Context& context) {
 		int maxId = getMaxId(context.getFileCfg());
@@ -510,8 +516,10 @@ public:
 	}
 
 	static void process(Context& context, bool file_mode){
-		createPartitions_scc(context); // 创建partition，分配每个节点属于的partition编号,并将分配信息记录在context中
+		//createPartitions_scc(context); // 创建partition，分配每个节点属于的partition编号,并将分配信息记录在context中
         //createPartitionBfs(context);
+        //createPartitionTopSort(context);
+        createPartition_naive(context);
 		cout << "partition success!" << endl;
 
 		//for debugging
@@ -523,130 +531,16 @@ public:
 		//record the mirrors-in statements
 		std::unordered_map<vertexid_t, unordered_set<Partition>> mirrors_map;// 编号为key的节点的目标或源节点的所属partition的编号的集合为value
 
-		if(file_mode){
-//			cout << "text read starting..." << endl;
-//			//deal with cfg file
-//			ifstream myfile_cfg(context.getFileCfg());
-//			if (myfile_cfg.is_open()) {
-//				string line;
-//				while (getline(myfile_cfg, line)) {
-//					if(line == ""){
-//						continue;
-//					}
-//
-//					std::stringstream stream(line);
-//					std::string src_id, dst_id;
-//					stream >> src_id >> dst_id;
-//					Partition src_p = context.getPartition(atoi(src_id.c_str()));
-//					Partition dst_p = context.getPartition(atoi(dst_id.c_str()));
-//					//write to the respectively cfg files
-//					if(src_p == dst_p){
-//						write_to_partition_cfg(src_p, line); // 源节点和目标节点在一个partition中，则写入该partition对应的cfg中
-//					}
-//					else{
-//						write_to_partition_cfg(src_p, line);// 源节点和目标节点在不一个partition中，则边信息分别写入这两个partition对应的cfg中
-//						write_to_partition_cfg(dst_p, line);
-//
-//						//deal with mirrors in
-////						write_to_partition_mirrors_in(src_id, dst_p);
-//						vertexid_t src_id_int = atoi(src_id.c_str());
-//						if(mirrors_map.find(src_id_int) == mirrors_map.end()){
-//							mirrors_map[src_id_int] = unordered_set<Partition>();
-//						}
-//						mirrors_map[src_id_int].insert(dst_p);// 记录源节点会有目标节点在编号为dst_p的partition中
-//
-//						//deal with mirrors out
-////						write_to_partition_mirrors_out(dst_id, src_p);
-//						vertexid_t dst_id_int = atoi(dst_id.c_str());
-//						if(mirrors_map.find(dst_id_int) == mirrors_map.end()){
-//							mirrors_map[dst_id_int] = unordered_set<Partition>();
-//						}
-//						mirrors_map[dst_id_int].insert(src_p);// 记录目标节点会有源节点节点在编号为dst_p的partition中
-//					}
-//				}
-//				myfile_cfg.close();
-//			}
-//			cout << "text cfg done" << endl;
-//
-//			//deal with stmt file
-//			ifstream myfile_stmt(context.getFileStmts());
-//			if (myfile_stmt.is_open()) {
-//				string line;
-//				while (getline(myfile_stmt, line)) {
-//					if(line == ""){
-//						continue;
-//					}
-//
-//					std::stringstream stream(line);
-//					std::string id;//, type;
-//					stream >> id;// >> type;
-//					vertexid_t node_id = atoi(id.c_str());
-//
-//					Partition p = context.getPartition(node_id);
-//					//write to the respectively stmt files
-//					// 要生成一个stmt文件，其中属于该partition的节点的stmt信息都要包含
-//					write_to_partition_stmt(p, line);
-//
-//					//deal with mirrors statements
-//					// 不属于该partition的节点但是跟本partition有关系的节点的stmt信息也要保留到一个文件中
-//                    for(auto& partition: mirrors_map[node_id]){
-//                        write_to_partition_mirrors_shallow(id, partition);
-//                    }
-//
-////					if(mirrors_map.find(node_id) != mirrors_map.end()){
-////						if (type == "call" || type == "callfptr" || type == "calleefptr" || type == "return") {
-////							for(auto& partition: mirrors_map[node_id]){
-////								write_to_partition_mirrors_call(line, partition);
-////							}
-////						}
-////						else {
-////							for(auto& partition: mirrors_map[node_id]){
-////								write_to_partition_mirrors_shallow(id, partition);
-////							}
-////						}
-////					}
-//
-//				}
-//				myfile_stmt.close();
-//			}
-//			cout << "text stmt done" << endl;
-//
-//			//initialize active nodes
-//			ifstream myfile_entries(context.getFileEntries());
-//			if (myfile_entries.is_open()) {
-//				string line;
-//				while (getline(myfile_entries, line)) {
-//					if(line == ""){
-//						continue;
-//					}
-//
-//					vertexid_t id = atoi(line.c_str());
-////					cout << "id: " << id << endl;
-//					Partition part = context.getPartition(id);
-////					cout << "part: " << part << endl;
-//					write_to_partition_actives(part, id);
-//
-//					//update entry partitions according to entry nodes
-//	//				if(part > context.getNumberPartitions()){
-//	//					cout << id << endl;
-//	//				}
-//					context.update_priority(part, 1); // 每个entry节点所属的partition加一分，可累加，分数越高优先级越大
-//				}
-//
-//				myfile_entries.close();
-//			}
-//			cout << "text actives done" << endl;
-
-		}
+		if(file_mode){}
 		else{//binary format
 			cout << "binary read starting..." << endl;
 			//deal with cfg file
 			ifstream myfile_cfg(context.getFileCfg());
 			if (myfile_cfg.is_open()) {
-				unsigned int num_partitions = context.getNumberPartitions();
+				unsigned int num_partitions = context.getNumberPartitions(); // 获得partition的数量
 				Buffer buffers[num_partitions];
-				Buffer buffers_mirrors_in[num_partitions];
-				Buffer buffers_mirrors_out[num_partitions];
+				//Buffer buffers_mirrors_in[num_partitions];
+				//Buffer buffers_mirrors_out[num_partitions];
 
 				string line;
 				while (getline(myfile_cfg, line)) {
@@ -655,26 +549,20 @@ public:
 					}
 
 					std::stringstream stream(line);
-					std::string src_Id, dst_Id, Type;
-					stream >> src_Id >> dst_Id >> Type;
-					//cout << src_Id << " " << dst_Id << " " << Type << endl;
+					std::string src_Id, dst_Id;
+                    stream >> src_Id >> dst_Id;
 					vertexid_t src_id = atoi(src_Id.c_str());
 					vertexid_t dst_id = atoi(dst_Id.c_str());
-					//cout << "test1" << endl;
-					char type = Type[0];
-					//cout << type << endl;
+					//char type = Type[0];
 					Partition src_p = context.getPartition(src_id);
 					Partition dst_p = context.getPartition(dst_id);
 					//write to the respectively cfg files
-					//cout << "test2" << endl;
 					if(src_p == dst_p){
-					    //cout << src_Id << " same partition to " << dst_Id << endl;
-						write_to_partition_cfg_binary(src_p, src_id, dst_id, type, buffers[src_p]);
+						write_to_partition_cfg_binary(src_p, src_id, dst_id,buffers[src_p]);
 					}
 					else{
-                        //cout << "test2" << endl;
-						write_to_partition_cfg_binary(src_p, src_id, dst_id, type, buffers[src_p]);
-						write_to_partition_cfg_binary(dst_p, src_id, dst_id, type, buffers[dst_p]);
+						write_to_partition_cfg_binary(src_p, src_id, dst_id,buffers[src_p]);
+						write_to_partition_cfg_binary(dst_p, src_id, dst_id,buffers[dst_p]);
 
 						//deal with mirrors
 //						write_to_partition_mirrors_in_binary(src_id, dst_p, buffers_mirrors_in[dst_p]);
@@ -747,14 +635,10 @@ public:
 					}
 
 					CFGNode* cfgNode = new CFGNode(line);
-					//cout << "line: " << line << endl;
-					//cout << "id: " << cfgNode->getCfgNodeId() << endl;
 
 					Partition p = context.getPartition(cfgNode->getCfgNodeId());
-					//cout << "id: " << cfgNode->getCfgNodeId() << " " << p << endl;
 					//write to the respectively stmt files
 					write_to_partition_stmt_binary(p, cfgNode, buffers_stmts[p]);
-                    //cout << "test!" << endl;
 					//deal with mirrors statements
 					if(mirrors_map.find(cfgNode->getCfgNodeId()) != mirrors_map.end()) {
 					    for(auto& partition: mirrors_map[cfgNode->getCfgNodeId()]){

@@ -134,7 +134,7 @@ public:
 
 			//merge
 	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
-	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds, cfg_node, grammar);
+	        //PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds, cfg_node, grammar);
 
 	        //for tuning
 	        diff_merge.end();
@@ -148,7 +148,7 @@ public:
 	        diff_transfer.start();
 
 	        //transfer
-	        PEGraph* out = CFGCompute_syn::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
+	        PEGraph* out;// = CFGCompute_syn::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
 
 	        //for tuning
 	        diff_transfer.end();

@@ -140,17 +140,12 @@ public:
 		predes[succ].push_back(pred);
     }
 
-    void addOneSucc(CFGNode *pred, CFGNode *succ, string edgeType, int num)  {
+    void addOneSucc(CFGNode *pred, CFGNode *succ)  {
         if(succes.find(pred) == succes.end()){
-            succes[pred] = std::vector<suc*>();
-            //succes[pred] = std::vector<std::pair<CFGNode*, std::string>>();
-            //succes[pred] = tmp;
+            succes[pred] = std::vector<CFGNode*>();
         }
-        //succes[pred].push_back(succ);
-        suc * tmp = new suc(succ, edgeType, num);
-        //std::pair<CFGNode*, std::string> p1(succ,edgeType);
-        succes[pred].push_back(tmp);
-        //this->number_edges++;
+        succes[pred].push_back(succ);
+        this->number_edges++;
     }
 //    void addOneSucc(CFGNode *pred, CFGNode *succ)  {
 //    	if(succes.find(pred) == succes.end()){

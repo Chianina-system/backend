@@ -103,6 +103,11 @@ public:
 	static const string folder_mirrors_shallow;
 	static const string folder_graphs_in;
 
+
+    void setPartitionInfoElement(int part, int id){
+        partitionInfo[id] = part;
+    }
+
 	void setPartitionInfo(int k, vector<int> &partitionNodes) {
 		for (unsigned int i=0; i<partitionNodes.size(); i++) {
 //			partitionInfo.insert(make_pair(partitionNodes[i],k));

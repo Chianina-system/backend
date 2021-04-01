@@ -90,8 +90,11 @@ typedef int vertexid_t;
 typedef char label_t;
 typedef int IR;
 typedef int Line;
-#define bound 3
-#define node_bound 3 //每个顶点的最大执行次数
+#define node_bound 20
+#define CacheLineNum 512
+#define CacheLineSize 64
+#define CacheSetNum 4
+#define CacheLinesPerSet 128
 
 typedef int PEGraph_Pointer;
 typedef int Partition;

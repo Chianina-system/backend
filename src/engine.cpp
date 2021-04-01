@@ -54,6 +54,19 @@ int main(int argc, char* argv[]) {
 	const string file_stmts = argv[4];
 	const string file_singletons = argv[5];
 
+//    ifstream myfile_entries(file_entries);
+//    if (myfile_entries.is_open()) {
+//        string line;
+//        while (getline(myfile_entries, line)) {
+//            if (line == "") {
+//                continue;
+//            }
+//
+//            vertexid_t id = atoi(line.c_str());
+//            entry->insert(id);
+//        }
+//    }
+
 	ResourceManager rm;
 
 	// get running time (wall time)
@@ -71,6 +84,7 @@ int main(int argc, char* argv[]) {
 	std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
 	std::cout << "Running time: " << diff_fsm.count() << " s\n";
 
+//	delete entry;
 	//print out resource usage
 	std::cout << "\n\n";
 	std::cout << "------------------------------ resource usage ------------------------------" << std::endl;
@@ -165,6 +179,34 @@ long compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
     //for tuning
     timer_ooc->getPassSum()->start();
 
+//    int num = 0;
+//    int ids = 0;
+//    auto it = graphstore->getMap().begin();
+//    int count = 0;
+//    for (int i = 0; i < 100; ++i) {
+//        if (graphstore->getMap().count(i))
+//        {
+//            count++;
+//            cout << "id: " << i << "    graphstore model miss: " << graphstore->getMap()[i]->MissCount_Icache
+//            << "count: " << graphstore->getMap()[i]->count << endl;
+//        }
+//
+//    }
+//    cout << "count: " << count << endl;
+//    while (it != graphstore->getMap().end()) {
+//        //cout << "id: " << it->first << "---------------------------------------------" << endl;
+//        //it->second->print();
+//        //if (it->first == 90)
+//        //cout << "id: " << it->first << "    graphstore model miss: " << it->second->MissCount_Icache << endl;
+//        if (it->second->MissCount_Icache > num) {
+//            num = it->second->MissCount_Icache;
+//            ids = it->first;
+//        }
+//        it++;
+//    }
+//    cout << "id: " << ids << " MissCount_Icache: " << num << endl;
+
+
     // 属于其他partition的节点在此partition更新，因此需要加入到其他partition的actives中，并且为相应的partition提高优先级
     CFGCompute_ooc_syn::pass(partition, cfg, graphstore, actives, context, file_mode);
 
@@ -177,15 +219,6 @@ long compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
     //for tuning
     timer_ooc->getCleanSum()->start();
 
-//    int num = 0;
-//    auto it = graphstore->getMap().begin();
-//    while (it != graphstore->getMap().end()) {
-//        //if (it->first == 90)
-//        cout << "id: " << it->first << "    graphstore model miss: " << it->second->MissCount_Icache << endl;
-//        if (it->second->MissCount_Icache > num) num = it->second->MissCount_Icache;
-//        it++;
-//    }
-//    cout << "MissCount_Icache: " << num << endl;
 
 	delete cfg;
 	delete graphstore;
@@ -206,66 +239,66 @@ void readAllGraphs(NaiveGraphStore *graphstore, Context* context){
 	}
 }
 
-void loadMirrors(const string& file_mirrors_call, const string& file_mirrors_shallow, std::unordered_set<PEGraph_Pointer>& mirrors, bool file_mode){
+void loadMirrors(const string& file_mirrors_shallow, std::unordered_set<PEGraph_Pointer>& mirrors, bool file_mode){
 	//handle mirrors file
 	if(file_mode){
-		std::ifstream fin;
-		std::string line;
-		fin.open(file_mirrors_call);
-		if (!fin) {
-			cout << "can't load file_mirrors_call: " << file_mirrors_call << endl;
-		}
-		else {
-			while (getline(fin, line)) {
-				if(line == ""){
-					continue;
-				}
-
-				CFGNode* cfgNode_mirror = new CFGNode(line);
-				mirrors.insert(cfgNode_mirror->getCfgNodeId());
-				delete cfgNode_mirror;
-			}
-			fin.close();
-		}
-
-		fin.open(file_mirrors_shallow);
-		if (!fin) {
-			cout << "can't load file_mirrors_shallow: " << file_mirrors_shallow << endl;
-		}
-		else{
-			while (getline(fin, line)) {
-				if(line == ""){
-					continue;
-				}
-
-				PEGraph_Pointer id = atoi(line.c_str());
-				mirrors.insert(id);
-			}
-			fin.close();
-		}
+//		std::ifstream fin;
+//		std::string line;
+//		fin.open(file_mirrors_call);
+//		if (!fin) {
+//			cout << "can't load file_mirrors_call: " << file_mirrors_call << endl;
+//		}
+//		else {
+//			while (getline(fin, line)) {
+//				if(line == ""){
+//					continue;
+//				}
+//
+//				CFGNode* cfgNode_mirror = new CFGNode(line);
+//				mirrors.insert(cfgNode_mirror->getCfgNodeId());
+//				delete cfgNode_mirror;
+//			}
+//			fin.close();
+//		}
+//
+//		fin.open(file_mirrors_shallow);
+//		if (!fin) {
+//			cout << "can't load file_mirrors_shallow: " << file_mirrors_shallow << endl;
+//		}
+//		else{
+//			while (getline(fin, line)) {
+//				if(line == ""){
+//					continue;
+//				}
+//
+//				PEGraph_Pointer id = atoi(line.c_str());
+//				mirrors.insert(id);
+//			}
+//			fin.close();
+//		}
 	}
 	else{
 		//handle mirrors file
-		FILE* fp_mirrors_call = fopen(file_mirrors_call.c_str(), "rb");
-		if(!fp_mirrors_call) {
-			cout << "can't load file_mirrors_call: " << file_mirrors_call << endl;
-//    			exit(-1);
-		}
-		else{
-			size_t freadRes = 0; //clear warnings
-			size_t bufsize;
-			while(fread(&bufsize, sizeof(size_t), 1, fp_mirrors_call) != 0) {
-				char *buf = (char*)malloc(bufsize);
-				freadRes = fread(buf, bufsize, 1, fp_mirrors_call);
-
-				CFGNode* cfgNode = new CFGNode();
-				cfgNode->read_from_buf(buf, bufsize);
-				mirrors.insert(cfgNode->getCfgNodeId());
-
-				free(buf);
-			}
-			fclose(fp_mirrors_call);
-		}
+//		FILE* fp_mirrors_call = fopen(file_mirrors_call.c_str(), "rb");
+//		if(!fp_mirrors_call) {
+//			cout << "can't load file_mirrors_call: " << file_mirrors_call << endl;
+////    			exit(-1);
+//		}
+//		else{
+//			size_t freadRes = 0; //clear warnings
+//			size_t bufsize;
+//			while(fread(&bufsize, sizeof(size_t), 1, fp_mirrors_call) != 0) {
+//				char *buf = (char*)malloc(bufsize);
+//				freadRes = fread(buf, bufsize, 1, fp_mirrors_call);
+//
+//				CFGNode* cfgNode = new CFGNode();
+//				cfgNode->read_from_buf(buf, bufsize);
+//				mirrors.insert(cfgNode->getCfgNodeId());
+//
+//				free(buf);
+//			}
+//			fclose(fp_mirrors_call);
+//		}
 
 		int fp_mirrors_shallow = open(file_mirrors_shallow.c_str(), O_RDONLY);
 		if(!(fp_mirrors_shallow > 0)) {
@@ -389,12 +422,12 @@ void printGraphstoreInfo_more(Context* context, int graphstore_mode, bool file_m
 
     	        //merge
     	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(node);
-    	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds, node, context->getGrammar());
+    	        PEGraph* in;// = CFGCompute_syn::combine_synchronous(graphstore, preds, node, context->getGrammar());
 
-    			Stmt* stmt = node->getStmt();
+    			Stmt* stmt;// = node->getStmt();
     			TYPE type = stmt->getType();
     			if(type == TYPE::Load){
-	            	vertexid_t load_exp = ((LoadStmt*)stmt)->getSrc();
+	            	vertexid_t load_exp;// = ((LoadStmt*)stmt)->getSrc();
 	            	num_load_alias += retrieve_alias(in, load_exp, context->getGrammar());
 	            	num_load++;
 
@@ -402,7 +435,7 @@ void printGraphstoreInfo_more(Context* context, int graphstore_mode, bool file_m
 	            	num_load_weighted += map[load_exp];
     			}
     			else if(type == TYPE::Store){
-	            	vertexid_t store_exp = ((StoreStmt*)stmt)->getDst();
+	            	vertexid_t store_exp;// = ((StoreStmt*)stmt)->getDst();
 	            	num_store_alias += retrieve_alias(in, store_exp, context->getGrammar());
 	            	num_store++;
 
@@ -416,9 +449,9 @@ void printGraphstoreInfo_more(Context* context, int graphstore_mode, bool file_m
     	delete cfg;
 
 		std::unordered_set<PEGraph_Pointer> mirrors;
-		const string filename_mirrors_in = Context::folder_mirrors_call + to_string(partition);
+		//const string filename_mirrors_in = Context::folder_mirrors_call + to_string(partition);
 		const string filename_mirrors_out = Context::folder_mirrors_shallow + to_string(partition);
-		loadMirrors(filename_mirrors_in, filename_mirrors_out, mirrors, file_mode);
+		loadMirrors(filename_mirrors_out, mirrors, file_mode);
 
     	int size_graphs = 0;
     	long size_vertices = 0;
@@ -470,11 +503,11 @@ void printGraphstoreInfo_more(Context* context, int graphstore_mode, bool file_m
 
 void printGraphstoreInfo(Context* context, int graphstore_mode, bool file_mode, bool buffered_mode){
 	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
-	long num_edges = 0;
-	long num_vertices = 0;
+	//long num_edges = 0;
+	//long num_vertices = 0;
 	int num_graphs = 0;
 	long num_graphitems = 0;
-	long num_baseitems = 0;
+	//long num_baseitems = 0;
 	for(unsigned int partition = 0; partition < context->getNumberPartitions(); ++ partition){
 //		NaiveGraphStore *graphstore = new NaiveGraphStore();
 		GraphStore* graphstore;
@@ -499,40 +532,40 @@ void printGraphstoreInfo(Context* context, int graphstore_mode, bool file_mode, 
 		const string filename_graphs = Context::file_graphstore + to_string(partition);
 		graphstore->deserialize(filename_graphs);
 
-		const string filename_mirrors_in = Context::folder_mirrors_call + to_string(partition);
+		//const string filename_mirrors_in = Context::folder_mirrors_call + to_string(partition);
 		const string filename_mirrors_out = Context::folder_mirrors_shallow + to_string(partition);
-		loadMirrors(filename_mirrors_in, filename_mirrors_out, mirrors, file_mode);
+		loadMirrors(filename_mirrors_out, mirrors, file_mode);
 
     	int size_graphs = 0;
-    	long size_vertices = 0;
-    	long size_edges = 0;
+    	//long size_vertices = 0;
+    	//long size_edges = 0;
     	long size_graphitems = 0;
-    	long size_baseitems = 0;
-    	//graphstore->getStatistics(size_graphs, size_vertices, size_edges, size_graphitems, size_baseitems, mirrors);
+    	//long size_baseitems = 0;
+    	graphstore->getStatistics(size_graphs, size_graphitems, mirrors);
 
     	cout << "partition " << to_string(partition) << endl;
     	cout << "Number of graphs: " << size_graphs << endl;
-    	cout << "Number of edges: " << size_edges << endl;
-    	cout << "Number of total items: " << size_graphitems + size_baseitems << endl;
+    	//cout << "Number of edges: " << size_edges << endl;
+    	//cout << "Number of total items: " << size_graphitems + size_baseitems << endl;
     	cout << "Number of graph items: " << size_graphitems << endl;
-    	cout << "Number of base items: " << size_baseitems << endl;
+    	//cout << "Number of base items: " << size_baseitems << endl;
     	cout << endl;
 
     	delete graphstore;
 
-    	num_edges += size_edges;
-    	num_vertices += size_vertices;
+    	//num_edges += size_edges;
+    	//num_vertices += size_vertices;
     	num_graphs += size_graphs;
     	num_graphitems += size_graphitems;
-    	num_baseitems += size_baseitems;
+    	//num_baseitems += size_baseitems;
 	}
 
 	cout << "\nTotal number of graphs: " << num_graphs << endl;
-	cout << "Total number of vertices: " << num_vertices << endl;
-	cout << "Total number of edges: " << num_edges << endl;
-	cout << "Total number of items: " << num_graphitems + num_baseitems << endl;
+	//cout << "Total number of vertices: " << num_vertices << endl;
+	//cout << "Total number of edges: " << num_edges << endl;
+	//cout << "Total number of items: " << num_graphitems + num_baseitems << endl;
 	cout << "Total number of graph items: " << num_graphitems << endl;
-	cout << "Total number of base items: " << num_baseitems << endl;
+	//cout << "Total number of base items: " << num_baseitems << endl;
 	cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
 }
 
@@ -556,11 +589,6 @@ void run_ooc(int mining_mode, int support, int length, bool buffered_mode, bool 
 
 	//for tuning
 	sum_preprocess.start();
-
-//	char *p = "0x40118f";
-//	int nv = 0;
-//	sscanf(p, "%x", &nv);
-//	cout << "0x40118f is " << nv << endl;
 	//preprocessing
 	//cout << "sizeof(std::vector<IR>): " << sizeof(std::vector<IR>) << endl;
 	Context* context = new Context(num_partitions, file_total, file_cfg, file_stmts, file_entries, file_singletons, file_grammar);
@@ -605,7 +633,7 @@ void run_ooc(int mining_mode, int support, int length, bool buffered_mode, bool 
 //	readAllGraphs(graphstore, context);
 //	graphstore->printOutInfo();
 //	delete graphstore;
-//	printGraphstoreInfo(context, graphstore_mode, file_mode, buffered_mode);
+	printGraphstoreInfo(context, graphstore_mode, file_mode, buffered_mode);
 //	printGraphstoreInfo_more(context, graphstore_mode, file_mode, buffered_mode, mining_mode, support, length);
 
 	//delete all the files for itemset mining
