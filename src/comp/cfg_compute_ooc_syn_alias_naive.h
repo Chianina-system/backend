@@ -5,17 +5,17 @@
  *      Author: dell
  */
 
-#ifndef COMP_CFG_COMPUTE_OOC_SYN_NAIVE_H_
-#define COMP_CFG_COMPUTE_OOC_SYN_NAIVE_H_
+#ifndef COMP_CFG_COMPUTE_OOC_SYN_ALIAS_NAIVE_H_
+#define COMP_CFG_COMPUTE_OOC_SYN_ALIAS_NAIVE_H_
 
-#include "cfg_compute_ooc_syn.h"
+#include "cfg_compute_ooc_syn_alias.h"
 
 using namespace std;
 
-class CFGCompute_ooc_syn_naive {
+class CFGCompute_ooc_syn_alias_naive {
 public:
 
-	static long do_worklist_ooc_synchronous(CFG* cfg_, NaiveGraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode,
+	static long do_worklist_ooc_synchronous(CFG* cfg_, NaiveGraphStore_alias* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode,
 			Timer_wrapper_ooc* timer_ooc, Timer_wrapper_inmemory* timer){
 		Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
@@ -34,7 +34,7 @@ public:
 	    }
 
 	    //initiate a temp graphstore to maintain all the updated graphs
-	    NaiveGraphStore* tmp_graphstore = new NaiveGraphStore();
+	    NaiveGraphStore_alias* tmp_graphstore = new NaiveGraphStore_alias();
 	    long supersteps = 0;
 
 	    Concurrent_Worklist<CFGNode*>* worklist_2 = new Concurrent_Workset<CFGNode*>();
@@ -93,8 +93,8 @@ public:
 	}
 
 
-	static void compute_ooc(CFG_map_outcore* cfg, NaiveGraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1,
-			Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag,
+	static void compute_ooc(CFG_map_outcore* cfg, NaiveGraphStore_alias* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1,
+			Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, GraphStore_alias* tmp_graphstore, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag,
 			Timer_wrapper_inmemory* timer){
 		//for performance tuning
 		Timer_diff diff_merge;
@@ -116,7 +116,7 @@ public:
 	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
 	//        //for debugging
 	//    	StaticPrinter::print_vector(preds);
-	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds, cfg_node, grammar);
+	        PEGraph* in = CFGCompute_syn_alias::combine_synchronous(graphstore, preds, cfg_node, grammar);
 
 	        //for tuning
 	        diff_merge.end();
@@ -130,7 +130,9 @@ public:
 	        diff_transfer.start();
 
 	        //transfer
-	        PEGraph* out = CFGCompute_syn::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
+//		cout<<"  transfer begin! \n\n";
+	        PEGraph* out = CFGCompute_syn_alias::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
+//		cout<<"transfer end!\n\n";
 
 	        //for tuning
 	        diff_transfer.end();
@@ -153,11 +155,11 @@ public:
 
 	        if(!isEqual){
 	            //propagate
-	        	CFGCompute_ooc_syn::propagate(cfg_node, cfg, out, grammar, worklist_2, actives);
+	        	CFGCompute_ooc_syn_alias::propagate(cfg_node, cfg, out, grammar, worklist_2, actives);
 
 	            //store the new graph into tmp_graphstore
 //	            tmp_graphstore->addOneGraph_atomic(out_pointer, out);
-	            dynamic_cast<NaiveGraphStore*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
+	            dynamic_cast<NaiveGraphStore_alias*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
 	        }
 	        else{
 				delete out;
@@ -185,4 +187,6 @@ public:
 };
 
 
-#endif /* COMP_CFG_COMPUTE_OOC_SYN_NAIVE_H_ */
+#endif /* COMP_CFG_COMPUTE_OOC_SYN_ALIAS_NAIVE_H_ */
+
+
