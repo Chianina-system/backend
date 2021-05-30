@@ -1,15 +1,7 @@
-/*
- * cfg_compute.cpp
- *
- *  Created on: May 22, 2019
- *      Author: zqzuo
- */
+#include "cfg_compute_syn_alias.h"
 
 
-#include "cfg_compute_syn.h"
-
-
-void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag, bool update_mode){
+void CFGCompute_syn_alias::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag, bool update_mode){
 	//for performance tuning
 	Timer_sum sum_compute("compute-synchronous");
 	Timer_sum sum_update("update-graphs");
@@ -32,7 +24,7 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
     }
 
     //initiate a temp graphstore to maintain all the updated graphs
-    NaiveGraphStore* tmp_graphstore = new NaiveGraphStore();
+    NaiveGraphStore_alias* tmp_graphstore = new NaiveGraphStore_alias();
 
     Concurrent_Worklist<CFGNode*>* worklist_2 = new Concurrent_Workset<CFGNode*>();
     while(!worklist_1->isEmpty()){
@@ -57,7 +49,7 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
         sum_update.start();
 
         //synchronize and communicate
-        graphstore->update_graphs(tmp_graphstore, update_mode);
+       dynamic_cast<NaiveGraphStore_alias*>(tmp_graphstore)->update_graphs(tmp_graphstore, update_mode);
         tmp_graphstore->clear();
 
         //for tuning
@@ -91,7 +83,7 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
 
     Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 //    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
-    graphstore->printOutInfo();
+    dynamic_cast<NaiveGraphStore_alias*>(tmp_graphstore)->printOutInfo();
 
     //for tuning
     sum_compute.print();
@@ -103,7 +95,7 @@ void CFGCompute_syn::do_worklist_synchronous(CFG* cfg_, GraphStore* graphstore, 
 }
 
 
-void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
+void CFGCompute_syn_alias::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
 		Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag,
 		Timer_wrapper_inmemory* timer){
 	//for performance tuning
@@ -156,7 +148,7 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 
         //update and propagate
         PEGraph_Pointer out_pointer = cfg_node->getOutPointer();
-        PEGraph* old_out = graphstore->retrieve(out_pointer);
+        PEGraph* old_out = dynamic_cast<GraphStore_alias*>(graphstore)->retrieve(out_pointer);
         bool isEqual = out->equals(old_out);
 
 //        //for debugging
@@ -175,7 +167,7 @@ void CFGCompute_syn::compute_synchronous(CFG* cfg, GraphStore* graphstore, Concu
 			propagate(cfg_node, cfg, out, grammar, worklist_2);
 
             //store the new graph into tmp_graphstore
-            dynamic_cast<NaiveGraphStore*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
+            dynamic_cast<NaiveGraphStore_alias*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
         }
         else{
 			delete out;
@@ -444,7 +436,7 @@ PEGraph* extractSubGraph_exit_or_extract(PEGraph* graph, vertexid_t* args, int l
 		CFGNode* pred = *it;
 		if(pred->getStmt() && (pred->getStmt()->getType() == TYPE::Call || pred->getStmt()->getType() == TYPE::Callfptr)){
 			PEGraph_Pointer out_pointer = pred->getOutPointer();
-			pred_graph = graphstore->retrieve(out_pointer);
+			pred_graph = dynamic_cast<GraphStore_alias*>(graphstore)->retrieve(out_pointer);
 			if(pred_graph){
 				collect_associated_variables(ids, args, len, ret, pred_graph, grammar);
 //				delete pred_graph;
@@ -501,7 +493,7 @@ PEGraph* extractSubGraph_exit_plus_extract(PEGraph* graph, vertexid_t* args, int
 		CFGNode* pred = *it;
 		if(pred->getStmt() && (pred->getStmt()->getType() == TYPE::Call || pred->getStmt()->getType() == TYPE::Callfptr)){
 			PEGraph_Pointer out_pointer = pred->getOutPointer();
-			pred_graph = graphstore->retrieve(out_pointer);
+			pred_graph = dynamic_cast<GraphStore_alias*>(graphstore)->retrieve(out_pointer);
 			if(pred_graph){
 				collect_associated_variables(ids, args, len, ret, pred_graph, grammar);
 //				delete pred_graph;
@@ -578,7 +570,7 @@ PEGraph* extractSubGraph_exit(PEGraph* graph, vertexid_t* args, int len, vertexi
 //			}
 
 			PEGraph_Pointer out_pointer = pred->getOutPointer();
-			pred_graph = graphstore->retrieve(out_pointer);
+			pred_graph = dynamic_cast<GraphStore_alias*>(graphstore)->retrieve(out_pointer);
 			if(pred_graph){
 				collect_associated_variables(ids, args, len, ret, pred_graph, grammar);
 				delete pred_graph;
@@ -624,7 +616,7 @@ PEGraph* extractSubGraph_all_exit(PEGraph* graph, vertexid_t* args, int len, ver
 		CFGNode* pred = *it;
 		if(pred->getStmt() && (pred->getStmt()->getType() == TYPE::Call || pred->getStmt()->getType() == TYPE::Callfptr)){
 			PEGraph_Pointer out_pointer = pred->getOutPointer();
-			PEGraph* pred_graph = graphstore->retrieve(out_pointer);
+			PEGraph* pred_graph = dynamic_cast<GraphStore_alias*>(graphstore)->retrieve(out_pointer);
 			if(pred_graph){
 				collect_associated_variables_all(ids, args, len, ret, pred_graph, grammar);
 				delete pred_graph;
@@ -871,7 +863,9 @@ PEGraph* getPartial(Stmt* current, Stmt* pred, PEGraph* pred_graph, Grammar *gra
 //}
 
 
-PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds, CFGNode* cfg_node, Grammar *grammar){
+
+
+PEGraph* CFGCompute_syn_alias::combine_synchronous(GraphStore* graphstore, std::vector<CFGNode*>* preds, CFGNode* cfg_node, Grammar *grammar){
 	//for debugging
 	Logger::print_thread_info_locked("combine starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -885,7 +879,7 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
     else if(preds->size() == 1){
         CFGNode* pred = preds->at(0);
         PEGraph_Pointer out_pointer = pred->getOutPointer();
-        out = graphstore->retrieve(out_pointer);
+        out = dynamic_cast<GraphStore_alias*>(graphstore)->retrieve(out_pointer);
 
         //simplify the message passed through calls
         out = getPartial(cfg_node->getStmt(), pred->getStmt(), out, grammar, preds, graphstore);
@@ -901,7 +895,7 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
         for(auto it = preds->cbegin(); it != preds->cend(); it++){
             CFGNode* pred = *it;
             PEGraph_Pointer out_pointer = pred->getOutPointer();
-            PEGraph* out_graph = graphstore->retrieve(out_pointer);
+            PEGraph* out_graph = dynamic_cast<GraphStore_alias*>(graphstore)->retrieve(out_pointer);
 
             //get partial peg
             out_graph = getPartial(cfg_node->getStmt(), pred->getStmt(), out_graph, grammar, preds, graphstore);
@@ -922,7 +916,9 @@ PEGraph* CFGCompute_syn::combine_synchronous(GraphStore* graphstore, std::vector
 }
 
 
-PEGraph* CFGCompute_syn::transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_wrapper_inmemory* timer){
+
+
+PEGraph* CFGCompute_syn_alias::transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_wrapper_inmemory* timer){
 	//for performance tuning
 	Timer_diff diff_update;
 	Timer_diff diff_add;
@@ -963,7 +959,7 @@ PEGraph* CFGCompute_syn::transfer_phi(PEGraph* in, PhiStmt* stmt,Grammar *gramma
     return out;
 }
 
-PEGraph* CFGCompute_syn::transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_wrapper_inmemory* timer){
+PEGraph* CFGCompute_syn_alias::transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_wrapper_inmemory* timer){
 	//for performance tuning
 	Timer_diff diff_update;
 	Timer_diff diff_add;
@@ -1004,7 +1000,7 @@ PEGraph* CFGCompute_syn::transfer_copy(PEGraph* in, AssignStmt* stmt,Grammar *gr
     return out;
 }
 
-PEGraph* CFGCompute_syn::transfer_load(PEGraph* in, LoadStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_wrapper_inmemory* timer){
+PEGraph* CFGCompute_syn_alias::transfer_load(PEGraph* in, LoadStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_wrapper_inmemory* timer){
 	//for performance tuning
 	Timer_diff diff_update;
 	Timer_diff diff_add;
@@ -1045,7 +1041,7 @@ PEGraph* CFGCompute_syn::transfer_load(PEGraph* in, LoadStmt* stmt,Grammar *gram
     return out;
 }
 
-PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, StoreStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_wrapper_inmemory* timer){
+PEGraph* CFGCompute_syn_alias::transfer_store(PEGraph* in, StoreStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_wrapper_inmemory* timer){
 	//for performance tuning
 	Timer_diff diff_update;
 	Timer_diff diff_add;
@@ -1097,7 +1093,7 @@ PEGraph* CFGCompute_syn::transfer_store(PEGraph* in, StoreStmt* stmt,Grammar *gr
     return out;
 }
 
-PEGraph* CFGCompute_syn::transfer_address(PEGraph* in, AllocStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_wrapper_inmemory* timer){
+PEGraph* CFGCompute_syn_alias::transfer_address(PEGraph* in, AllocStmt* stmt,Grammar *grammar, Singletons* singletons, bool flag, Timer_wrapper_inmemory* timer){
 	//for performance tuning
 	Timer_diff diff_update;
 	Timer_diff diff_add;
@@ -1138,7 +1134,7 @@ PEGraph* CFGCompute_syn::transfer_address(PEGraph* in, AllocStmt* stmt,Grammar *
     return out;
 }
 
-bool CFGCompute_syn::is_strong_update_dst(vertexid_t x, PEGraph *out, Grammar *grammar, Singletons* singletons) {
+bool CFGCompute_syn_alias::is_strong_update_dst(vertexid_t x, PEGraph *out, Grammar *grammar, Singletons* singletons) {
 	//for debugging
 	Logger::print_thread_info_locked("is-strong-update starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -1164,7 +1160,7 @@ bool CFGCompute_syn::is_strong_update_dst(vertexid_t x, PEGraph *out, Grammar *g
 
 }
 
-bool CFGCompute_syn::is_strong_update_aux(vertexid_t aux, PEGraph *out, Grammar *grammar, Singletons* singletons) {
+bool CFGCompute_syn_alias::is_strong_update_aux(vertexid_t aux, PEGraph *out, Grammar *grammar, Singletons* singletons) {
 	//for debugging
 	Logger::print_thread_info_locked("is-strong-update-store starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -1234,7 +1230,7 @@ void findDeletedEdges(EdgeArray & edgesToDelete, vertexid_t src, std::set<vertex
 	//		deleted.merge();
 }
 
-void CFGCompute_syn::getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& vertices_changed, Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* m) {
+void CFGCompute_syn_alias::getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& vertices_changed, Grammar* grammar, std::unordered_map<vertexid_t, EdgeArray>* m) {
 	//get all the direct assign-bidirection edges into m
 	//TODO: can be optimized by checking only the adjacent list of vertex in vertices_changed?
 	for (auto it = out->getGraph().begin(); it != out->getGraph().end(); it++) {
@@ -1257,7 +1253,7 @@ void CFGCompute_syn::getDirectAssignEdges(PEGraph* out, std::set<vertexid_t>& ve
 
 }
 
-void CFGCompute_syn::strong_update_store_aux_simplify(vertexid_t aux, vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
+void CFGCompute_syn_alias::strong_update_store_aux_simplify(vertexid_t aux, vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
 	//for debugging
 	Logger::print_thread_info_locked("strong-update-store starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -1314,7 +1310,7 @@ void CFGCompute_syn::strong_update_store_aux_simplify(vertexid_t aux, vertexid_t
 	Logger::print_thread_info_locked("strong-update-store finished.\n", LEVEL_LOG_FUNCTION);
 }
 
-void CFGCompute_syn::strong_update_store_aux(vertexid_t aux, vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
+void CFGCompute_syn_alias::strong_update_store_aux(vertexid_t aux, vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
 	//for debugging
 	Logger::print_thread_info_locked("strong-update-store starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -1397,7 +1393,7 @@ void CFGCompute_syn::strong_update_store_aux(vertexid_t aux, vertexid_t x, PEGra
 }
 
 
-void CFGCompute_syn::strong_update_store_dst_simplify(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
+void CFGCompute_syn_alias::strong_update_store_dst_simplify(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
 	//for debugging
 	Logger::print_thread_info_locked("strong-update starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -1458,7 +1454,7 @@ void CFGCompute_syn::strong_update_store_dst_simplify(vertexid_t x, PEGraph *out
 	Logger::print_thread_info_locked("strong-update finished.\n", LEVEL_LOG_FUNCTION);
 }
 
-void CFGCompute_syn::strong_update_store_dst(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
+void CFGCompute_syn_alias::strong_update_store_dst(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
 	//for debugging
 	Logger::print_thread_info_locked("strong-update starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -1532,7 +1528,7 @@ void CFGCompute_syn::strong_update_store_dst(vertexid_t x, PEGraph *out, std::se
 	Logger::print_thread_info_locked("strong-update finished.\n", LEVEL_LOG_FUNCTION);
 }
 
-void CFGCompute_syn::strong_update_simplify(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
+void CFGCompute_syn_alias::strong_update_simplify(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
 	//for debugging
 	Logger::print_thread_info_locked("strong-update starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -1593,7 +1589,7 @@ void CFGCompute_syn::strong_update_simplify(vertexid_t x, PEGraph *out, std::set
 	Logger::print_thread_info_locked("strong-update finished.\n", LEVEL_LOG_FUNCTION);
 }
 
-void CFGCompute_syn::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
+void CFGCompute_syn_alias::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
 	//for debugging
 	Logger::print_thread_info_locked("strong-update starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -1667,14 +1663,14 @@ void CFGCompute_syn::strong_update(vertexid_t x, PEGraph *out, std::set<vertexid
 	Logger::print_thread_info_locked("strong-update finished.\n", LEVEL_LOG_FUNCTION);
 }
 
-bool CFGCompute_syn::isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar) {
+bool CFGCompute_syn_alias::isDirectAssignEdges(vertexid_t src,vertexid_t dst,label_t label,std::set<vertexid_t> &vertices,Grammar *grammar) {
 //	if(!grammar->isAssign(label))
     if(!grammar->isAssign_bidirect(label))
         return false;
     return ( (vertices.find(src) != vertices.end()) || (vertices.find(dst) != vertices.end()) );
 }
 
-void CFGCompute_syn::must_alias_store_aux(vertexid_t aux, vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
+void CFGCompute_syn_alias::must_alias_store_aux(vertexid_t aux, vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
 	assert(out->getGraph().find(x) == out->getGraph().end());
 	assert(out->getGraph().find(aux) != out->getGraph().end());
 
@@ -1748,7 +1744,7 @@ void CFGCompute_syn::must_alias_store_aux(vertexid_t aux, vertexid_t x, PEGraph 
 	}
 }
 
-void CFGCompute_syn::must_alias_store_dst(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
+void CFGCompute_syn_alias::must_alias_store_dst(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
 	/* if there exists one and only one variable o,which
 	 * refers to a singleton memory location,such that x and
 	 * y are both memory aliases of o,then x and y are Must-alias
@@ -1822,7 +1818,7 @@ void CFGCompute_syn::must_alias_store_dst(vertexid_t x, PEGraph *out, std::set<v
 
 }
 
-void CFGCompute_syn::must_alias(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
+void CFGCompute_syn_alias::must_alias(vertexid_t x, PEGraph *out, std::set<vertexid_t> &vertices_changed, Grammar *grammar, std::set<vertexid_t> &vertices_affected, Singletons* singletons) {
 	/* if there exists one and only one variable o,which
 	 * refers to a singleton memory location,such that x and
 	 * y are both memory aliases of o,then x and y are Must-alias
@@ -1939,7 +1935,7 @@ void CFGCompute_syn::must_alias(vertexid_t x, PEGraph *out, std::set<vertexid_t>
 //	}
 }
 
-void CFGCompute_syn::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m) {
+void CFGCompute_syn_alias::peg_compute_delete(PEGraph *out, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m) {
 	//for debugging
 	Logger::print_thread_info_locked("peg-compute-delete starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -1988,7 +1984,7 @@ void removeExistingEdges(const EdgeArray& edges_src, vertexid_t src, PEGraph* ou
 //	vertexid_t aux = stmt->getAux();
 //}
 
-void CFGCompute_syn::getDirectAddedEdges_phi(PEGraph *out, Stmt *stmt_, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag){
+void CFGCompute_syn_alias::getDirectAddedEdges_phi(PEGraph *out, Stmt *stmt_, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag){
 	PhiStmt* stmt = dynamic_cast<PhiStmt*>(stmt_);
 
     //'a', '-a', 'd', '-d', and self-loop edges
@@ -2193,7 +2189,7 @@ void getDirectAddedEdges_assign(PEGraph *out, AssignStmt *stmt, Grammar *grammar
 	removeExistingEdges(edges_dst, dst, out, m);
 }
 
-void CFGCompute_syn::getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag){
+void CFGCompute_syn_alias::getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *grammar, std::unordered_map<vertexid_t, EdgeArray>* m, bool flag){
 //    switch(stmt->getType()){
     TYPE t = stmt->getType();
     if(t == TYPE::Alloca){
@@ -2219,7 +2215,7 @@ void CFGCompute_syn::getDirectAddedEdges(PEGraph *out, Stmt *stmt, Grammar *gram
 
 }
 
-void CFGCompute_syn::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar, bool flag, Timer_wrapper_inmemory* timer) {
+void CFGCompute_syn_alias::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar, bool flag, Timer_wrapper_inmemory* timer) {
 	//for performance tuning
 	Timer_diff diff_direct;
 	Timer_diff diff_init;
@@ -2328,6 +2324,7 @@ void CFGCompute_syn::peg_compute_add(PEGraph *out, Stmt *stmt, Grammar *grammar,
 //
 //    return true;
 //}
+
 
 
 
