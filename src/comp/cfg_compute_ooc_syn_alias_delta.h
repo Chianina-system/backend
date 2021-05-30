@@ -5,17 +5,17 @@
  *      Author: dell
  */
 
-#ifndef COMP_CFG_COMPUTE_OOC_SYN_DELTA_H_
-#define COMP_CFG_COMPUTE_OOC_SYN_DELTA_H_
+#ifndef COMP_CFG_COMPUTE_OOC_SYN_ALIAS_DELTA_H_
+#define COMP_CFG_COMPUTE_OOC_SYN_ALIAS_DELTA_H_
 
-#include "cfg_compute_ooc_syn.h"
+#include "cfg_compute_ooc_syn_alias.h"
 
 using namespace std;
 
-class CFGCompute_ooc_syn_delta {
+class CFGCompute_ooc_syn_alias_delta {
 public:
 
-	static void do_worklist_ooc_synchronous(CFG* cfg_, DeltaGraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode,
+	static void do_worklist_ooc_synchronous(CFG* cfg_, DeltaGraphStore_alias* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode,
 			Timer_wrapper_ooc* timer_ooc, Timer_wrapper_inmemory* timer){
 		Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
@@ -31,7 +31,7 @@ public:
 	    }
 
 	    //initiate a temp graphstore to maintain all the updated graphs
-	    DeltaGraphStore* tmp_graphstore = new DeltaGraphStore();
+	    DeltaGraphStore_alias* tmp_graphstore = new DeltaGraphStore_alias();
 
 	    Concurrent_Worklist<CFGNode*>* worklist_2 = new Concurrent_Workset<CFGNode*>();
 	    while(!worklist_1->isEmpty()){
@@ -71,7 +71,7 @@ public:
 	        assert(worklist_2->isEmpty());
 
 	        //start deltaGraph processing
-	        CFGCompute_syn_delta::startDeltaGraphs(1, worklist_1, graphstore, cfg);
+	        CFGCompute_syn_alias_delta::startDeltaGraphs(1, worklist_1, graphstore, cfg);
 
 	        //for debugging
 	        Logger::print_thread_info_locked("--------------------------------------------------------------- finished ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
@@ -89,8 +89,8 @@ public:
 	}
 
 
-	static void compute_ooc(CFG_map_outcore* cfg, DeltaGraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1,
-			Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, DeltaGraphStore* tmp_graphstore, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag,
+	static void compute_ooc(CFG_map_outcore* cfg, DeltaGraphStore_alias* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1,
+			Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, DeltaGraphStore_alias* tmp_graphstore, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag,
 			Timer_wrapper_inmemory* timer){
 		//for performance tuning
 		Timer_diff diff_merge;
@@ -112,7 +112,7 @@ public:
 	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
 	//        //for debugging
 	//    	StaticPrinter::print_vector(preds);
-	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds, cfg_node, grammar);
+	        PEGraph* in = CFGCompute_syn_alias::combine_synchronous(graphstore, preds, cfg_node, grammar);
 
 	        //for tuning
 	        diff_merge.end();
@@ -126,7 +126,7 @@ public:
 	        diff_transfer.start();
 
 	        //transfer
-	        PEGraph* out = CFGCompute_syn::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
+	        PEGraph* out = CFGCompute_syn_alias::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
 
 	        //for tuning
 	        diff_transfer.end();
@@ -150,7 +150,7 @@ public:
 
 			if(!isEqual){
 	            //propagate
-				CFGCompute_ooc_syn::propagate(cfg_node, cfg, out, grammar, worklist_2, actives);
+				CFGCompute_ooc_syn_alias::propagate(cfg_node, cfg, out, grammar, worklist_2, actives);
 
 				//store the new graph into tmp_graphstore
 				tmp_graphstore->addOneGraph_atomic(out_pointer, out_delta);
@@ -179,4 +179,6 @@ public:
 };
 
 
-#endif /* COMP_CFG_COMPUTE_OOC_SYN_NAIVE_H_ */
+#endif /* COMP_CFG_COMPUTE_OOC_SYN_ALIAS_NAIVE_H_ */
+
+
