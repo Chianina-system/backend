@@ -5,18 +5,18 @@
  *      Author: dell
  */
 
-#ifndef CFG_COMPUTE_SYN_NAIVE_H_
-#define CFG_COMPUTE_SYN_NAIVE_H_
+#ifndef CFG_COMPUTE_SYN_ALIAS_NAIVE_H_
+#define CFG_COMPUTE_SYN_ALIAS_NAIVE_H_
 
-#include "cfg_compute_syn.h"
+#include "cfg_compute_syn_alias.h"
 
 
 using namespace std;
 
-class CFGCompute_syn_naive {
+class CFGCompute_syn_alias_naive {
 
 public:
-	static void do_worklist_synchronous(CFG* cfg_, NaiveGraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag, bool update_mode){
+	static void do_worklist_synchronous(CFG* cfg_, NaiveGraphStore_alias* graphstore, Grammar* grammar, Singletons* singletons, bool flag, bool update_mode){
 		//for performance tuning
 		Timer_sum sum_compute("compute-synchronous");
 		Timer_sum sum_update("update-graphs");
@@ -39,7 +39,7 @@ public:
 	    }
 
 	    //initiate a temp graphstore to maintain all the updated graphs
-	    NaiveGraphStore* tmp_graphstore = new NaiveGraphStore();
+	    NaiveGraphStore_alias* tmp_graphstore = new NaiveGraphStore_alias();
 
 	    Concurrent_Worklist<CFGNode*>* worklist_2 = new Concurrent_Workset<CFGNode*>();
 	    while(!worklist_1->isEmpty()){
@@ -110,7 +110,7 @@ public:
 	}
 
 
-	static void compute_synchronous(CFG* cfg, NaiveGraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
+	static void compute_synchronous(CFG* cfg, NaiveGraphStore_alias* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
 			Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag,
 			Timer_wrapper_inmemory* timer){
 		//for performance tuning
@@ -134,7 +134,7 @@ public:
 
 			//merge
 	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
-	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds, cfg_node, grammar);
+	        PEGraph* in = CFGCompute_syn_alias::combine_synchronous(graphstore, preds, cfg_node, grammar);
 
 	        //for tuning
 	        diff_merge.end();
@@ -148,7 +148,7 @@ public:
 	        diff_transfer.start();
 
 	        //transfer
-	        PEGraph* out = CFGCompute_syn::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
+	        PEGraph* out = CFGCompute_syn_alias::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
 
 	        //for tuning
 	        diff_transfer.end();
@@ -179,10 +179,10 @@ public:
 
 	        if(!isEqual){
 	            //propagate
-	        	CFGCompute_syn::propagate(cfg_node, cfg, out, grammar, worklist_2);
+	        	CFGCompute_syn_alias::propagate(cfg_node, cfg, out, grammar, worklist_2);
 
 	            //store the new graph into tmp_graphstore
-	            dynamic_cast<NaiveGraphStore*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
+	            dynamic_cast<NaiveGraphStore_alias*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
 	        }
 	        else{
 				delete out;
@@ -212,4 +212,6 @@ public:
 
 
 
-#endif /* CFG_COMPUTE_SYN_NAIVE_H_ */
+#endif /* CFG_COMPUTE_SYN_ALIAS_NAIVE_H_ */
+
+
