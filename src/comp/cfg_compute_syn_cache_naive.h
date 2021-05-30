@@ -5,18 +5,18 @@
  *      Author: dell
  */
 
-#ifndef CFG_COMPUTE_SYN_NAIVE_H_
-#define CFG_COMPUTE_SYN_NAIVE_H_
+#ifndef CFG_COMPUTE_SYN_CACHE_NAIVE_H_
+#define CFG_COMPUTE_SYN_CACHE_NAIVE_H_
 
-#include "cfg_compute_syn.h"
+#include "cfg_compute_syn_cache.h"
 
 
 using namespace std;
 
-class CFGCompute_syn_naive {
+class CFGCompute_syn_cache_naive {
 
 public:
-	static void do_worklist_synchronous(CFG* cfg_, NaiveGraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag, bool update_mode){
+	static void do_worklist_synchronous(CFG* cfg_, NaiveGraphStore_cache* graphstore, Grammar* grammar, Singletons* singletons, bool flag, bool update_mode){
 		//for performance tuning
 		Timer_sum sum_compute("compute-synchronous");
 		Timer_sum sum_update("update-graphs");
@@ -28,18 +28,18 @@ public:
 
 	    //initiate concurrent worklist
 	    CFG_map* cfg = dynamic_cast<CFG_map*>(cfg_);
-	//    std::vector<CFGNode*> nodes = cfg->getNodes();
+	   //std::vector<CFGNode*> nodes = cfg->getNodes();
 	    std::vector<CFGNode*> nodes = cfg->getEntryNodes();
 
-	//    //for debugging
-	//    StaticPrinter::print_vector(nodes);
+	    //for debugging
+	    //StaticPrinter::print_vector(nodes);
 
 	    for(auto it = nodes.cbegin(); it != nodes.cend(); ++it){
 	        worklist_1->push_atomic(*it);
 	    }
 
 	    //initiate a temp graphstore to maintain all the updated graphs
-	    NaiveGraphStore* tmp_graphstore = new NaiveGraphStore();
+	    NaiveGraphStore_cache* tmp_graphstore = new NaiveGraphStore_cache();
 
 	    Concurrent_Worklist<CFGNode*>* worklist_2 = new Concurrent_Workset<CFGNode*>();
 	    while(!worklist_1->isEmpty()){
@@ -79,15 +79,6 @@ public:
 
 	        //for debugging
 	        Logger::print_thread_info_locked("--------------------------------------------------------------- finished ---------------------------------------------------------------\n\n", LEVEL_LOG_MAIN);
-
-	//        std::set<CFGNode*>* list = dynamic_cast<Concurrent_Workset<CFGNode*>*>(worklist_1)->getSet();
-	//        if(list->size() < 100){
-	//			Logger::print_thread_info_locked(StaticPrinter::toString_set(*list), LEVEL_LOG_MAIN);
-	//        }
-	//        Logger::print_thread_info_locked("worklist size :" + to_string(list->size()) + "\n", LEVEL_LOG_MAIN);
-	//        delete list;
-
-//	        graphstore->printOutInfo();
 	    }
 
 	    //clean
@@ -97,7 +88,7 @@ public:
 	    delete(tmp_graphstore);
 
 	    Logger::print_thread_info_locked("-------------------------------------------------------------- Done ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
-	//    Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
+	    //Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
 	    //graphstore->printOutInfo();
 
 	    //for tuning
@@ -110,8 +101,8 @@ public:
 	}
 
 
-	static void compute_synchronous(CFG* cfg, NaiveGraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
-			Grammar* grammar, GraphStore* tmp_graphstore, Singletons* singletons, bool flag,
+	static void compute_synchronous(CFG* cfg, NaiveGraphStore_cache* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
+			Grammar* grammar, GraphStore_cache* tmp_graphstore, Singletons* singletons, bool flag,
 			Timer_wrapper_inmemory* timer){
 		//for performance tuning
 		Timer_diff diff_merge;
@@ -123,25 +114,20 @@ public:
 
 	    CFGNode* cfg_node;
 		while(worklist_1->pop_atomic(cfg_node)){
-//	    	//for debugging
-//	    	Logger::print_thread_info_locked("----------------------- CFG Node "
-//	    			+ to_string(cfg_node->getCfgNodeId())
-//					+ " " + cfg_node->getStmt()->toString()
-//					+ " start processing -----------------------\n", LEVEL_LOG_CFGNODE);
 
 			//for tuning
 			diff_merge.start();
 
 			//merge
 	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
-	        //PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds, cfg_node, grammar);
+	        //PEGraph* in = CFGCompute_syn::combine_synchronous(Graphstore_cache, preds, cfg_node, grammar);
 
 	        //for tuning
 	        diff_merge.end();
 	        timer->getMergeSum()->add_locked(diff_merge.getClockDiff(), diff_merge.getTimeDiff());
 
-//	        //for debugging
-//	        Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
+	        //for debugging
+	        //Logger::print_thread_info_locked("The in-PEG after combination:" + in->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
 
 	        //for tuning
@@ -154,8 +140,8 @@ public:
 	        diff_transfer.end();
 	        timer->getTransferSum()->add_locked(diff_transfer.getClockDiff(), diff_transfer.getTimeDiff());
 
-//	        //for debugging
-//	        Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
+	        //for debugging
+	        //Logger::print_thread_info_locked("The out-PEG after transformation:\n" + out->toString(grammar) + "\n", LEVEL_LOG_PEG);
 
 
 	        //for tuning
@@ -166,20 +152,13 @@ public:
 	        PEGraph* old_out = nullptr;//graphstore->retrieve_shallow(out_pointer);
 	        bool isEqual = out->equals(old_out);
 
-	//        //for debugging
-	//        if(old_out){
-	//			Logger::print_thread_info_locked("The old-out-PEG:\n" + old_out->toString(grammar) + "\n", LEVEL_LOG_PEG);
-	//        }
-	//        else{
-	//        	Logger::print_thread_info_locked("The old-out-PEG:\n null \n", LEVEL_LOG_PEG);
-	//        }
 
-//	        //for debugging
-//	        Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", LEVEL_LOG_INFO);
+	        //for debugging
+	        // Logger::print_thread_info_locked("+++++++++++++++++++++++++ equality: " + to_string(isEqual) + " +++++++++++++++++++++++++\n", LEVEL_LOG_INFO);
 
 	        if(!isEqual){
 	            //propagate
-	        	CFGCompute_syn::propagate(cfg_node, cfg, out, grammar, worklist_2);
+	        	CFGCompute_syn_cache::propagate(cfg_node, cfg, out, grammar, worklist_2);
 
 	            //store the new graph into tmp_graphstore
 	            //dynamic_cast<NaiveGraphStore*>(tmp_graphstore)->addOneGraph_atomic(out_pointer, out);
@@ -193,12 +172,6 @@ public:
 	        diff_propagate.end();
 	        timer->getPropagateSum()->add_locked(diff_propagate.getClockDiff(), diff_propagate.getTimeDiff());
 
-	        //for debugging
-	//        Logger::print_thread_info_locked(graphstore->toString() + "\n", LEVEL_LOG_GRAPHSTORE);
-	//        Logger::print_thread_info_locked("CFG Node " + to_string(cfg_node->getCfgNodeId()) + " finished processing.\n", LEVEL_LOG_CFGNODE);
-
-	//        //for debugging
-	//        Logger::print_thread_info_locked("1-> " + worklist_1->toString() + "\t2-> " + worklist_2->toString() + "\n\n\n", LEVEL_LOG_WORKLIST);
 	    }
 
 		//for debugging
@@ -207,9 +180,9 @@ public:
 
 
 
-
 };
 
 
 
-#endif /* CFG_COMPUTE_SYN_NAIVE_H_ */
+#endif /* CFG_COMPUTE_SYN_CACHE_NAIVE_H_ */
+
