@@ -5,18 +5,18 @@
  *      Author: zzq
  */
 
-#ifndef CFG_COMPUTE_SYN_DELTA_H_
-#define CFG_COMPUTE_SYN_DELTA_H_
+#ifndef CFG_COMPUTE_SYN_ALIAS_DELTA_H_
+#define CFG_COMPUTE_SYN_ALIAS_DELTA_H_
 
-#include "cfg_compute_syn.h"
+#include "cfg_compute_syn_alias.h"
 
 
 using namespace std;
 
-class CFGCompute_syn_delta {
+class CFGCompute_syn_alias_delta {
 
 public:
-	static void do_worklist_synchronous(CFG* cfg_, DeltaGraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag, bool update_mode){
+	static void do_worklist_synchronous(CFG* cfg_, DeltaGraphStore_alias* graphstore, Grammar* grammar, Singletons* singletons, bool flag, bool update_mode){
 		//for performance tuning
 		Timer_sum sum_compute("compute-synchronous");
 		Timer_sum sum_update("update-graphs");
@@ -39,7 +39,7 @@ public:
 	    }
 
 	    //initiate a temp graphstore to maintain all the updated graphs
-	    DeltaGraphStore* tmp_graphstore = new DeltaGraphStore();
+	    DeltaGraphStore_alias* tmp_graphstore = new DeltaGraphStore_alias();
 
 	    int supersteps = 0;
 
@@ -119,7 +119,7 @@ public:
 	    sum_update.print();
 	}
 
-	static void startDeltaGraphs(int supersteps, Concurrent_Worklist<CFGNode*>* worklist, DeltaGraphStore* graphstore, CFG* cfg){
+	static void startDeltaGraphs(int supersteps, Concurrent_Worklist<CFGNode*>* worklist, DeltaGraphStore_alias* graphstore, CFG* cfg){
 		if(supersteps > 0){
 			Concurrent_Workset<CFGNode*>* workset = dynamic_cast<Concurrent_Workset<CFGNode*>*>(worklist);
 			for(auto it = workset->getSet().begin(); it != workset->getSet().end(); ++it){
@@ -179,8 +179,8 @@ public:
 
 
 
-	static void compute_synchronous(CFG* cfg, DeltaGraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
-			Grammar* grammar, DeltaGraphStore* tmp_graphstore, Singletons* singletons, bool flag,
+	static void compute_synchronous(CFG* cfg, DeltaGraphStore_alias* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
+			Grammar* grammar, DeltaGraphStore_alias* tmp_graphstore, Singletons* singletons, bool flag,
 			Timer_wrapper_inmemory* timer){
 		//for performance tuning
 		Timer_diff diff_merge;
@@ -203,7 +203,7 @@ public:
 
 			//merge
 	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
-	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds, cfg_node, grammar);
+	        PEGraph* in = CFGCompute_syn_alias::combine_synchronous(graphstore, preds, cfg_node, grammar);
 
 	        //for tuning
 	        diff_merge.end();
@@ -217,7 +217,7 @@ public:
 	        diff_transfer.start();
 
 	        //transfer
-	        PEGraph* out = CFGCompute_syn::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
+	        PEGraph* out = CFGCompute_syn_alias::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
 
 	        //for tuning
 	        diff_transfer.end();
@@ -241,7 +241,7 @@ public:
 
 			if(!isEqual){
 	            //propagate
-				CFGCompute_syn::propagate(cfg_node, cfg, out, grammar, worklist_2);
+				CFGCompute_syn_alias::propagate(cfg_node, cfg, out, grammar, worklist_2);
 
 				//store the new graph into tmp_graphstore
 				tmp_graphstore->addOneGraph_atomic(out_pointer, out_delta);
@@ -273,4 +273,6 @@ public:
 
 
 
-#endif /* CFG_COMPUTE_SYN_DELTA_H_ */
+#endif /* CFG_COMPUTE_SYN_ALIAS_DELTA_H_ */
+
+
