@@ -5,17 +5,17 @@
  *      Author: dell
  */
 
-#ifndef COMP_CFG_COMPUTE_OOC_SYN_ITEMSET_H_
-#define COMP_CFG_COMPUTE_OOC_SYN_ITEMSET_H_
+#ifndef COMP_CFG_COMPUTE_OOC_SYN_ALIAS_ITEMSET_H_
+#define COMP_CFG_COMPUTE_OOC_SYN_ALIAS_ITEMSET_H_
 
-#include "cfg_compute_ooc_syn.h"
+#include "cfg_compute_ooc_syn_alias.h"
 
 using namespace std;
 
-class CFGCompute_ooc_syn_itemset {
+class CFGCompute_ooc_syn_alias_itemset {
 public:
 
-	static long do_worklist_ooc_synchronous(CFG* cfg_, ItemsetGraphStore* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode,
+	static long do_worklist_ooc_synchronous(CFG* cfg_, ItemsetGraphStore_alias* graphstore, Grammar* grammar, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag, bool update_mode,
 			Timer_wrapper_ooc* timer_ooc, Timer_wrapper_inmemory* timer){
 		Logger::print_thread_info_locked("-------------------------------------------------------------- Start ---------------------------------------------------------------\n\n\n", LEVEL_LOG_MAIN);
 
@@ -98,7 +98,7 @@ public:
 	    return supersteps;
 	}
 
-	static void startItemsetGraphs(int supersteps, Concurrent_Worklist<CFGNode*>* worklist, ItemsetGraphStore* graphstore, CFG* cfg){
+	static void startItemsetGraphs(int supersteps, Concurrent_Worklist<CFGNode*>* worklist, ItemsetGraphStore_alias* graphstore, CFG* cfg){
 		if(supersteps > 0){
 			Concurrent_Workset<CFGNode*>* workset = dynamic_cast<Concurrent_Workset<CFGNode*>*>(worklist);
 			for(auto it = workset->getSet().begin(); it != workset->getSet().end(); ++it){
@@ -123,7 +123,7 @@ public:
 	}
 
 
-	static void compute_ooc(CFG_map_outcore* cfg, ItemsetGraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1,
+	static void compute_ooc(CFG_map_outcore* cfg, ItemsetGraphStore_alias* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1,
 			Concurrent_Worklist<CFGNode*>* worklist_2, Grammar* grammar, HybridGraphStore* tmp_graphs, Singletons* singletons, Concurrent_Worklist<CFGNode*>* actives, bool flag,
 			Timer_wrapper_inmemory* timer){
 		//for performance tuning
@@ -146,7 +146,7 @@ public:
 	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
 	//        //for debugging
 	//    	StaticPrinter::print_vector(preds);
-	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds, cfg_node, grammar);
+	        PEGraph* in = CFGCompute_syn_alias::combine_synchronous(graphstore, preds, cfg_node, grammar);
 
 	        //for tuning
 	        diff_merge.end();
@@ -160,7 +160,7 @@ public:
 	        diff_transfer.start();
 
 	        //transfer
-	        PEGraph* out = CFGCompute_syn::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
+	        PEGraph* out = CFGCompute_syn_alias::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
 
 	        //for tuning
 	        diff_transfer.end();
@@ -202,7 +202,7 @@ public:
 					}
 
 		            //propagate
-		        	CFGCompute_ooc_syn::propagate(cfg_node, cfg, out, grammar, worklist_2, actives);
+		        	CFGCompute_ooc_syn_alias::propagate(cfg_node, cfg, out, grammar, worklist_2, actives);
 
 					//store the new graph into tmp_graphstore
 					tmp_graphs->addOneGraph_atomic(out_pointer, out_hybrid);
@@ -225,7 +225,7 @@ public:
 
 				if(!isEqual){
 		            //propagate
-					CFGCompute_ooc_syn::propagate(cfg_node, cfg, out, grammar, worklist_2, actives);
+					CFGCompute_ooc_syn_alias::propagate(cfg_node, cfg, out, grammar, worklist_2, actives);
 
 					//store the new graph into tmp_graphstore
 					tmp_graphs->addOneGraph_atomic(out_pointer, out_hybrid);
@@ -295,4 +295,6 @@ public:
 
 
 
-#endif /* COMP_CFG_COMPUTE_OOC_SYN_ITEMSET_H_ */
+#endif /* COMP_CFG_COMPUTE_OOC_SYN_ALIAS_ITEMSET_H_ */
+
+
