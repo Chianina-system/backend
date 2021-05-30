@@ -35,16 +35,10 @@ class CFG{
 public:
 	CFG(){}
 
-    virtual ~CFG(){
+        virtual ~CFG(){
         for (auto &node : nodes) {
             delete node;
         }
-
-//        for (auto &it : succes) {
-//            for (auto &k : it.second) {
-//                delete k;
-//            }
-//        }
 
     }
 
@@ -101,7 +95,7 @@ public:
     }
 
 protected:
-    virtual void print(std::ostream& str) const = 0;
+    virtual void print(std::ostream& str) const= 0;
 
     std::vector<CFGNode*> nodes;
 
@@ -119,3 +113,4 @@ protected:
 
 
 #endif /* COMP_CFG_H_ */
+
