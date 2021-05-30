@@ -5,19 +5,19 @@
  *      Author: dell
  */
 
-#ifndef CFG_COMPUTE_SYN_ITEMSET_H_
-#define CFG_COMPUTE_SYN_ITEMSET_H_
+#ifndef CFG_COMPUTE_SYN_ALIAS_ITEMSET_H_
+#define CFG_COMPUTE_SYN_ALIAS_ITEMSET_H_
 
-#include "cfg_compute_syn.h"
+#include "cfg_compute_syn_alias.h"
 
 #define DIFF_MODE 1
 
 using namespace std;
 
-class CFGCompute_syn_itemset {
+class CFGCompute_syn_alias_itemset {
 
 public:
-	static void do_worklist_synchronous(CFG* cfg_, ItemsetGraphStore* graphstore, Grammar* grammar, Singletons* singletons, bool flag, bool update_mode){
+	static void do_worklist_synchronous(CFG* cfg_, ItemsetGraphStore_alias* graphstore, Grammar* grammar, Singletons* singletons, bool flag, bool update_mode){
 		//for performance tuning
 		Timer_sum sum_compute("compute-synchronous");
 		Timer_sum sum_update("update-graphs");
@@ -117,7 +117,7 @@ public:
 	}
 
 
-	static void compute_synchronous(CFG* cfg, ItemsetGraphStore* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
+	static void compute_synchronous(CFG* cfg, ItemsetGraphStore_alias* graphstore, Concurrent_Worklist<CFGNode*>* worklist_1, Concurrent_Worklist<CFGNode*>* worklist_2,
 			Grammar* grammar, HybridGraphStore* tmp_graphs, Singletons* singletons, bool flag,
 			Timer_wrapper_inmemory* timer){
 		//for performance tuning
@@ -141,7 +141,7 @@ public:
 
 			//merge
 	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(cfg_node);
-	        PEGraph* in = CFGCompute_syn::combine_synchronous(graphstore, preds, cfg_node, grammar);
+	        PEGraph* in = CFGCompute_syn_alias::combine_synchronous(graphstore, preds, cfg_node, grammar);
 
 	        //for tuning
 	        diff_merge.end();
@@ -155,7 +155,7 @@ public:
 	        diff_transfer.start();
 
 	        //transfer
-	        PEGraph* out = CFGCompute_syn::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
+	        PEGraph* out = CFGCompute_syn_alias::transfer(in, cfg_node->getStmt(), grammar, singletons, flag, timer);
 
 	        //for tuning
 	        diff_transfer.end();
@@ -197,7 +197,7 @@ public:
 					}
 
 		            //propagate
-		        	CFGCompute_syn::propagate(cfg_node, cfg, out, grammar, worklist_2);
+		        	CFGCompute_syn_alias::propagate(cfg_node, cfg, out, grammar, worklist_2);
 
 					//store the new graph into tmp_graphstore
 					tmp_graphs->addOneGraph_atomic(out_pointer, out_hybrid);
@@ -220,7 +220,7 @@ public:
 
 				if(!isEqual){
 		            //propagate
-		        	CFGCompute_syn::propagate(cfg_node, cfg, out, grammar, worklist_2);
+		        	CFGCompute_syn_alias::propagate(cfg_node, cfg, out, grammar, worklist_2);
 
 					//store the new graph into tmp_graphstore
 					tmp_graphs->addOneGraph_atomic(out_pointer, out_hybrid);
@@ -255,4 +255,6 @@ public:
 
 
 
-#endif /* CFG_COMPUTE_SYN_ITEMSET_H_ */
+#endif /* CFG_COMPUTE_SYN_ALIAS_ITEMSET_H_ */
+
+
