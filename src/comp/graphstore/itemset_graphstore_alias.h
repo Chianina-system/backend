@@ -5,11 +5,12 @@
  *      Author: dell
  */
 
-#ifndef COMP_GRAPHSTORE_ITEMSET_GRAPHSTORE_H_
-#define COMP_GRAPHSTORE_ITEMSET_GRAPHSTORE_H_
+#ifndef COMP_GRAPHSTORE_ITEMSET_GRAPHSTORE_ALIAS_H_
+#define COMP_GRAPHSTORE_ITEMSET_GRAPHSTORE_ALIAS_H_
 
-#include "graphstore.h"
+#include "graphstore_alias.h"
 #include "edge.h"
+#include "naive_graphstore_alias.h"
 #include "itemset_graph.h"
 #include "fptree.hpp"
 
@@ -20,18 +21,18 @@ const string inputFile = "/home/dell/git/backend/lib/file/input_itemsets_";
 const string outFile = "/home/dell/git/backend/lib/file/out_itemsets_";
 
 
-class ItemsetGraphStore : public GraphStore {
+class ItemsetGraphStore_alias : public GraphStore_alias {
 
 public:
-	ItemsetGraphStore() : GraphStore (true, true) {
-
+	ItemsetGraphStore_alias() : GraphStore_alias (true, true) {
+        //
 	}
 
-	ItemsetGraphStore(bool file_mode, bool buffered_m) : GraphStore (file_mode, buffered_m) {
-
+	ItemsetGraphStore_alias(bool file_mode, bool buffered_m) : GraphStore_alias (file_mode, buffered_m) {
+        //
 	}
 
-    ~ItemsetGraphStore(){
+    ~ItemsetGraphStore_alias(){
     	//delete ItemsetGraph in graphs
     	for(auto it = graphs.begin(); it != graphs.end(); ++it){
     		delete it->second;
@@ -42,40 +43,31 @@ public:
     		delete *it;
     	}
 
-//    	intToEdge.clear();
-//    	edgeToInt.clear();
+        //    	intToEdge.clear();
+        //    	edgeToInt.clear();
     }
 
     PEGraph* retrieve_update(PEGraph_Pointer graph_pointer) {
-//		//for debugging
-//		Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
 
 		PEGraph *out;
 
 		if (graphs.find(graph_pointer) != graphs.end()) {
-//			out = new PEGraph(graphs[graph_pointer]);
+			//out = new PEGraph(graphs[graph_pointer]);
 			out = convertToPEGraph_update(graphs[graph_pointer]);
 		}
 		else {
 			out = nullptr;
 		}
 
-//		//for debugging
-//		Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
+		//for debugging
+		//Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
 
 		return out;
     }
 
 
     void compressItemsetGraph(ItemsetGraph* graph){
-//		bool isCompressed = false;
-//		for(unsigned int i = 0; i < graph->getLength(); ++i){
-//			int id_edge = graph->getEdgeId(i);
-//			if(isItemset(id_edge)){
-//				isCompressed = true;
-//				break;
-//			}
-//		}
+
     	bool isCompressed = graph->getEdgeId(0) < 0 ? true : false;
 
     	if(!isCompressed){
@@ -110,8 +102,8 @@ public:
 				}
 			}
     	}
-//    	cout << edges.size() << endl;
-//    	cout << "size of intToEdge: " << intToEdge.size() << endl;
+    	//cout << edges.size() << endl;
+    	//cout << "size of intToEdge: " << intToEdge.size() << endl;
 
     	//construct pegraph
     	PEGraph* peg = new PEGraph();
@@ -119,8 +111,8 @@ public:
     		int edge_id = *it;
     		Edge edge = intToEdge[edge_id];
 
-//    		//for debugging
-//    		cout << edge << endl;
+    		//for debugging
+    		//cout << edge << endl;
 
     		if(peg->getGraph().find(edge.getSrcId()) == peg->getGraph().end()){
     			peg->getGraph()[edge.getSrcId()] = EdgeArray();
@@ -141,47 +133,45 @@ public:
         	delete myArray;
     	}
 
-//    	cout << *peg << endl;
-//    	cout << peg->getGraph().size() << endl;
     	return peg;
     }
 
     PEGraph* retrieve(PEGraph_Pointer graph_pointer) {
-//		//for debugging
-//		Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
+		//for debugging
+		//Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
 
 		PEGraph *out;
 
 		if (graphs.find(graph_pointer) != graphs.end()) {
-//			out = new PEGraph(graphs[graph_pointer]);
+			//out = new PEGraph(graphs[graph_pointer]);
 			out = convertToPEGraph(graphs[graph_pointer]);
 		}
 		else {
 			out = nullptr;
 		}
 
-//		//for debugging
-//		Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
+		//for debugging
+		//Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
 
 		return out;
     }
 
     ItemsetGraph* retrieve_direct(PEGraph_Pointer graph_pointer) {
-//		//for debugging
-//		Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
+		//for debugging
+		//Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
 
     	ItemsetGraph *out;
 
 		if (graphs.find(graph_pointer) != graphs.end()) {
-//			out = new PEGraph(graphs[graph_pointer]);
+			//out = new PEGraph(graphs[graph_pointer]);
 			out = graphs[graph_pointer];
 		}
 		else {
 			out = nullptr;
 		}
 
-//		//for debugging
-//		Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
+		//for debugging
+		//Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
 
 		return out;
     }
@@ -209,8 +199,8 @@ public:
 				}
 			}
     	}
-//    	cout << edges.size() << endl;
-//    	cout << "size of intToEdge: " << intToEdge.size() << endl;
+    	//cout << edges.size() << endl;
+    	//cout << "size of intToEdge: " << intToEdge.size() << endl;
 
     	//construct pegraph
     	PEGraph* peg = new PEGraph();
@@ -218,8 +208,8 @@ public:
     		int edge_id = *it;
     		Edge edge = intToEdge[edge_id];
 
-//    		//for debugging
-//    		cout << edge << endl;
+    		//for debugging
+    		//cout << edge << endl;
 
     		if(peg->getGraph().find(edge.getSrcId()) == peg->getGraph().end()){
     			peg->getGraph()[edge.getSrcId()] = EdgeArray();
@@ -231,110 +221,89 @@ public:
 			(*it).second.sort();
     	}
 
-//    	cout << *peg << endl;
-//    	cout << peg->getGraph().size() << endl;
+
     	return peg;
     }
 
     void update_convert_locked(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
-//		//for debugging
-//		Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
+		//for debugging
+		//Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
 
 		if (graphs.find(graph_pointer) != graphs.end()) {
 			delete graphs[graph_pointer];
 		}
 
 		//for debugging
-//		cout << *pegraph << endl;
+		//cout << *pegraph << endl;
 		graphs[graph_pointer] = convertToSetGraph_locked(pegraph);
-//		cout << *graphs[graph_pointer] << endl;
-//		cout << *convertToPEGraph(graphs[graph_pointer]) << endl;
 
-//		//for debugging
-//		Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
+
+		//for debugging
+		//Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
     }
 
     void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
-//		//for debugging
-//		Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
+		//for debugging
+		//Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
 
 		if (graphs.find(graph_pointer) != graphs.end()) {
 			delete graphs[graph_pointer];
 		}
 
 		//for debugging
-//		cout << *pegraph << endl;
+		//cout << *pegraph << endl;
 		graphs[graph_pointer] = convertToSetGraph(pegraph);
-//		cout << *graphs[graph_pointer] << endl;
-//		cout << *convertToPEGraph(graphs[graph_pointer]) << endl;
 
-//		//for debugging
-//		Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
+
+		//for debugging
+		//Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
     }
 
     void update_hybrid(PEGraph_Pointer graph_pointer, HybridGraph* hybridgraph) {
-//		//for debugging
-//		Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
+		//for debugging
+		//Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
 
 		if (graphs.find(graph_pointer) != graphs.end()) {
 			delete graphs[graph_pointer];
 		}
 
 		//for debugging
-//		cout << *pegraph << endl;
+		//cout << *pegraph << endl;
 		graphs[graph_pointer] = convertToSetGraph_hybrid(hybridgraph);
-//		cout << *graphs[graph_pointer] << endl;
-//		cout << *convertToPEGraph(graphs[graph_pointer]) << endl;
 
-//		//for debugging
-//		Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
+
     }
 
     void update_convert_hybrid_locked(PEGraph_Pointer graph_pointer, HybridGraph* pegraph) {
-//		//for debugging
-//		Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
+		//for debugging
+		//Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
 
 		if (graphs.find(graph_pointer) != graphs.end()) {
 			delete graphs[graph_pointer];
 		}
 
 		//for debugging
-//		cout << *pegraph << endl;
+		//cout << *pegraph << endl;
 		graphs[graph_pointer] = convertToSetGraph_hybrid_locked(pegraph);
-//		cout << *graphs[graph_pointer] << endl;
-//		cout << *convertToPEGraph(graphs[graph_pointer]) << endl;
+		//cout << *graphs[graph_pointer] << endl;
+		//cout << *convertToPEGraph(graphs[graph_pointer]) << endl;
 
-//		//for debugging
-//		Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
+		//for debugging
+		//Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
     }
 
     void loadGraphStore(const string& file, const string& file_in, Partition part, int mining_mode, int support, int length) {
 		//graphstore file
 		this->deserialize(file);
 
-//		cout << "deserialize ended." << endl;
+		//cout << "deserialize ended." << endl;
 
 		//load in-graphs
 		this->load_in_graphs(file_in);
 
-//		cout << "load_in_graphs ended." << endl;
+		//cout << "load_in_graphs ended." << endl;
 
-//		//construct itemset base
-//		if(mining_mode == 0){
-//			this->constructItemsetBase_eclat(part, support, length);
-//		}
-//		else if(mining_mode == 1){
-//			this->constructItemsetBase_apriori(part, support, length);
-//		}
-//		else if(mining_mode == 2){
-//			this->constructItemsetBase_fpgrowth(part, support, length);
-//		}
-//		else{
-//			cout << "wrong mining option!" << endl;
-//			exit(-1);
-//		}
-
-//		cout << "construct itemset base." << endl;
+		//construct itemset base
     }
 
     void serialize(const string& file){
@@ -419,12 +388,12 @@ public:
     	else{
     		if(buffered_mode){//pegraph-level
     			//read intToEdge
-//    			cout << "load intToEdge" << endl;
+    			//cout << "load intToEdge" << endl;
         		string file_intToEdge = file + ".intToEdge";
 				int fp_intToEdge = open(file_intToEdge.c_str(), O_RDONLY);
         		if(!(fp_intToEdge > 0)) {
         			cout << "can't load graphs file: " << file_intToEdge << endl;
-    //    			exit(-1);
+        			//exit(-1);
         		}
         		else{
 					long inttoedge_file_size = io_manager::get_filesize(fp_intToEdge);
@@ -457,12 +426,12 @@ public:
 
 
 				//read edgeToInt
-//        		cout << "load edgeToInt" << endl;
+        		//cout << "load edgeToInt" << endl;
         		string file_edgeToInt = file + ".edgeToInt";
         		int fp_edgetoint = open(file_edgeToInt.c_str(), O_RDONLY);
         		if(!(fp_edgetoint > 0)) {
         			cout << "can't load graphs file: " << file_edgeToInt << endl;
-    //    			exit(-1);
+        			//exit(-1);
         		}
         		else{
         			long edgetoint_file_size = io_manager::get_filesize(fp_edgetoint);
@@ -494,12 +463,12 @@ public:
         		}
 
         		//read itemsetGraphs
-//        		cout << "load itemsetGraphs" << endl;
+        		//cout << "load itemsetGraphs" << endl;
 				string file_itemsetgraphs = file + ".itemsetGraphs";
 				FILE *fp_itemsetgraphs = fopen(file_itemsetgraphs.c_str(),"rb");
 				if(!fp_itemsetgraphs) {
 					cout << "can't load graphs file: " << file_itemsetgraphs << endl;
-	//    			exit(-1);
+	    			//exit(-1);
 				}
 				else{
 					PEGraph_Pointer graph_pointer;
@@ -514,12 +483,12 @@ public:
 
 
 				//read intToItemset
-//				cout << "load intToItemset" << endl;
+				//cout << "load intToItemset" << endl;
 				string file_intToItemset = file + ".intToItemset";
 				FILE *fp_inttoitemset = fopen(file_intToItemset.c_str(),"rb");
 				if(!fp_inttoitemset) {
 					cout << "can't load graphs file: " << file_intToItemset << endl;
-	//    			exit(-1);
+	    			//exit(-1);
 				}
 				else{
 					unsigned int len;
@@ -539,7 +508,7 @@ public:
 				FILE *fp_intToEdge = fopen(file_intToEdge.c_str(),"rb");
 				if(!fp_intToEdge) {
 					cout << "can't load graphs file: " << file_intToEdge << endl;
-	//    			exit(-1);
+	    			//exit(-1);
 				}
 				else{
 					char* buf_edge = (char*) malloc(Edge::getSizeof());
@@ -557,7 +526,7 @@ public:
 				FILE *fp_edgetoint = fopen(file_edgeToInt.c_str(),"rb");
 				if(!fp_edgetoint) {
 					cout << "can't load graphs file: " << file_edgeToInt << endl;
-	//    			exit(-1);
+	    			//exit(-1);
 				}
 				else{
 					char* buf_edge_int = (char*) malloc(Edge::getSizeof() + sizeof(int));
@@ -576,7 +545,7 @@ public:
 				FILE *fp_itemsetgraphs = fopen(file_itemsetgraphs.c_str(),"rb");
 				if(!fp_itemsetgraphs) {
 					cout << "can't load graphs file: " << file_itemsetgraphs << endl;
-	//    			exit(-1);
+	    			//exit(-1);
 				}
 				else{
 					PEGraph_Pointer graph_pointer;
@@ -594,7 +563,7 @@ public:
 				FILE *fp_inttoitemset = fopen(file_intToItemset.c_str(),"rb");
 				if(!fp_inttoitemset) {
 					cout << "can't load graphs file: " << file_intToItemset << endl;
-	//    			exit(-1);
+	    			//exit(-1);
 				}
 				else{
 					unsigned int len;
@@ -621,25 +590,7 @@ public:
     	else{
     		if(buffered_mode){//pegraph-level
 				//write intToEdge
-//    			cout << "write intToEdge" << endl;
-//				string file_intToEdge = file + ".intToEdge";
-//				FILE * f_intToEdge = fopen(file_intToEdge.c_str(), "wb");
-//				if(f_intToEdge == NULL) {
-//					cout << "can't write to file: " << file_intToEdge << endl;
-//					exit(-1);
-//				}
-//				else{
-//					size_t bufsize = this->intToEdge.size() * (Edge::getSizeof());
-//					char* buf = (char*) malloc(bufsize);
-//					size_t offset = 0;
-//					for(auto it = this->intToEdge.begin(); it != this->intToEdge.end(); ++it){
-//						Edge edge = *it;
-//						offset = edge.write_to_buf(buf, offset);
-//					}
-//					fwrite(buf, bufsize, 1, f_intToEdge);
-//					free(buf);
-//					fclose(f_intToEdge);
-//				}
+
 				string file_intToEdge = file + ".intToEdge";
 				FILE *f_intToEdge = fopen(file_intToEdge.c_str(), "wb");
 				if (f_intToEdge == NULL) {
@@ -647,7 +598,7 @@ public:
 					exit(-1);
 				}
 				else {
-//					char * buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
+					//char * buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
 					char* buf = (char*) malloc(IO_SIZE);
 					long real_io_size = get_real_io_size(IO_SIZE, Edge::getSizeof());
 					long offset = 0;
@@ -669,28 +620,6 @@ public:
 
 
 				//write edgeToInt
-//				cout << "write edgeToInt" << endl;
-//				string file_edgeToInt = file + ".edgeToInt";
-//				FILE * f_edgeToInt = fopen(file_edgeToInt.c_str(),"wb");
-//				if(f_edgeToInt == NULL) {
-//					cout << "can't write to file: " << file_edgeToInt << endl;
-//					exit(-1);
-//				}
-//				else{
-//					size_t bufsize = this->edgeToInt.size() * ((Edge::getSizeof()) + sizeof(int));
-//					char* buf = (char*) malloc(bufsize);
-//					size_t offset = 0;
-//					for(auto it = this->edgeToInt.begin(); it != this->edgeToInt.end(); ++it){
-//						Edge edge = it->first;
-//						int index = it->second;
-//						offset = edge.write_to_buf(buf, offset);
-//						memcpy(buf + offset, (char*)& index, sizeof(int));
-//						offset += sizeof(int);
-//					}
-//					fwrite(buf, bufsize, 1, f_edgeToInt);
-//					free(buf);
-//					fclose(f_edgeToInt);
-//				}
 				string file_edgeToInt = file + ".edgeToInt";
 				FILE * f_edgeToInt = fopen(file_edgeToInt.c_str(),"wb");
 				if(f_edgeToInt == NULL) {
@@ -698,7 +627,7 @@ public:
 					exit(-1);
 				}
 				else{
-//					char * buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
+					//char * buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
 					char* buf = (char*) malloc(IO_SIZE);
 					long real_io_size = get_real_io_size(IO_SIZE, Edge::getSizeof() + sizeof(int));
 					long offset = 0;
@@ -722,31 +651,6 @@ public:
 
 
 				//write graphs
-//				cout << "write itemsetGraphs" << endl;
-//				string file_itemsetgraphs = file + ".itemsetGraphs";
-//				FILE * f_itemsetGraphs = fopen(file_itemsetgraphs.c_str(),"wb");
-//				if(f_itemsetGraphs == NULL) {
-//					cout << "can't write to file: " << file_itemsetgraphs << endl;
-//					exit(-1);
-//				}
-//				else{
-//					size_t bufsize = 0;
-//					for(auto it : this->graphs){
-//						bufsize += sizeof(PEGraph_Pointer) + sizeof(unsigned int) + it.second->getLength() * sizeof(int);
-//					}
-//					char* buf = (char*) malloc(bufsize);
-//					size_t offset = 0;
-//					for(auto it = this->graphs.begin(); it != this->graphs.end(); ++it){
-//						PEGraph_Pointer pointer = it->first;
-//						ItemsetGraph* graph = it->second;
-//						memcpy(buf + offset, (char*)& pointer, sizeof(PEGraph_Pointer));
-//						offset += sizeof(PEGraph_Pointer);
-//						offset = graph->write_to_buf(buf, offset);
-//					}
-//					fwrite(buf, bufsize, 1, f_itemsetGraphs);
-//					free(buf);
-//					fclose(f_itemsetGraphs);
-//				}
 				string file_itemsetgraphs = file + ".itemsetGraphs";
 				FILE * f_itemsetGraphs = fopen(file_itemsetgraphs.c_str(),"wb");
 				if(f_itemsetGraphs == NULL) {
@@ -754,7 +658,7 @@ public:
 					exit(-1);
 				}
 				else{
-//					char * buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
+					//char * buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
 					char* buf = (char*) malloc(IO_SIZE);
 					long offset = 0;
 					for(auto it = this->graphs.begin(); it != this->graphs.end(); ++it){
@@ -784,28 +688,6 @@ public:
 
 
 				//write itemsets
-//				cout << "write intToItems" << endl;
-//				string file_intToItemset = file + ".intToItemset";
-//				FILE * f_intToItemset = fopen(file_intToItemset.c_str(), "wb");
-//				if(f_intToItemset == NULL) {
-//					cout << "can't write to file: " << file_intToItemset << endl;
-//					exit(-1);
-//				}
-//				else{
-//					size_t bufsize = 0;
-//					for(auto it : this->intToItemset){
-//						bufsize += sizeof(unsigned int) + it->getLength() * sizeof(int);
-//					}
-//					char* buf = (char*) malloc(bufsize);
-//					size_t offset = 0;
-//					for(auto it = this->intToItemset.begin(); it != this->intToItemset.end(); ++it){
-//						ItemsetGraph* graph = *it;
-//						offset = graph->write_to_buf(buf, offset);
-//					}
-//					fwrite(buf, bufsize, 1, f_intToItemset);
-//					free(buf);
-//					fclose(f_intToItemset);
-//				}
 				string file_intToItemset = file + ".intToItemset";
 				FILE * f_intToItemset = fopen(file_intToItemset.c_str(), "wb");
 				if(f_intToItemset == NULL) {
@@ -813,7 +695,7 @@ public:
 					exit(-1);
 				}
 				else{
-//					char * buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
+					//char * buf = (char*)memalign(PAGE_SIZE, IO_SIZE);
 					char* buf = (char*) malloc(IO_SIZE);
 					long offset = 0;
 					for(auto it = this->intToItemset.begin(); it != this->intToItemset.end(); ++it){
@@ -945,7 +827,7 @@ public:
     		FILE *fp = fopen(file.c_str(),"rb");
     		if(!fp) {
     			cout << "can't load graphs file: " << file << endl;
-//    			exit(-1);
+    			//exit(-1);
     		}
     		else{
     			if(buffered_mode){//pegraph-level
@@ -1051,65 +933,6 @@ public:
     }
 
 
-//    void load_onebyone(const string& file){
-//    	//for debugging
-//    	Logger::print_thread_info_locked("load-readable starting...\n", LEVEL_LOG_FUNCTION);
-//
-//	    std::ifstream fin;
-//	    fin.open(file);
-//	    if(!fin) {
-//	        cout << "can't load file_graphs: " << file << endl;
-//	    }
-//	    else{
-//			std::string line;
-//			while (getline(fin, line)) {
-//				if(line == ""){
-//					continue;
-//				}
-//
-//				std::stringstream stream(line);
-//				std::string id;
-//				stream >> id;
-//				PEGraph_Pointer graph_pointer = atoi(id.c_str());
-//				PEGraph* pegraph = new PEGraph();
-//				pegraph->load_readable(stream);
-//				//since the file is appended, we just use the recent updated pegraph
-//				ItemsetGraph *graph = convertToSetGraph(pegraph);
-//				delete pegraph;
-//				if (graphs.find(graph_pointer) != graphs.end()) {
-//					delete graphs[graph_pointer];
-//				}
-//				graphs[graph_pointer] = graph;
-//			}
-//			fin.close();
-//
-//	    	//delete the old graphstore file
-//	    	FileUtil::delete_file(file);
-//	    }
-//
-//		//for debugging
-//		Logger::print_thread_info_locked("load-readable finished.\n", LEVEL_LOG_FUNCTION);
-//
-//    }
-
-//    ItemsetGraph* convertToSetGraph(PEGraph* pegraph){
-//    	set<int> edges_set;
-//    	for(auto& it : pegraph->getGraph()){
-//    		vertexid_t src = it.first;
-//    		int size = it.second.getSize();
-//    		vertexid_t* dsts = it.second.getEdges();
-//    		label_t* labels = it.second.getLabels();
-//    		for(int i = 0; i < size; ++i){
-//    			Edge edge(src, dsts[i], labels[i]);
-//    			addNewEdgeToEdgeset(edge, edges_set);
-//    		}
-//		}
-//
-//    	//TODO: replace edge set with frequent itemset
-//    	compressEdges(edges_set);
-//    	ItemsetGraph *graph = new ItemsetGraph(edges_set);
-//    	return graph;
-//    }
 
     ItemsetGraph* convertToSetGraph(PEGraph* pegraph){
     	int len = pegraph->getNumEdges();
@@ -1270,7 +1093,7 @@ public:
 		}
 
     	//sort the array
-//    	sort(myArray->getData(), myArray->getData() + myArray->getLength());
+    	//sort(myArray->getData(), myArray->getData() + myArray->getLength());
     	myalgo::insertSortArray(myArray->getData(), myArray->getLength());
 
     	//TODO: replace edge set with frequent itemset
@@ -1301,9 +1124,9 @@ public:
     	}
     	sort(out_keys, out_keys + out_len);
 
-//    	//for debugging
-//    	cout << "kyes in out: " << endl;
-//    	printArray(out_keys, out_len);
+    	//for debugging
+    	//cout << "kyes in out: " << endl;
+    	//printArray(out_keys, out_len);
 
     	//get the keys of old_out
     	unsigned int old_out_len = old_out->getNumVertices();
@@ -1314,9 +1137,7 @@ public:
     	}
     	sort(old_out_keys, old_out_keys + old_out_len);
 
-//    	//for debugging
-//    	cout << "kyes in old-out: " << endl;
-//    	printArray(old_out_keys, old_out_len);
+
 
     	//compute the deleted and added keys
     	vector<vertexid_t> added;
@@ -1355,13 +1176,6 @@ public:
     	delete[] out_keys;
     	delete[] old_out_keys;
 
-//    	//for debugging
-//    	cout << "srcIds-added: " << endl;
-//    	printArray(added.data(), added.size());
-//    	cout << "srcIds-deleted: " << endl;
-//    	printArray(deleted.data(), deleted.size());
-//    	cout << "srcIds-both: " << endl;
-//    	printArray(both.data(), both.size());
 
 
     	vector<int> myArray_added;
@@ -1482,18 +1296,11 @@ public:
     	}
 
     	//sort the array
-//    	sort(myArray_added.begin(), myArray_added.end());
+    	//sort(myArray_added.begin(), myArray_added.end());
     	myalgo::insertSortArray(myArray_added.data(), myArray_added.size());
-//    	sort(myArray_deleted.begin(), myArray_deleted.end());
+    	//sort(myArray_deleted.begin(), myArray_deleted.end());
     	myalgo::insertSortArray(myArray_deleted.data(), myArray_deleted.size());
 
-//    	//for debugging
-//    	cout << "old-out-itemset: " << endl;
-//    	cout << old_out_itemset->toString() << endl;
-//    	cout << "edges-added: " << endl;
-//    	printArray(myArray_added.data(), myArray_added.size());
-//    	cout << "edges-deleted: " << endl;
-//    	printArray(myArray_deleted.data(), myArray_deleted.size());
 
     	MyArray* myArray = new MyArray(old_out_itemset->getLength() + myArray_added.size() - myArray_deleted.size());
     	//construct myArray
@@ -1549,9 +1356,7 @@ public:
      */
     void compressEdges(MyArray* myArray){
     	for(unsigned i = 0; i < intToItemset.size(); i++){
-//    		if(myArray->getLength() < intToItemset.at(intToItemset.size() - 1)->getLength()){
-//    			break;
-//    		}
+
     		if(myArray->getLength() < intToItemset[i]->getLength()){
     			continue;
     		}
@@ -1634,7 +1439,7 @@ public:
 					}
 				}
 				else{
-//					copy(myArray->getData() + j, myArray->getData() + myArray->getLength(), new_array->getData() + new_array->getIndex());
+					//copy(myArray->getData() + j, myArray->getData() + myArray->getLength(), new_array->getData() + new_array->getIndex());
 					new_array->insert(myArray->getData() + j, myArray->getLength() - j);
 					break;
 				}
@@ -1646,7 +1451,7 @@ public:
 			}
     	}
     	else{
-//    		copy(myArray->getData() + j, myArray->getData() + myArray->getLength(), new_array->getData() + new_array->getIndex());
+    		//copy(myArray->getData() + j, myArray->getData() + myArray->getLength(), new_array->getData() + new_array->getIndex());
     		new_array->insert(myArray->getData() + j, myArray->getLength() - j);
     	}
 
@@ -1656,20 +1461,15 @@ public:
     	return true;
     }
 
-//    //shallow copy
-//    void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph* graph) {
-//    	cout << "shouldn't call this function!" << endl;
-//    	exit (EXIT_FAILURE);
-//    }
 
-    static void update_parallel(ItemsetGraphStore* current, NaiveGraphStore* another, Concurrent_Worklist<vertexid_t>* worklist){
+    static void update_parallel( ItemsetGraphStore_alias* current, NaiveGraphStore_alias* another, Concurrent_Worklist<vertexid_t>* worklist){
     	//for debugging
     	Logger::print_thread_info_locked("update-parallel starting...\n", LEVEL_LOG_FUNCTION);
 
     	vertexid_t id = -1;
     	while(worklist->pop_atomic(id)){
-//    		//for debugging
-//    		Logger::print_thread_info_locked("graph id = " + to_string(id) + "\n", LEVEL_LOG_FUNCTION);
+    		//for debugging
+    		//Logger::print_thread_info_locked("graph id = " + to_string(id) + "\n", LEVEL_LOG_FUNCTION);
 
     		assert(current->graphs.find(id) != current->graphs.end());
     		current->update_convert_locked(id, another->getMap().at(id));
@@ -1679,13 +1479,13 @@ public:
     	Logger::print_thread_info_locked("update-parallel finished.\n", LEVEL_LOG_FUNCTION);
     }
 
-    void update_graphs_parallel(GraphStore* another){
+    void update_graphs_parallel(GraphStore_alias* another){
     	//for debugging
     	Logger::print_thread_info_locked("update-graphs-parallel starting...\n", LEVEL_LOG_FUNCTION);
 
 	    //initiate concurrent worklist
 	    Concurrent_Worklist<vertexid_t>* worklist = new Concurrent_Workset<vertexid_t>();
-	    NaiveGraphStore* another_graphstore = dynamic_cast<NaiveGraphStore*>(another);
+	    NaiveGraphStore_alias* another_graphstore = dynamic_cast<NaiveGraphStore_alias*>(another);
 	    for(auto& it: another_graphstore->getMap()){
 	        worklist->push_atomic(it.first);
 
@@ -1709,14 +1509,14 @@ public:
     	Logger::print_thread_info_locked("update-graphs-parallel finished.\n", LEVEL_LOG_FUNCTION);
     }
 
-    static void update_hybrid_parallel(ItemsetGraphStore* current, HybridGraphStore* tmp_graphs, Concurrent_Worklist<vertexid_t>* worklist){
+    static void update_hybrid_parallel( ItemsetGraphStore_alias* current, HybridGraphStore* tmp_graphs, Concurrent_Worklist<vertexid_t>* worklist){
     	//for debugging
     	Logger::print_thread_info_locked("update-parallel starting...\n", LEVEL_LOG_FUNCTION);
 
     	vertexid_t id = -1;
     	while(worklist->pop_atomic(id)){
-//    		//for debugging
-//    		Logger::print_thread_info_locked("graph id = " + to_string(id) + "\n", LEVEL_LOG_FUNCTION);
+    		//for debugging
+    		//Logger::print_thread_info_locked("graph id = " + to_string(id) + "\n", LEVEL_LOG_FUNCTION);
 
     		assert(current->graphs.find(id) != current->graphs.end());
     		current->update_convert_hybrid_locked(id, tmp_graphs->getGraphs().at(id));
@@ -1727,8 +1527,8 @@ public:
     }
 
 
-    void update_graphs_sequential(GraphStore* another){
-    	NaiveGraphStore* another_graphstore = dynamic_cast<NaiveGraphStore*>(another);
+    void update_graphs_sequential(GraphStore_alias* another){
+    	NaiveGraphStore_alias* another_graphstore = dynamic_cast<NaiveGraphStore_alias*>(another);
     	for(auto& it: another_graphstore->getMap()){
     		update(it.first, it.second);
     	}
@@ -1784,16 +1584,7 @@ public:
     	Logger::print_thread_info_locked("update-graphs-parallel finished.\n", LEVEL_LOG_FUNCTION);
     }
 
-//    void clearEntryOnly() {
-//
-//    }
 
-//    void clear() {
-//    	for(auto it = graphs.begin(); it != graphs.end(); ){
-//    		delete it->second;
-//    		it = graphs.erase(it);
-//    	}
-//    }
 
     void printOutInfo(){
     	int size_graphs = graphs.size();
@@ -1802,7 +1593,7 @@ public:
     	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
 
     	for(auto it = graphs.begin(); it != graphs.end(); ++it){
-//    		cout << it->first << "\t" << it->second->getNumEdges() << endl;
+    		//cout << it->first << "\t" << it->second->getNumEdges() << endl;
     		size_edges += it->second->getNumEdges(this->intToItemset);
     	}
 
@@ -1827,13 +1618,7 @@ public:
     }
 
     void compressGraphStore(Partition part, int support, int length){
-//    	string input_file = inputFile + to_string(part);
-//    	string output_file = outFile + to_string(part);
-//
-//    	//if input_file exists, meaning that the itemset mining for this partition has been done before, then return directly
-//    	if(FileUtil::file_exists(output_file)){
-//    		return;
-//    	}
+
 
     	//construct itemset base
     	unsigned int original_size = this->intToItemset.size();
@@ -1846,7 +1631,7 @@ public:
 
     }
 
-    static void compress_parallel(ItemsetGraphStore* current, Concurrent_Worklist<PEGraph_Pointer>* worklist){
+    static void compress_parallel( ItemsetGraphStore_alias* current, Concurrent_Worklist<PEGraph_Pointer>* worklist){
     	//for debugging
     	Logger::print_thread_info_locked("compress-parallel starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -1908,9 +1693,6 @@ public:
     void writeToFile(const string& input_file) {
 		ofstream myfile;
 		myfile.open(input_file, std::ofstream::out);
-//		//for debugging
-//		cout << inputFile << endl;
-//		cout << myfile.is_open() << endl;
 
 		int percent = 30;
 		int limit = 10000;
@@ -1922,10 +1704,8 @@ public:
 				}
 
 				if(!n.second->isEmpty() && beSeleted(n.second, percent)){
-//					for(unsigned int i = 0; i < n.second->getLength(); i++){
-//						myfile << n.second->getEdgeId(i) << " ";
-//					}
-//					myfile << "\n";
+
+					//myfile << "\n";
 					limit--;
 
 
@@ -1951,7 +1731,7 @@ public:
         myfile.open(output_file);
         if (!myfile) {
             cout << "can't load file: " << output_file << endl;
-//            exit(EXIT_FAILURE);
+            //exit(EXIT_FAILURE);
         }
         else{
 			//get all the frequent itemset and the corresponding frequency info
@@ -1998,18 +1778,17 @@ public:
 
 			//filter to obtain top-k disjoint frequent itemsets
 			int k = 40;
-//			get_disjoint_itemset(frequency_graph_map, k);
+			//get_disjoint_itemset(frequency_graph_map, k);
 
 			for(auto it = frequency_graph_map.rbegin(); k > 0 && it != frequency_graph_map.rend(); ++it){
-//			for(auto it = frequency_graph_map.cbegin(); k > 0 && it != frequency_graph_map.cend(); ++it){
+			//for(auto it = frequency_graph_map.cbegin(); k > 0 && it != frequency_graph_map.cend(); ++it){
 				ItemsetGraph* base = (*it).second;
 				if(!is_invalid(base, intToItemset)){
 					intToItemset.push_back((*it).second);
 					k--;
 				}
 
-//				//for debugging
-//				cout << *((*it).second) << endl;
+
 			}
         }
     }
@@ -2049,9 +1828,7 @@ public:
     	return diff;
     }
 
-//    void get_disjoint_itemset(multimap<int, ItemsetGraph*>& frequency_graph_map, int k){
-//
-//    }
+
 
 
     /*
@@ -2063,10 +1840,7 @@ public:
     	string input_file = inputFile + to_string(part);
     	string output_file = outFile + to_string(part);
 
-//    	//if input_file exists, meaning that the itemset mining for this partition has been done before, then return directly
-//    	if(FileUtil::file_exists(output_file)){
-//    		return;
-//    	}
+
 
     	if(!graphs.empty()){
 			writeToFile(input_file);
@@ -2082,7 +1856,7 @@ public:
 
 
     void constructItemsetBase_apriori(Partition part, int support, int length){
-
+        //
     }
 
 
@@ -2098,7 +1872,7 @@ public:
      * reconstruct the entire itemset base
      */
     void reconstructItemsetBase(){
-
+        //
     }
 
 	unordered_map<PEGraph_Pointer, ItemsetGraph*>& getGraphs() {
@@ -2201,4 +1975,6 @@ private:
 
 
 
-#endif /* COMP_GRAPHSTORE_ITEMSET_GRAPHSTORE_H_ */
+#endif /* COMP_GRAPHSTORE_ITEMSET_GRAPHSTORE_ALIAS_H_ */
+
+
