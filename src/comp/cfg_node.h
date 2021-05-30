@@ -25,129 +25,35 @@
 #include "graphstore/buffer.h"
 
 
+using namespace std;
+
 class CFGNode{
 
-	friend std::ostream & operator<<(std::ostream & strm, const CFGNode& cfgNode) {
-		strm << cfgNode.getOutPointer();
-		if(cfgNode.getStmt()){
-			strm << cfgNode.getStmt()->toString();
-		}
-		return strm;
-	}
-
 public:
+
     CFGNode(){
     	id = -1;
-    	stmt = NULL;
+    	//len1= len;
+    	// content = new int[len1];
+
+
+    	//stmt = NULL;
     }
 
-    CFGNode(int _id, Stmt* _stmt) {
+    CFGNode(int _id) {
     	id = _id;
-    	stmt = _stmt;
     }
 
-    CFGNode(std::string& line){
-		std::stringstream stream(line);
-		std::string stmt_id, type;
-		stream >> stmt_id >> type;
+    virtual ~CFGNode(){   };
 
-		this->id = atoi(stmt_id.c_str());
-		if (type == "assign") {
-			stmt = new AssignStmt(stream);
-		}
-		else if (type == "load") {
-			stmt = new LoadStmt(stream);
-		}
-		else if (type == "store") {
-			stmt = new StoreStmt(stream);
-		}
-		else if (type == "alloca") {
-			stmt = new AllocStmt(stream);
-		}
-		else if (type == "phi") {
-			stmt = new PhiStmt(stream);
-		}
-		else if (type == "call") {
-			stmt = new CallStmt(stream);
-		}
-		else if (type == "return") {
-			stmt = new ReturnStmt(stream);
-		}
-		else if (type == "ret") {
-			stmt = new RetStmt();
-		}
-		else if (type == "block") {
-			stmt = new SkipStmt();
-		}
-		else if(type == "callfptr"){
-			stmt = new CallfptrStmt(stream);
-		}
-		else if(type == "calleefptr"){
-			stmt = new CalleefptrStmt(stream);
-		}
-		else {
-			cout << "wrong stmt type!!!" << endl;
-			exit(EXIT_FAILURE);
-		}
-	}
+    virtual size_t get_size_bytes() const = 0;
 
-    ~CFGNode(){
-    	if(stmt){
-			delete stmt;
-    	}
-    }
+    virtual void write_to_buf(Buffer& buf) = 0;
+
+    virtual void read_from_buf(char* buf, size_t bufsize) = 0;
 
 
-    size_t get_size_bytes() const {
-    	return sizeof(PEGraph_Pointer) + sizeof(TYPE) + stmt->get_size_bytes();
-    }
-
-    void write_to_buf(Buffer& buf){
-    	size_t s = get_size_bytes();
-    	memcpy(buf.getData() + buf.getSize(), (char*)& s, sizeof(size_t));
-    	buf.add_size_by(sizeof(size_t));
-    	memcpy(buf.getData() + buf.getSize(), (char*)& id, sizeof(PEGraph_Pointer));
-    	buf.add_size_by(sizeof(PEGraph_Pointer));
-    	TYPE t = stmt->getType();
-    	memcpy(buf.getData() + buf.getSize(), (char*)& t, sizeof(TYPE));
-    	buf.add_size_by(sizeof(TYPE));
-    	stmt->write_to_buf(buf);
-    }
-
-    void read_from_buf(char* buf, size_t bufsize){
-    	size_t offset = 0;
-    	id = *((PEGraph_Pointer*)(buf));
-    	offset += sizeof(PEGraph_Pointer);
-    	TYPE type = *((TYPE*)(buf + offset));
-    	offset += sizeof(TYPE);
-
-    	switch(type){
-    	case TYPE::Assign: stmt = new AssignStmt(); break;
-    	case TYPE::Load: stmt = new LoadStmt(); break;
-    	case TYPE::Store: stmt = new StoreStmt(); break;
-    	case TYPE::Alloca: stmt = new AllocStmt(); break;
-    	case TYPE::Phi: stmt = new PhiStmt(); break;
-    	case TYPE::Call: stmt = new CallStmt(); break;
-    	case TYPE::Return: stmt = new ReturnStmt(); break;
-    	case TYPE::Ret: stmt = new RetStmt(); break;
-    	case TYPE::Skip: stmt = new SkipStmt(); break;
-    	case TYPE::Callfptr: stmt = new CallfptrStmt(); break;
-    	case TYPE::Calleefptr: stmt = new CalleefptrStmt(); break;
-    	default:
-    		cout << "wrong stmt type!!!" << endl;
-    		exit(EXIT_FAILURE);
-    	}
-
-    	stmt->read_from_buf(buf, offset, bufsize);
-    }
-
-    inline Stmt* getStmt() const {
-        return stmt;
-    }
-
-//	inline PEGraph_Pointer getInPointer() const {
-//		return in_pointer;
-//	}
+    virtual inline Stmt* getStmt() const  = 0;
 
     inline PEGraph_Pointer getOutPointer() const {
         return id;
@@ -162,17 +68,12 @@ public:
     }
 
 
-
-
-
-private:
+protected:
     PEGraph_Pointer id;
-
-    Stmt* stmt = nullptr;
-
 
 };
 
 
-
 #endif /* COMP_CFG_NODE_H_ */
+
+
