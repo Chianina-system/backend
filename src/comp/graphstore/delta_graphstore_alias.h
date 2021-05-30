@@ -5,26 +5,26 @@
  *      Author: zzq
  */
 
-#ifndef COMP_GRAPHSTORE_DELTA_GRAPHSTORE_H_
-#define COMP_GRAPHSTORE_DELTA_GRAPHSTORE_H_
+#ifndef COMP_GRAPHSTORE_DELTA_GRAPHSTORE_ALIAS_H_
+#define COMP_GRAPHSTORE_DELTA_GRAPHSTORE_ALIAS_H_
 
 #include "delta_graph.h"
-#include "graphstore.h"
+#include "graphstore_alias.h"
 
 using namespace std;
 
-class DeltaGraphStore : public GraphStore {
+class DeltaGraphStore_alias : public GraphStore_alias {
 
 public:
-	DeltaGraphStore() : GraphStore (true, true) {
+	DeltaGraphStore_alias() : GraphStore_alias (true, true) {
 
 	}
 
-	DeltaGraphStore(bool file_mode, bool buffered_m) : GraphStore (file_mode, buffered_m) {
+	DeltaGraphStore_alias(bool file_mode, bool buffered_m) : GraphStore_alias (file_mode, buffered_m) {
 
 	}
 
-	~DeltaGraphStore(){
+	~DeltaGraphStore_alias(){
     	for(auto it = graphs.begin(); it != graphs.end(); ++it){
     		delete it->second;
     	}
@@ -36,8 +36,8 @@ public:
 
 
 	DeltaGraph* retrieve_shallow(PEGraph_Pointer graph_pointer){
-//		//for debugging
-//		Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
+		//for debugging
+		//Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
 
 		DeltaGraph *out;
 
@@ -47,8 +47,8 @@ public:
 			out = nullptr;
 		}
 
-//		//for debugging
-//		Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
+		//for debugging
+		//Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
 
 		return out;
 	}
@@ -56,13 +56,13 @@ public:
 
     //deep copy
     PEGraph* retrieve(PEGraph_Pointer graph_pointer){
-//    	//for debugging
-//    	Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
+    	//for debugging
+    	//Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
 
     	PEGraph* out;
 
     	if(graphs.find(graph_pointer) != graphs.end()){
-//    		out = new PEGraph(graphs[graph_pointer]->getBase(), graphs[graph_pointer]->getAdded(), graphs[graph_pointer]->getDeleted());
+    		//out = new PEGraph(graphs[graph_pointer]->getBase(), graphs[graph_pointer]->getAdded(), graphs[graph_pointer]->getDeleted());
     		out = convertToPEGraph(graphs[graph_pointer]);
     	}
     	else{
@@ -70,7 +70,7 @@ public:
     	}
 
     	//for debugging
-//    	Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
+    	//Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
 
     	return out;
     }
@@ -89,7 +89,7 @@ public:
     }
 
     void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
-
+        //
     }
 
     DeltaGraph* convertToDeltaGraph(PEGraph* pegraph, DeltaGraph* old_out, std::vector<CFGNode*>* preds){
@@ -121,25 +121,6 @@ public:
         }
 
 
-//    	if(old_out == NULL){
-//    		if(pred_graph == NULL){//predecessors are naive
-//				return new DeltaGraph(new PEGraph(pegraph));
-//    		}
-//    		else{
-//    			return constructDeltaGraph(pegraph, pred_graph);
-//    		}
-//    	}
-//    	else if(old_out->isNaive()){
-//    		if(pred_graph == NULL){//predecessors are naive
-//				return new DeltaGraph(new PEGraph(pegraph));
-//    		}
-//    		else{
-//    			return constructDeltaGraph(pegraph, pred_graph);
-//    		}
-//    	}
-//    	else{
-//    		return constructDeltaGraph(pegraph, old_out);
-//    	}
 
 		if(pred_graph == NULL){//predecessors are naive
 			return new DeltaGraph(new PEGraph(pegraph));
@@ -230,7 +211,7 @@ public:
     	this->graphs[pointer] = graph;
     }
 
-    void update_graphs_shallow(GraphStore* another, bool update_mode){
+    void update_graphs_shallow(GraphStore_alias* another, bool update_mode){
     	//for debugging
     	Logger::print_thread_info_locked("update-graphs starting...\n", LEVEL_LOG_FUNCTION);
 
@@ -245,10 +226,10 @@ public:
     	Logger::print_thread_info_locked("update-graphs finished.\n", LEVEL_LOG_FUNCTION);
     }
 
-    void update_graphs_shallow_parallel(GraphStore* another){
+    void update_graphs_shallow_parallel(GraphStore_alias* another){
 	    //initiate concurrent worklist
 	    Concurrent_Worklist<vertexid_t>* worklist = new Concurrent_Workset<vertexid_t>();
-	    DeltaGraphStore* another_graphstore = dynamic_cast<DeltaGraphStore*>(another);
+	    DeltaGraphStore_alias* another_graphstore = dynamic_cast<DeltaGraphStore_alias*>(another);
 	    for(auto& it: another_graphstore->graphs){
 	        worklist->push_atomic(it.first);
 
@@ -269,7 +250,7 @@ public:
 	    delete(worklist);
     }
 
-    static void update_shallow_parallel(DeltaGraphStore* current, DeltaGraphStore* another, Concurrent_Worklist<vertexid_t>* worklist){
+    static void update_shallow_parallel(DeltaGraphStore_alias* current, DeltaGraphStore_alias* another, Concurrent_Worklist<vertexid_t>* worklist){
     	vertexid_t id = -1;
     	while(worklist->pop_atomic(id)){
     		assert(current->graphs.find(id) != current->graphs.end());
@@ -278,8 +259,8 @@ public:
     }
 
 
-    void update_graphs_shallow_sequential(GraphStore* another){
-    	DeltaGraphStore* another_graphstore = dynamic_cast<DeltaGraphStore*>(another);
+    void update_graphs_shallow_sequential(GraphStore_alias* another){
+    	DeltaGraphStore_alias* another_graphstore = dynamic_cast<DeltaGraphStore_alias*>(another);
     	for(auto& it: another_graphstore->graphs){
     		update_shallow(it.first, it.second);
     	}
@@ -287,17 +268,17 @@ public:
 
     //shallow copy
     void update_shallow(PEGraph_Pointer graph_pointer, DeltaGraph* graph) {
-//    	//for debugging
-//    	Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
+    	//for debugging
+    	//Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
 
-//    	assert(map.find(graph_pointer) != map.end());
+    	//assert(map.find(graph_pointer) != map.end());
     	if(graphs.find(graph_pointer) != graphs.end()){
 			delete graphs[graph_pointer];
     	}
     	graphs[graph_pointer] = graph;
 
     	//for debugging
-//    	Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
+    	//Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
     }
 
 
@@ -305,22 +286,22 @@ public:
 		//graphstore file
 		this->deserialize(file);
 
-//		cout << "deserialize ended." << endl;
+		//cout << "deserialize ended." << endl;
 
 		//load in-graphs
 		this->load_in_graphs(file_in);
 
-//		cout << "load_in_graphs ended." << endl;
+		//cout << "load_in_graphs ended." << endl;
 
 		//construct base
 		this->constructDeltaGraphBases();
     }
 
-    void update_graphs_sequential(GraphStore* another) {
+    void update_graphs_sequential(GraphStore_alias* another) {
 
     }
 
-    void update_graphs_parallel(GraphStore* another) {
+    void update_graphs_parallel(GraphStore_alias* another) {
 
     }
 
@@ -342,7 +323,7 @@ public:
         		FILE *fp_bases = fopen(file_bases.c_str(),"rb");
         		if(!fp_bases) {
         			cout << "can't load graphs file: " << file_bases << endl;
-    //    			exit(-1);
+        			//exit(-1);
         		}
         		else{
     				size_t freadRes = 0; //clear warnings
@@ -352,8 +333,8 @@ public:
     					freadRes = fread(buf, bufsize, 1, fp_bases);
 
     					PEGraph* pointer = *((PEGraph**)(buf));
-//    					PEGraph* pointer;
-//    					freadRes = fread(&pointer, sizeof(PEGraph*), 1, fp_bases);
+    					//PEGraph* pointer;
+    					//freadRes = fread(&pointer, sizeof(PEGraph*), 1, fp_bases);
 
     					PEGraph* pegraph = new PEGraph();
     					pegraph->read_from_buf_pure(buf + sizeof(PEGraph*), bufsize - sizeof(PEGraph*));
@@ -371,7 +352,7 @@ public:
         		FILE *fp_graphs = fopen(file_graphs.c_str(),"rb");
         		if(!fp_graphs) {
         			cout << "can't load graphs file: " << file_graphs << endl;
-    //    			exit(-1);
+        			//exit(-1);
         		}
         		else{
     				size_t freadRes = 0; //clear warnings
@@ -669,7 +650,7 @@ public:
 				FILE *fp = fopen(file.c_str(),"rb");
 				if(!fp) {
 					cout << "can't load graphs file: " << file << endl;
-	//    			exit(-1);
+	    			//exit(-1);
 				}
 				else{
     				size_t freadRes = 0; //clear warnings
@@ -796,15 +777,17 @@ protected:
 
     }
 
-
 private:
-	std::unordered_set<PEGraph*> bases_set;
+        std::unordered_set<PEGraph*> bases_set;
 
-	std::unordered_map<PEGraph_Pointer, DeltaGraph*> graphs;
+        std::unordered_map<PEGraph_Pointer, DeltaGraph*> graphs;
+
+
 
 
 
 };
 
+#endif /* COMP_GRAPHSTORE_DELTA_GRAPHSTORE_ALIAS_H_ */
 
-#endif /* COMP_GRAPHSTORE_DELTA_GRAPHSTORE_H_ */
+
