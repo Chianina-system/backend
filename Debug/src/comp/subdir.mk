@@ -4,7 +4,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../src/comp/cfg_compute_syn.cpp \
+../src/comp/cfg_compute_syn_alias.cpp \
 ../src/comp/computationset.cpp \
 ../src/comp/context.cpp \
 ../src/comp/edgearray.cpp \
@@ -15,7 +15,7 @@ CPP_SRCS += \
 ../src/comp/pegraph.cpp 
 
 OBJS += \
-./src/comp/cfg_compute_syn.o \
+./src/comp/cfg_compute_syn_alias.o \
 ./src/comp/computationset.o \
 ./src/comp/context.o \
 ./src/comp/edgearray.o \
@@ -26,7 +26,7 @@ OBJS += \
 ./src/comp/pegraph.o 
 
 CPP_DEPS += \
-./src/comp/cfg_compute_syn.d \
+./src/comp/cfg_compute_syn_alias.d \
 ./src/comp/computationset.d \
 ./src/comp/context.d \
 ./src/comp/edgearray.d \
