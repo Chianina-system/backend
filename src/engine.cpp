@@ -5,10 +5,11 @@
  *      Author: zqzuo
  */
 
-#include "comp/cfg_compute_ooc_asyn.h"
-#include "comp/cfg_compute_ooc_syn_naive.h"
-#include "comp/cfg_compute_ooc_syn_itemset.h"
-#include "comp/cfg_compute_ooc_syn_delta.h"
+//#include "comp/cfg_compute_ooc_asyn_cache.h"
+#include "comp/cfg_compute_ooc_syn_cache_naive.h"
+#include "comp/context.h"
+//#include "comp/cfg_compute_ooc_syn_itemset.h"
+//#include "comp/cfg_compute_ooc_syn_delta.h"
 #include "utility/ResourceManager.hpp"
 
 //using namespace std;
@@ -22,7 +23,8 @@
 //const string file_stmts = dir + "id_stmt_info.txt";
 //const string file_singletons = dir + "var_singleton_info.txt";
 //const string file_grammar = "/home/dell/GraphFlow/Ouroboros-dataset-master/rules_pointsto.txt";
-const string file_grammar = "/home/decxu/Documents/analysis_data/simple/rules_pointsto.txt";
+//const string file_grammar = "/home/decxu/Documents/analysis_data/simple/rules_pointsto.txt";
+const string file_grammar = "/usr/local/oocImpl/backend-alias_analysis/rules_pointsto.txt";
 
 /* function declaration */
 void run_inmemory(int, bool, bool, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);
@@ -54,18 +56,6 @@ int main(int argc, char* argv[]) {
 	const string file_stmts = argv[4];
 	const string file_singletons = argv[5];
 
-//    ifstream myfile_entries(file_entries);
-//    if (myfile_entries.is_open()) {
-//        string line;
-//        while (getline(myfile_entries, line)) {
-//            if (line == "") {
-//                continue;
-//            }
-//
-//            vertexid_t id = atoi(line.c_str());
-//            entry->insert(id);
-//        }
-//    }
 
 	ResourceManager rm;
 
@@ -84,7 +74,7 @@ int main(int argc, char* argv[]) {
 	std::chrono::duration<double> diff_fsm = end_fsm - start_fsm;
 	std::cout << "Running time: " << diff_fsm.count() << " s\n";
 
-//	delete entry;
+	//delete entry;
 	//print out resource usage
 	std::cout << "\n\n";
 	std::cout << "------------------------------ resource usage ------------------------------" << std::endl;
@@ -102,16 +92,16 @@ long compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
 	//for debugging
 	Logger::print_thread_info_locked("----------------------- Partition " + to_string(partition) + " starting -----------------------\n", LEVEL_LOG_MAIN);
 
-	CFG *cfg = new CFG_map_outcore();
+	CFG *cfg = new CFG_map_outcore_cache();
     Concurrent_Worklist<CFGNode*>* actives = new Concurrent_Workset<CFGNode*>();
-//	GraphStore *graphstore = new NaiveGraphStore();
+	//	GraphStore *graphstore = new NaiveGraphStore();
 	GraphStore* graphstore;
 	if(graphstore_mode == 1){
 	    cout << "wrong graohstore_mode" << endl;
 		//graphstore = new ItemsetGraphStore(file_mode, buffered_mode);
 	}
 	else if(graphstore_mode == 0){
-		graphstore = new NaiveGraphStore(file_mode, buffered_mode);
+		graphstore = new NaiveGraphStore_cache(file_mode, buffered_mode);
 	}
 	else if(graphstore_mode == 2){
         cout << "wrong graohstore_mode" << endl;
@@ -122,9 +112,9 @@ long compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
 		exit(-1);
 	}
 
-//    //get the flag for adding self-loop edges
-//    bool flag = context->getFlag(partition);
-//	context->setFlag(partition);
+	//    //get the flag for adding self-loop edges
+	//    bool flag = context->getFlag(partition);
+	//	context->setFlag(partition);
 
 	//for tuning
 	timer_ooc->getLoadSum()->start();
@@ -140,12 +130,12 @@ long compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
 
     long supersteps = 0;
     if(sync_mode){
-//		CFGCompute_ooc_syn::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
+	//		CFGCompute_ooc_syn::do_worklist_ooc_synchronous(cfg, graphstore, context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
 		if(graphstore_mode == 1){
 			//supersteps = CFGCompute_ooc_syn_itemset::do_worklist_ooc_synchronous(cfg, dynamic_cast<ItemsetGraphStore*> (graphstore), context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
 		}
 		else if(graphstore_mode == 0){
-			supersteps = CFGCompute_ooc_syn_naive::do_worklist_ooc_synchronous(cfg, dynamic_cast<NaiveGraphStore*> (graphstore), context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
+			supersteps = CFGCompute_ooc_syn_cache_naive::do_worklist_ooc_synchronous(cfg, dynamic_cast<NaiveGraphStore_cache*> (graphstore), context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
 		}
 		else if(graphstore_mode == 2){
 			//CFGCompute_ooc_syn_delta::do_worklist_ooc_synchronous(cfg, dynamic_cast<DeltaGraphStore*> (graphstore), context->getGrammar(), context->getSingletons(), actives, false, update_mode, timer_ooc, timer);
@@ -179,36 +169,9 @@ long compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
     //for tuning
     timer_ooc->getPassSum()->start();
 
-//    int num = 0;
-//    int ids = 0;
-//    auto it = graphstore->getMap().begin();
-//    int count = 0;
-//    for (int i = 0; i < 100; ++i) {
-//        if (graphstore->getMap().count(i))
-//        {
-//            count++;
-//            cout << "id: " << i << "    graphstore model miss: " << graphstore->getMap()[i]->MissCount_Icache
-//            << "count: " << graphstore->getMap()[i]->count << endl;
-//        }
-//
-//    }
-//    cout << "count: " << count << endl;
-//    while (it != graphstore->getMap().end()) {
-//        //cout << "id: " << it->first << "---------------------------------------------" << endl;
-//        //it->second->print();
-//        //if (it->first == 90)
-//        //cout << "id: " << it->first << "    graphstore model miss: " << it->second->MissCount_Icache << endl;
-//        if (it->second->MissCount_Icache > num) {
-//            num = it->second->MissCount_Icache;
-//            ids = it->first;
-//        }
-//        it++;
-//    }
-//    cout << "id: " << ids << " MissCount_Icache: " << num << endl;
-
 
     // 属于其他partition的节点在此partition更新，因此需要加入到其他partition的actives中，并且为相应的partition提高优先级
-    CFGCompute_ooc_syn::pass(partition, cfg, graphstore, actives, context, file_mode);
+    CFGCompute_ooc_syn_cache::pass(partition, cfg, graphstore, actives, context, file_mode);
 
     //assert(1 == 0);
 
@@ -232,7 +195,10 @@ long compute_ooc(Partition partition, Context* context, bool sync_mode, int grap
 	return supersteps;
 }
 
-void readAllGraphs(NaiveGraphStore *graphstore, Context* context){
+
+
+
+void readAllGraphs(NaiveGraphStore_cache *graphstore, Context* context){
 	for(unsigned int partition = 0; partition < context->getNumberPartitions(); ++ partition){
 		const string filename_graphs = Context::file_graphstore + to_string(partition);
 		graphstore->deserialize(filename_graphs);
@@ -242,68 +208,16 @@ void readAllGraphs(NaiveGraphStore *graphstore, Context* context){
 void loadMirrors(const string& file_mirrors_shallow, std::unordered_set<PEGraph_Pointer>& mirrors, bool file_mode){
 	//handle mirrors file
 	if(file_mode){
-//		std::ifstream fin;
-//		std::string line;
-//		fin.open(file_mirrors_call);
-//		if (!fin) {
-//			cout << "can't load file_mirrors_call: " << file_mirrors_call << endl;
-//		}
-//		else {
-//			while (getline(fin, line)) {
-//				if(line == ""){
-//					continue;
-//				}
-//
-//				CFGNode* cfgNode_mirror = new CFGNode(line);
-//				mirrors.insert(cfgNode_mirror->getCfgNodeId());
-//				delete cfgNode_mirror;
-//			}
-//			fin.close();
-//		}
-//
-//		fin.open(file_mirrors_shallow);
-//		if (!fin) {
-//			cout << "can't load file_mirrors_shallow: " << file_mirrors_shallow << endl;
-//		}
-//		else{
-//			while (getline(fin, line)) {
-//				if(line == ""){
-//					continue;
-//				}
-//
-//				PEGraph_Pointer id = atoi(line.c_str());
-//				mirrors.insert(id);
-//			}
-//			fin.close();
-//		}
+		//		std::ifstream fin;
+		//		std::string line;
 	}
 	else{
 		//handle mirrors file
-//		FILE* fp_mirrors_call = fopen(file_mirrors_call.c_str(), "rb");
-//		if(!fp_mirrors_call) {
-//			cout << "can't load file_mirrors_call: " << file_mirrors_call << endl;
-////    			exit(-1);
-//		}
-//		else{
-//			size_t freadRes = 0; //clear warnings
-//			size_t bufsize;
-//			while(fread(&bufsize, sizeof(size_t), 1, fp_mirrors_call) != 0) {
-//				char *buf = (char*)malloc(bufsize);
-//				freadRes = fread(buf, bufsize, 1, fp_mirrors_call);
-//
-//				CFGNode* cfgNode = new CFGNode();
-//				cfgNode->read_from_buf(buf, bufsize);
-//				mirrors.insert(cfgNode->getCfgNodeId());
-//
-//				free(buf);
-//			}
-//			fclose(fp_mirrors_call);
-//		}
 
 		int fp_mirrors_shallow = open(file_mirrors_shallow.c_str(), O_RDONLY);
 		if(!(fp_mirrors_shallow > 0)) {
 			cout << "can't load file_mirrors_shallow: " << file_mirrors_shallow << endl;
-//    			exit(-1);
+    			//exit(-1);
 		}
 		else{
 			long mirrors_shallow_file_size = io_manager::get_filesize(fp_mirrors_shallow);
@@ -335,171 +249,8 @@ void loadMirrors(const string& file_mirrors_shallow, std::unordered_set<PEGraph_
 	}
 }
 
-long retrieve_alias(PEGraph* in, vertexid_t x, Grammar* grammar){
-	long num = 0;
-	int numEdges = in->getNumEdges(x);
-//	vertexid_t *edges = in->getEdges(x);
-	label_t *labels = in->getLabels(x);
-
-	for (int i = 0; i < numEdges; ++i) {
-		if (grammar->isMemoryAlias(labels[i]) || grammar->isValueAlias(labels[i])) {
-			num++;
-		}
-	}
-
-	return num;
-}
-
-void printGraphstoreInfo_more(Context* context, int graphstore_mode, bool file_mode, bool buffered_mode, int mining_mode, int support, int length){
-	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
-	long num_edges = 0;
-	long num_vertices = 0;
-	int num_graphs = 0;
-	long num_graphitems = 0;
-	long num_baseitems = 0;
-
-	long num_load_alias = 0;
-	long num_store_alias = 0;
-	long num_load = 0;
-	long num_store = 0;
-
-	long num_load_alias_weighted = 0;
-	long num_store_alias_weighted = 0;
-	long num_load_weighted = 0;
-	long num_store_weighted = 0;
-
-//	long num_assign_alias = 0;
-//	long num_phi_alias = 0;
-//	long num_store_pointsto = 0;
-//	long num_load_pointsto = 0;
-
-	for(unsigned int partition = 0; partition < context->getNumberPartitions(); ++ partition){
-		CFG_map_outcore *cfg = new CFG_map_outcore();
-		GraphStore* graphstore;
-		if(graphstore_mode == 1){
-            cout << "wrong graohstore_mode" << endl;
-			//graphstore = new ItemsetGraphStore(file_mode, buffered_mode);
-		}
-		else if(graphstore_mode == 0){
-			graphstore = new NaiveGraphStore(file_mode, buffered_mode);
-		}
-		else if(graphstore_mode == 2){
-            cout << "wrong graohstore_mode" << endl;
-			//graphstore = new DeltaGraphStore(file_mode, buffered_mode);
-		}
-		else{
-			cout << "wrong graphstore mode!" << endl;
-			exit(-1);
-		}
-
-		//read in the times info of each variable occurred
-		string file_call_times = context->getFileSingletons().substr(0, context->getFileSingletons().find_last_of('v')) + "id_num.txt";
-		cout << file_call_times << endl;
-		unordered_map<vertexid_t, int> map;
-		ifstream myfile(file_call_times);
-		if (myfile.is_open()) {
-			string line;
-			while (getline(myfile, line)) {
-				if(line == ""){
-					continue;
-				}
-
-				std::stringstream stream(line);
-				std::string id, times;
-				stream >> id >> times;
-
-				map[atoi(id.c_str())] = atoi(times.c_str());
-			}
-			myfile.close();
-		}
 
 
-		CFGCompute_ooc_syn::load(partition, cfg, graphstore, context, file_mode, mining_mode, support, length);
-    	for(CFGNode* node : cfg->getNodes()){
-    		if(!cfg->isMirror(node)){
-//    			PEGraph_Pointer out_pointer = node->getOutPointer();
-//    			PEGraph* out = graphstore->retrieve(out_pointer);
-
-    	        //merge
-    	    	std::vector<CFGNode*>* preds = cfg->getPredesessors(node);
-    	        PEGraph* in;// = CFGCompute_syn::combine_synchronous(graphstore, preds, node, context->getGrammar());
-
-    			Stmt* stmt;// = node->getStmt();
-    			TYPE type = stmt->getType();
-    			if(type == TYPE::Load){
-	            	vertexid_t load_exp;// = ((LoadStmt*)stmt)->getSrc();
-	            	num_load_alias += retrieve_alias(in, load_exp, context->getGrammar());
-	            	num_load++;
-
-	            	num_load_alias_weighted += retrieve_alias(in, load_exp, context->getGrammar()) * map[load_exp];
-	            	num_load_weighted += map[load_exp];
-    			}
-    			else if(type == TYPE::Store){
-	            	vertexid_t store_exp;// = ((StoreStmt*)stmt)->getDst();
-	            	num_store_alias += retrieve_alias(in, store_exp, context->getGrammar());
-	            	num_store++;
-
-	            	num_store_alias_weighted += retrieve_alias(in, store_exp, context->getGrammar()) * map[store_exp];
-	            	num_store_weighted += map[store_exp];
-    			}
-
-    			delete in;
-    		}
-    	}
-    	delete cfg;
-
-		std::unordered_set<PEGraph_Pointer> mirrors;
-		//const string filename_mirrors_in = Context::folder_mirrors_call + to_string(partition);
-		const string filename_mirrors_out = Context::folder_mirrors_shallow + to_string(partition);
-		loadMirrors(filename_mirrors_out, mirrors, file_mode);
-
-    	int size_graphs = 0;
-    	long size_vertices = 0;
-    	long size_edges = 0;
-    	long size_graphitems = 0;
-    	long size_baseitems = 0;
-    	//graphstore->getStatistics(size_graphs, size_vertices, size_edges, size_graphitems, size_baseitems, mirrors);
-
-
-
-    	cout << "partition " << to_string(partition) << endl;
-    	cout << "Number of graphs: " << size_graphs << endl;
-    	cout << "Number of vertices: " << size_vertices << endl;
-    	cout << "Number of edges: " << size_edges << endl;
-    	cout << "Number of total items: " << size_graphitems + size_baseitems << endl;
-    	cout << "Number of graph items: " << size_graphitems << endl;
-    	cout << "Number of base items: " << size_baseitems << endl;
-    	cout << endl;
-
-    	delete graphstore;
-
-
-    	num_edges += size_edges;
-    	num_vertices += size_vertices;
-    	num_graphs += size_graphs;
-    	num_graphitems += size_graphitems;
-    	num_baseitems += size_baseitems;
-	}
-
-	cout << "\nTotal number of graphs: " << num_graphs << endl;
-	cout << "Total number of vertices: " << num_vertices << endl;
-	cout << "Total number of edges: " << num_edges << endl;
-	cout << "Total number of items: " << num_graphitems + num_baseitems << endl;
-	cout << "Total number of graph items: " << num_graphitems << endl;
-	cout << "Total number of base items: " << num_baseitems << endl;
-	cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
-	cout << endl;
-	cout << "Total number of loads: " << num_load << endl;
-	cout << "Total number of load-alias: " << num_load_alias << endl;
-	cout << "Total number of stores: " << num_store << endl;
-	cout << "Total number of store-alias: " << num_store_alias << endl;
-	cout << endl;
-	cout << "Total number of loads-weighted: " << num_load_weighted << endl;
-	cout << "Total number of load-alias-weighted: " << num_load_alias_weighted << endl;
-	cout << "Total number of stores-weighted: " << num_store_weighted << endl;
-	cout << "Total number of store-alias-weighted: " << num_store_alias_weighted << endl;
-
-}
 
 void printGraphstoreInfo(Context* context, int graphstore_mode, bool file_mode, bool buffered_mode){
 	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
@@ -509,14 +260,14 @@ void printGraphstoreInfo(Context* context, int graphstore_mode, bool file_mode, 
 	long num_graphitems = 0;
 	//long num_baseitems = 0;
 	for(unsigned int partition = 0; partition < context->getNumberPartitions(); ++ partition){
-//		NaiveGraphStore *graphstore = new NaiveGraphStore();
-		GraphStore* graphstore;
+		//NaiveGraphStore *graphstore = new NaiveGraphStore();
+		GraphStore_cache* graphstore;
 		if(graphstore_mode == 1){
             cout << "wrong graohstore_mode" << endl;
 			//graphstore = new ItemsetGraphStore(file_mode, buffered_mode);
 		}
 		else if(graphstore_mode == 0){
-			graphstore = new NaiveGraphStore(file_mode, buffered_mode);
+			graphstore = new NaiveGraphStore_cache(file_mode, buffered_mode);
 		}
 		else if(graphstore_mode == 2){
             cout << "wrong graohstore_mode" << endl;
@@ -603,8 +354,7 @@ void run_ooc(int mining_mode, int support, int length, bool buffered_mode, bool 
 	//for tuning
 	sum_preprocess.end();
 
-//	//for debugging
-//	context->printOutPriorityInfo();
+
 
 	//for tuning
 	sum_compute.start();
@@ -621,20 +371,16 @@ void run_ooc(int mining_mode, int support, int length, bool buffered_mode, bool 
 		// sync_mode恒为true
 		supersteps += compute_ooc(partition, context, sync_mode, graphstore_mode, update_mode, file_mode, buffered_mode, mining_mode, support, length, timer_ooc, timer);
 
-//		//for debugging
-//		context->printOutPriorityInfo();
+
 	}
 
 	//for tuning
 	sum_compute.end();
 
-//	//for debugging
-//	NaiveGraphStore *graphstore = new NaiveGraphStore();
-//	readAllGraphs(graphstore, context);
-//	graphstore->printOutInfo();
-//	delete graphstore;
+	//for debugging
+
 	printGraphstoreInfo(context, graphstore_mode, file_mode, buffered_mode);
-//	printGraphstoreInfo_more(context, graphstore_mode, file_mode, buffered_mode, mining_mode, support, length);
+	//printGraphstoreInfo_more(context, graphstore_mode, file_mode, buffered_mode, mining_mode, support, length);
 
 	//delete all the files for itemset mining
 	clean_mining_files(num_partitions);
@@ -655,8 +401,9 @@ void run_ooc(int mining_mode, int support, int length, bool buffered_mode, bool 
 }
 
 
+
 void compute_inmemory(int graphstore_mode, bool update_mode, bool sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
-	CFG *cfg = new CFG_map();
+//	CFG* cfg = new CFG_map_cache();
 	Singletons * singletons = new Singletons();
     Grammar *grammar = new Grammar();
 	GraphStore* graphstore;
@@ -665,7 +412,7 @@ void compute_inmemory(int graphstore_mode, bool update_mode, bool sync_mode, con
 		//graphstore = new ItemsetGraphStore();
 	}
 	else if (graphstore_mode == 0){
-		graphstore = new NaiveGraphStore();
+		graphstore = new NaiveGraphStore_cache();
 	}
 	else if (graphstore_mode == 2){
         cout << "wrong graohstore_mode" << endl;
@@ -676,19 +423,20 @@ void compute_inmemory(int graphstore_mode, bool update_mode, bool sync_mode, con
 		exit(-1);
 	}
 
+	CFG* cfg = new CFG_map_cache();
 	CFGCompute_syn::load(file_total, file_cfg, file_stmts, file_entries, cfg, file_singletons, singletons, graphstore, file_grammar, grammar);
 	if(sync_mode){
-//		CFGCompute_syn::do_worklist_synchronous(cfg, graphstore, grammar, singletons, false, update_mode);
+        //		CFGCompute_syn::do_worklist_synchronous(cfg, graphstore, grammar, singletons, false, update_mode);
 		if(graphstore_mode == 1){
             cout << "wrong graohstore_mode" << endl;
 			//CFGCompute_syn_itemset::do_worklist_synchronous(cfg, dynamic_cast<ItemsetGraphStore*> (graphstore), grammar, singletons, false, update_mode);
 		}
 		else if (graphstore_mode == 0){
-			CFGCompute_syn_naive::do_worklist_synchronous(cfg, dynamic_cast<NaiveGraphStore*> (graphstore), grammar, singletons, false, update_mode);
+			CFGCompute_syn_cache_naive::do_worklist_synchronous(cfg, dynamic_cast<NaiveGraphStore_cache*> (graphstore), grammar, singletons, false, update_mode);
 		}
 		else if (graphstore_mode == 2){
             cout << "wrong graohstore_mode" << endl;
-			//CFGCompute_syn_delta::do_worklist_synchronous(cfg, dynamic_cast<DeltaGraphStore*> (graphstore), grammar, singletons, false, update_mode);
+			//cfg_compute_syn_cache_delta::do_worklist_synchronous(cfg, dynamic_cast<DeltaGraphStore*> (graphstore), grammar, singletons, false, update_mode);
 		}
 		else{
 			cout << "wrong graphstore mode!" << endl;
@@ -708,5 +456,9 @@ void compute_inmemory(int graphstore_mode, bool update_mode, bool sync_mode, con
 void run_inmemory(int graphstore_mode, bool update_mode, bool sync_mode, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons){
 	compute_inmemory(graphstore_mode, update_mode, sync_mode, file_total, file_entries, file_cfg, file_stmts, file_singletons);
 }
+
+
+
+
 
 
