@@ -27,17 +27,20 @@ add_executable(backend_tuning
         src/comp/concurrent_worklist/concurrent_workset.h
         src/comp/graphstore/buffer.h
         src/comp/graphstore/delta_graph.h
-        src/comp/graphstore/delta_graphstore.h
         src/comp/graphstore/edge.h
         src/comp/graphstore/fptree.cpp
         src/comp/graphstore/fptree.hpp
         src/comp/graphstore/graphstore.h
+        src/comp/graphstore/graphstore_cache.h
+	src/comp/graphstore/graphstore_alias.h
         src/comp/graphstore/hybrid_graph.h
         src/comp/graphstore/hybrid_graphstore.h
         src/comp/graphstore/itemset_graph.h
-        src/comp/graphstore/itemset_graphstore.h
         src/comp/graphstore/myarray.h
-        src/comp/graphstore/naive_graphstore.h
+        src/comp/graphstore/naive_graphstore_cache.h
+	src/comp/graphstore/naive_graphstore_alias.h
+	src/comp/graphstore/itemset_graphstore_alias.h
+	src/comp/graphstore/delta_graphstore_alias.h
         src/comp/list/edgelist.cpp
         src/comp/list/edgelist.h
         src/comp/list/liststomerge.cpp
@@ -58,21 +61,31 @@ add_executable(backend_tuning
         src/comp/stmt/stmt_skip.h
         src/comp/stmt/stmt_store.h
         src/comp/cfg.h
-        src/comp/cfg_compute_asyn.h
-        src/comp/cfg_compute_ooc_asyn.h
-        src/comp/cfg_compute_ooc_syn.h
-        src/comp/cfg_compute_ooc_syn_delta.h
-        src/comp/cfg_compute_ooc_syn_itemset.h
-        src/comp/cfg_compute_ooc_syn_naive.h
         src/comp/cfg_compute_syn.cpp
         src/comp/cfg_compute_syn.h
-        src/comp/cfg_compute_syn_delta.h
-        src/comp/cfg_compute_syn_itemset.h
-        src/comp/cfg_compute_syn_naive.h
-        src/comp/cfg_map.h
+        src/comp/cfg_compute_syn_cache.h
+        src/comp/cfg_compute_syn_cache_naive.h
+	src/comp/cfg_compute_syn_alias.h
+        src/comp/cfg_compute_syn_alias_naive.h
+	src/comp/cfg_compute_syn_alias_itemset.h
+        src/comp/cfg_compute_syn_alias_delta.h
+	src/comp/cfg_compute_ooc_syn.h
+        src/comp/cfg_compute_ooc_syn_cache.h
+        src/comp/cfg_compute_ooc_syn_cache_naive.h
+	src/comp/cfg_compute_ooc_syn_alias.h
+        src/comp/cfg_compute_ooc_syn_alias_naive.h
+	src/comp/cfg_compute_ooc_syn_alias_itemset.h
+        src/comp/cfg_compute_ooc_syn_alias_delta.h 
+	src/comp/cfg_map.h
+        src/comp/cfg_map_cache.h
+	src/comp/cfg_map_alias.h
         src/comp/cfg_map_outcore.h
-        src/comp/cfg_node.h
-        src/comp/computationset.cpp
+        src/comp/cfg_map_outcore_cache.h
+        src/comp/cfg_map_outcore_alias.h
+	src/comp/cfg_node.h
+        src/comp/cfg_node_cache.h
+        src/comp/cfg_node_alias.h
+	src/comp/computationset.cpp
         src/comp/computationset.h
         src/comp/containerstomerge.h
         src/comp/context.cpp
