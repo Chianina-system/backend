@@ -6,7 +6,7 @@ This document is an extended description of Chianina system. It introduces the f
 
 This guide provides the illustraction of framework interface and how to use the two analysis applications. 
 
-##Getting started
+## Getting started
 ###  Compiling and Running Alias Analysis
 1. Download the entire Chianina source code into your machine.
 
