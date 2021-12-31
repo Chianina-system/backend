@@ -36,7 +36,10 @@ public:
 
 		std::unordered_set<std::string> set_string;
 		while(getline(stream, src, '\t')){
-			set_string.insert(src);
+			if(src.length() != 0){
+				set_string.insert(src);
+			}
+			// set_string.insert(src);
 		}
 
 		this->length = set_string.size();
