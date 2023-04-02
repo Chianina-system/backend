@@ -13,27 +13,19 @@ public:
     //unsigned CacheLinesPerSet;
 
     //std::vector<std::map<int, Line>> IRs_Icache; //大小为Set. 每组内包含，缓存到该组的IRs
-
-    std::map<int, Line> IRs_Icache[CacheLinesPerSet];
-
-    unsigned MissCount_Icache;
-
-    int count;
-
-
+    std::map<int, Line>* IRs_Icache;
+    bool out_initialized;
 
     cachestate();
+    cachestate(bool initialized);
 
 
     bool CacheConsistent(cachestate* model) {
-
         for (int k = 0; k < CacheLinesPerSet; k++) {
-
             if (this->IRs_Icache[k].size() != model->IRs_Icache[k].size()) {
                 return false;
             }
 
-            //vector<map<string, Inst*>> IRs_Icache;
             for (auto item : this->IRs_Icache[k]) {
                 if (model->IRs_Icache[k].find(item.first) == model->IRs_Icache[k].end()) {
                     return false;
@@ -58,18 +50,16 @@ public:
     unsigned AccessIC(int ir);
 
     int getSetNum(int addr) {
-
         int sum = addr / CacheLineSize;
         sum = sum % CacheLinesPerSet;
-
-
         return sum;
     }
 
     size_t compute_size_bytes(){
         size_t size = 0;
-        size += sizeof(unsigned); // miss
-        size += sizeof(int);// count
+        // size += sizeof(unsigned); // miss
+        // size += sizeof(int);// count
+        size += sizeof(bool);// out_initialized
 
         size += sizeof(unsigned);
 
@@ -85,11 +75,15 @@ public:
         memcpy(buf, (char*)&pointer, sizeof(PEGraph_Pointer));
         offset += sizeof(PEGraph_Pointer); // 写一个id
 
-        memcpy(buf + offset, (char*)&MissCount_Icache, sizeof(unsigned));
-        offset += sizeof(unsigned); // 写一个miss
+        // memcpy(buf + offset, (char*)&MissCount_Icache, sizeof(unsigned));
+        // offset += sizeof(unsigned); // 写一个miss
 
-        memcpy(buf + offset, (char*)&count, sizeof(int));
-        offset += sizeof(int); // 写一个count
+        // memcpy(buf + offset, (char*)&count, sizeof(int));
+        // offset += sizeof(int); // 写一个count
+
+
+        memcpy(buf + offset, (char*)&out_initialized, sizeof(bool));
+        offset += sizeof(bool); // 写out_initialized
 
         unsigned vector_size = CacheLinesPerSet;
         memcpy(buf + offset, (char*)&vector_size, sizeof(unsigned ));
@@ -107,14 +101,6 @@ public:
                 offset += sizeof(Line); // 写一个value
             }
         }
-//        for(auto& it: graph){
-//            //srcId
-//            memcpy(buf + offset, (char*)&(it.first), sizeof(vertexid_t));
-////    		*(buf + offset) = it.first;
-//            offset += sizeof(vertexid_t);
-//            //edgeArray
-//            offset = it.second.write_to_buf(buf, offset);
-//        }
     }
 
     PEGraph_Pointer read_from_buf(char* buf, const size_t bufsize){
@@ -125,11 +111,14 @@ public:
 //        HitCount_Icache = *((unsigned*)(buf + offset));
 //        offset += sizeof(unsigned); //读一个hit
 
-        MissCount_Icache = *((unsigned*)(buf + offset));
-        offset += sizeof(unsigned); //读一个miss
+        // MissCount_Icache = *((unsigned*)(buf + offset));
+        // offset += sizeof(unsigned); //读一个miss
 
-        count = *((int*)(buf + offset));
-        offset += sizeof(int); //读一个miss
+        // count = *((int*)(buf + offset));
+        // offset += sizeof(int); //读一个miss
+
+        out_initialized = *((bool*)(buf + offset));
+        offset += sizeof(bool); //读一个miss
 
         unsigned vector_size = *((unsigned*)(buf + offset));
         offset += sizeof(unsigned); //读一个vector大小
@@ -146,12 +135,6 @@ public:
             }
         }
 
-//        while(offset < bufsize){
-//            vertexid_t src = *((vertexid_t*)(buf + offset));
-//            offset += sizeof(vertexid_t);
-//            this->graph[src] = EdgeArray();
-//            offset = this->graph[src].read_from_buf(buf, offset);
-//        }
         return pointer;
     }
 
@@ -170,6 +153,30 @@ public:
         }
     }
 
+
+    bool isOutInitial(){
+        return out_initialized;
+    }
+
+    void CloseInitial(){
+        out_initialized = false;
+    }
+    
+    int size() {
+        int size = 0;
+        for (int i = 0; i < 128; i++) {
+            size += IRs_Icache[i].size();
+        }
+        return size;
+    }
+
+    ~cachestate(){
+        for (int i = 0; i < CacheLinesPerSet; i++) {
+            IRs_Icache[i].clear();
+        }
+        delete []IRs_Icache;
+        IRs_Icache = NULL;
+    }
 };
 
 

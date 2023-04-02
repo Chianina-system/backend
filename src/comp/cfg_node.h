@@ -31,70 +31,21 @@ class CFGNode{
 
 	friend std::ostream & operator<<(std::ostream & strm, const CFGNode& cfgNode) {
 		strm << cfgNode.getOutPointer();
-//		if(cfgNode.getStmt()){
-//			strm << cfgNode.getStmt()->toString();
-//		}
+		// if(cfgNode.getStmt()){
+		// 	strm << cfgNode.getStmt()->toString();
+		// }
 		return strm;
 	}
 
 public:
     CFGNode(){
     	id = -1;
-    	//len1= len;
-    	// content = new int[len1];
-
-
-    	//stmt = NULL;
     }
 
     CFGNode(int _id) {
     	id = _id;
     }
 
-//    CFGNode(std::string& line){
-//		std::stringstream stream(line);
-//		std::string stmt_id, type;
-//		stream >> stmt_id >> type;
-//
-//		this->id = atoi(stmt_id.c_str());
-//		if (type == "assign") {
-//			stmt = new AssignStmt(stream);
-//		}
-//		else if (type == "load") {
-//			stmt = new LoadStmt(stream);
-//		}
-//		else if (type == "store") {
-//			stmt = new StoreStmt(stream);
-//		}
-//		else if (type == "alloca") {
-//			stmt = new AllocStmt(stream);
-//		}
-//		else if (type == "phi") {
-//			stmt = new PhiStmt(stream);
-//		}
-//		else if (type == "call") {
-//			stmt = new CallStmt(stream);
-//		}
-//		else if (type == "return") {
-//			stmt = new ReturnStmt(stream);
-//		}
-//		else if (type == "ret") {
-//			stmt = new RetStmt();
-//		}
-//		else if (type == "block") {
-//			stmt = new SkipStmt();
-//		}
-//		else if(type == "callfptr"){
-//			stmt = new CallfptrStmt(stream);
-//		}
-//		else if(type == "calleefptr"){
-//			stmt = new CalleefptrStmt(stream);
-//		}
-//		else {
-//			cout << "wrong stmt type!!!" << endl;
-//			exit(EXIT_FAILURE);
-//		}
-//	}
     CFGNode(std::string& line) {
 	    std::stringstream stream(line);
 		std::string stmt_id;
@@ -105,7 +56,6 @@ public:
             int address = 0;
             //address = hexToDec(arg);
             sscanf(arg.c_str(), "%x", &address);
-            //cout << address << endl;
             content.push_back(address);
         }
 	}
@@ -117,7 +67,6 @@ public:
     }
 
     int getHexValue(char a) {
-
         int tmp = 0;
         if (a >= '0'&&a <= '9')
             tmp = a - '0';
@@ -154,9 +103,9 @@ public:
             }
 
         }
-
         return tmp;
     }
+
     int  hexToDec(std::string addr) {
         string addrH = addr.substr(2); // 以0x40063b为例，截取后面具体的16进制地址
         int sum = 0;
@@ -195,12 +144,6 @@ public:
             memcpy(buf.getData() + buf.getSize(), (char*)& ir, sizeof(IR));
             buf.add_size_by(sizeof(IR));
         }
-
-
-//    	TYPE t = stmt->getType();
-//    	memcpy(buf.getData() + buf.getSize(), (char*)& t, sizeof(TYPE));
-//    	buf.add_size_by(sizeof(TYPE));
-//    	stmt->write_to_buf(buf);
     }
 
     void read_from_buf(char* buf, size_t bufsize){
@@ -214,37 +157,12 @@ public:
             content.push_back(ir);
             offset += sizeof(IR);
         }
-//    	TYPE type = *((TYPE*)(buf + offset));
-//    	offset += sizeof(TYPE);
-//
-//    	switch(type){
-//    	case TYPE::Assign: stmt = new AssignStmt(); break;
-//    	case TYPE::Load: stmt = new LoadStmt(); break;
-//    	case TYPE::Store: stmt = new StoreStmt(); break;
-//    	case TYPE::Alloca: stmt = new AllocStmt(); break;
-//    	case TYPE::Phi: stmt = new PhiStmt(); break;
-//    	case TYPE::Call: stmt = new CallStmt(); break;
-//    	case TYPE::Return: stmt = new ReturnStmt(); break;
-//    	case TYPE::Ret: stmt = new RetStmt(); break;
-//    	case TYPE::Skip: stmt = new SkipStmt(); break;
-//    	case TYPE::Callfptr: stmt = new CallfptrStmt(); break;
-//    	case TYPE::Calleefptr: stmt = new CalleefptrStmt(); break;
-//    	default:
-//    		cout << "wrong stmt type!!!" << endl;
-//    		exit(EXIT_FAILURE);
-//    	}
-//
-//    	stmt->read_from_buf(buf, offset, bufsize);
     }
 
     inline Stmt* getStmt() const {
         //return stmt;
         return nullptr;
     }
-
-//	inline PEGraph_Pointer getInPointer() const {
-//		return in_pointer;
-//	}
 
     inline PEGraph_Pointer getOutPointer() const {
         return id;
@@ -272,21 +190,10 @@ public:
     }
 
 
-
-
-
-
 private:
     PEGraph_Pointer id;
 
     std::vector<IR> content;
-    // int len = 0;
-    //std:: int *content;
-
-    //Stmt* stmt = nullptr;
-
-
-
 };
 
 

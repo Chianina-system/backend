@@ -39,18 +39,7 @@ public:
         for (auto &node : nodes) {
             delete node;
         }
-
-//        for (auto &it : succes) {
-//            for (auto &k : it.second) {
-//                delete k;
-//            }
-//        }
-
     }
-
-//    virtual std::vector<CFGNode*>* getPredesessors(const CFGNode* node) = 0;
-//
-//    virtual std::vector<CFGNode*>* getSuccessors(const CFGNode* node) = 0;
 
     std::vector<CFGNode*>* getPredesessors(const CFGNode* node) {
         auto it = predes.find(node);
@@ -58,10 +47,7 @@ public:
             return &(it->second);
         }
         else{
-//        	return std::vector<CFGNode*>();
         	return nullptr;
-//            perror("invalid key!");
-//            exit (EXIT_FAILURE);
         }
     }
 
@@ -75,21 +61,8 @@ public:
             return &(it->second);
         }
         else{
-//        	return std::vector<CFGNode*>();
             return nullptr;
-//            perror("invalid key!");
-//            exit (EXIT_FAILURE);
         }
-//        auto it = succes.find(node);
-//        if(it != succes.end()){
-//            return &(it->second);
-//        }
-//        else{
-////        	return std::vector<CFGNode*>();
-//        	return nullptr;
-////            perror("invalid key!");
-////            exit (EXIT_FAILURE);
-//        }
     }
 
     inline std::vector<CFGNode*>& getNodes() {

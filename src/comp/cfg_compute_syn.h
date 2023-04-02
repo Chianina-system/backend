@@ -24,10 +24,6 @@
 #include "peg_compute.h"
 #include "peg_compute_parallel.h"
 #include "../utility/timer_sum.hpp"
-//#include "../utility/timer_diff.hpp"
-//#include "../utility/timer_sum_sync.hpp"
-//#include "../utility/Timer_wrapper.h"
-//#include "stmt/stmt_callfptr.h"
 
 using namespace std;
 
@@ -39,9 +35,6 @@ public:
     		const string& file_singleton, Singletons* singletons, GraphStore *graphstore, const string& file_grammar, Grammar * grammar){
     	CFG_map* cfg = dynamic_cast<CFG_map*>(cfg_);
     	cfg->loadCFG(file_cfg, file_stmt, file_entries);
-
-//    	graphstore->init(cfg_);
-//    	graphstore->loadGraphStore(file_singleton);
 
         /* TODO: load grammar from file */
         grammar->loadGrammar(file_grammar.c_str());
@@ -56,30 +49,6 @@ public:
 
     static PEGraph* transfer(PEGraph* in, Stmt* stmt, Grammar* grammar, Singletons* singletons, bool flag,
     		Timer_wrapper_inmemory* timer = nullptr){
-//        switch(stmt->getType()){
-//            case TYPE::Assign:
-//                return transfer_copy(in, (AssignStmt*)stmt, grammar, singletons, flag, timer);
-//            case TYPE::Load:
-//                return transfer_load(in, (LoadStmt*)stmt, grammar, singletons, flag, timer);
-//            case TYPE::Store:
-//                return transfer_store(in, (StoreStmt*)stmt, grammar, singletons, flag, timer);
-//            case TYPE::Alloca:
-//                return transfer_address(in, (AllocStmt*)stmt, grammar, singletons, flag, timer);
-//            case TYPE::Phi:
-//            	return transfer_phi(in, (PhiStmt*)stmt, grammar, singletons, flag, timer);
-//            case TYPE::Call:
-//            	return transfer_call(in);
-//            case TYPE::Return:
-//            	return transfer_return(in);
-//            case TYPE::Ret:
-//            	return transfer_ret(in);
-//            case TYPE::Skip:
-//            	return transfer_skip(in);
-//            case TYPE::Callfptr:
-//            	return transfer_callfptr(in);
-//            case TYPE::Calleefptr:
-//                return transfer_calleefptr(in);
-//            default:
                 return nullptr;
 
     }
@@ -109,39 +78,7 @@ public:
 	}
 
 	static void propagate(CFGNode *cfg_node, CFG *cfg, PEGraph *out, Grammar *grammar, Concurrent_Worklist<CFGNode*> *worklist_2) {
-//		//propagate
-//		if (cfg_node->getStmt()->getType() == TYPE::Callfptr) {
-//			//to deal with function pointer callsite
-//			std::vector<CFGNode*> *successors = cfg->getSuccessors(cfg_node);
-//			if (successors) {
-//				for (auto it = successors->cbegin(); it != successors->cend(); ++it) {
-//					CFGNode *suc = *it;
-//					if(suc->getStmt() && suc->getStmt()->getType() == TYPE::Calleefptr){
-//						if (CFGCompute_syn::isFeasible(suc->getStmt(), cfg_node->getStmt(), out, grammar)) {
-//							worklist_2->push_atomic(*it);
-//						}
-//					}
-//					else{
-//						worklist_2->push_atomic(*it);
-//					}
-//				}
-//			}
-//		}
-//		else {
-//			//propagate
-//			std::vector<CFGNode*> *successors = cfg->getSuccessors(cfg_node);
-//			if (successors) {
-//				for (auto it = successors->cbegin(); it != successors->cend(); ++it) {
-//					CFGNode* suc = *it;
-//					if(suc->getStmt() && suc->getStmt()->getType() == TYPE::Return && ((ReturnStmt*)(suc->getStmt()))->getLength() == 0 &&
-//							(cfg_node->getStmt()->getType() == TYPE::Callfptr || cfg_node->getStmt()->getType() == TYPE::Call)){
-//						continue;
-//					}
-//
-//					worklist_2->push_atomic(*it);
-//				}
-//			}
-//		}
+        
 	}
 
 private:

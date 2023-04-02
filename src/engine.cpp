@@ -22,7 +22,7 @@
 //const string file_stmts = dir + "id_stmt_info.txt";
 //const string file_singletons = dir + "var_singleton_info.txt";
 //const string file_grammar = "/home/dell/GraphFlow/Ouroboros-dataset-master/rules_pointsto.txt";
-const string file_grammar = "/home/decxu/Documents/analysis_data/simple/rules_pointsto.txt";
+const string file_grammar = "/home/szw/wen/aug_bigdataflow/validate_dir/backend-alias_analysis/rules_pointsto.txt";
 
 /* function declaration */
 void run_inmemory(int, bool, bool, const string& file_total, const string& file_entries, const string& file_cfg, const string& file_stmts, const string& file_singletons);

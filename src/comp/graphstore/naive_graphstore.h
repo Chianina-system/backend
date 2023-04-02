@@ -26,66 +26,13 @@ public:
 	NaiveGraphStore(bool file_mode, bool buffered_m) : GraphStore (file_mode, buffered_m) {
 
 	}
-
-
-    ~NaiveGraphStore(){
-    	for(auto it = cache_map.begin(); it != cache_map.end(); ++it){
-    		delete it->second;
-    	}
-//    	clear();
+  
+	~NaiveGraphStore(){
+    for(auto it = cache_map.begin(); it != cache_map.end(); ++it){
+    	delete it->second;
     }
-
-//    void init(CFG* cfg) {
-//    	std::vector<CFGNode*> nodes = cfg->getNodes();
-//    	for(auto & node: nodes){
-//    		PEGraph_Pointer graph_pointer = node->getOutPointer();
-//        	if(cache_map.find(graph_pointer) == map.end()){
-//                cache_map[graph_pointer] = new PEGraph();
-//        	}
-//    	}
-//    }
-
-
-//    void load_onebyone(const string& file){
-//    	//for debugging
-//    	Logger::print_thread_info_locked("load-readable starting...\n", LEVEL_LOG_FUNCTION);
-//
-//	    std::ifstream fin;
-//	    fin.open(file);
-//	    if(!fin) {
-//	        cout << "can't load file_graphs: " << file << endl;
-////	        exit (EXIT_FAILURE);
-//	    }
-//	    else{
-//			std::string line;
-//			while (getline(fin, line)) {
-//				if(line == ""){
-//					continue;
-//				}
-//
-//				std::stringstream stream(line);
-//				std::string id;
-//				stream >> id;
-//				PEGraph_Pointer graph_pointer = atoi(id.c_str());
-//				PEGraph* pegraph = new PEGraph();
-//				pegraph->load_readable(stream);
-//				//since the file is appended, we just use the recent updated pegraph
-//				if (map.find(graph_pointer) != map.end()) {
-//					delete map[graph_pointer];
-//				}
-//				map[graph_pointer] = pegraph;
-//			}
-//			fin.close();
-//
-//	    	//delete the old graphstore file
-//	    	FileUtil::delete_file(file);
-//	    }
-//
-//		//for debugging
-//		Logger::print_thread_info_locked("load-readable finished.\n", LEVEL_LOG_FUNCTION);
-//
-//    }
-
+//    	clear();
+  }
 
     void loadGraphStore(const string& file, const string& file_graphs_in, Partition part, int mining_mode = -1, int support = 0, int length = 0) {
     	//graphstore file
@@ -106,17 +53,6 @@ public:
 
     	if(file_mode){
     	    cout << "wrong file_mode" << endl;
-//    		ofstream myfile;
-//    		myfile.open(file, std::ofstream::out);
-//    		if (myfile.is_open()){
-//    			for (auto& n : map) {
-//    				//write a pegraph into file
-//    		    	myfile << n.first << "\t";
-//    		    	n.second->write_readable(myfile);
-//    		    	myfile << "\n";
-//    			}
-//    			myfile.close();
-//    		}
     	}
     	else{
     		FILE *f = fopen(file.c_str(),"wb");
@@ -135,23 +71,10 @@ public:
                         fwrite(buf, bufsize, 1, f);
                         free(buf);
                     }
-//    				for (auto& n : map) {
-//    					PEGraph* pegraph = n.second;
-//    					size_t bufsize = sizeof(PEGraph_Pointer) + pegraph->compute_size_bytes();
-//    					fwrite((const void*)& bufsize, sizeof(size_t), 1, f);
-//    					char *buf = (char*)malloc(bufsize);
-//    					pegraph->write_to_buf(buf, n.first);
-//    					fwrite(buf, bufsize, 1, f);
-//    					free(buf);
-//    				}
+
     			}
     			else{//field-level
     			    cout << "serialize field-level not realize" << endl;
-//					for (auto& n : map) {
-//						PEGraph_Pointer graph_pointer = n.first;
-//						fwrite((const void*)& graph_pointer, sizeof(PEGraph_Pointer), 1, f);
-//						n.second->write_unreadable(f);
-//					}
     			}
 
 				fclose(f);
@@ -165,36 +88,6 @@ public:
     void deserialize(const string& file){
     	if(file_mode){
     	    cout << "wrong file_mode" << endl;
-//    	    std::ifstream fin;
-//    	    fin.open(file);
-//    	    if(!fin) {
-//    	        cout << "can't load graphs file: " << file << endl;
-//    //	        exit (EXIT_FAILURE);
-//    	    }
-//    	    else{
-//    			std::string line;
-//    			while (getline(fin, line)) {
-//    				if(line == ""){
-//    					continue;
-//    				}
-//
-//    				std::stringstream stream(line);
-//    				std::string id;
-//    				stream >> id;
-//    				PEGraph_Pointer graph_pointer = atoi(id.c_str());
-//    				PEGraph* pegraph = new PEGraph();
-//    				pegraph->load_readable(stream);
-//    				//since the file is appended, we just use the recent updated pegraph
-//    				if (cache_map.find(graph_pointer) != cache_map.end()) {
-//    					delete cache_map[graph_pointer];
-//    				}
-//                    cache_map[graph_pointer] = pegraph;
-//    			}
-//    			fin.close();
-//
-//    	    	//delete the old graphstore file
-//    	    	FileUtil::delete_file(file);
-//    	    }
     	}
     	else{
     		FILE *fp = fopen(file.c_str(),"rb");
@@ -324,28 +217,6 @@ public:
         return out;
     }
 
-//    PEGraph* retrieve_shallow(PEGraph_Pointer graph_pointer){
-////    	//for debugging
-////    	Logger::print_thread_info_locked("retrieve starting...\n", LEVEL_LOG_FUNCTION);
-//
-//    	PEGraph* out;
-//
-//    	if(map.find(graph_pointer) != map.end()){
-////    		Logger::print_thread_info_locked("retrieving +++++++++++++++++++++++ " +  to_string((long) map[graph_pointer]) + " +++++++++++++++++++++++\n", LEVEL_LOG_GRAPHSTORE) ;
-//    		out = map[graph_pointer];
-//    	}
-//    	else{
-////    		out = new PEGraph();
-//    		out = nullptr;
-//    	}
-//
-//    	//for debugging
-////    	Logger::print_thread_info_locked("retrieve finished.\n", LEVEL_LOG_FUNCTION);
-//
-//    	return out;
-//    }
-
-
     //deep copy
     cachestate* retrieve(PEGraph_Pointer graph_pointer){
         cachestate* out;
@@ -363,95 +234,20 @@ public:
         return out;
     }
 
-//    //deep copy; locked version for asynchronous mode
-//    void update_locked(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
-//    	std::lock_guard<std::mutex> lockGuard(mutex);
-//    	update(graph_pointer, pegraph);
-//    }
-
 
     //shallow copy
     void update_shallow(PEGraph_Pointer graph_pointer, cachestate* pegraph) {
-//    	//for debugging
-//    	Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
-
 //    	assert(map.find(graph_pointer) != map.end());
     	if(cache_map.find(graph_pointer) != cache_map.end()){
-//    		Logger::print_thread_info_locked("deleting +++++++++++++++++++++++ " +  to_string((long) map[graph_pointer]) + " +++++++++++++++++++++++\n", LEVEL_LOG_GRAPHSTORE) ;
-			delete cache_map[graph_pointer];
+				delete cache_map[graph_pointer];
     	}
-        cache_map[graph_pointer] = pegraph;
-
-    	//for debugging
-//    	Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
+      cache_map[graph_pointer] = pegraph;
     }
-
-    //deep copy
-//    void update(PEGraph_Pointer graph_pointer, PEGraph* pegraph) {
-////    	//for debugging
-////    	Logger::print_thread_info_locked("update starting...\n", LEVEL_LOG_FUNCTION);
-//
-////    	assert(map.find(graph_pointer) != map.end());
-//    	if(cache_map.find(graph_pointer) != cache_map.end()){
-////    		Logger::print_thread_info_locked("deleting +++++++++++++++++++++++ " +  to_string((long) map[graph_pointer]) + " +++++++++++++++++++++++\n", LEVEL_LOG_GRAPHSTORE) ;
-//			delete cache_map[graph_pointer];
-//    	}
-//        cache_map[graph_pointer] = new PEGraph(pegraph);
-//
-//    	//for debugging
-////    	Logger::print_thread_info_locked("update finished.\n", LEVEL_LOG_FUNCTION);
-//    }
-
-    //shallow copy
-//    void addOneGraph_atomic(PEGraph_Pointer pointer, PEGraph* graph){
-//    	std::lock_guard<std::mutex> lGuard (mtx);
-//    	this->map[pointer] = graph;
-//    }
 
     void addOneGraph_atomic(PEGraph_Pointer pointer, cachestate* graph) {
         std::lock_guard<std::mutex> lGuard (mtx);
         this->cache_map[pointer] = graph;
     }
-
-//    static void update_parallel(NaiveGraphStore* current, NaiveGraphStore* another, Concurrent_Worklist<vertexid_t>* worklist){
-//    	vertexid_t id = -1;
-//    	while(worklist->pop_atomic(id)){
-//    		assert(current->cache_map.find(id) != current->cache_map.end());
-//    		current->update(id, another->cache_map.at(id));
-//    	}
-//    }
-
-//    void update_graphs_parallel(GraphStore* another){
-//	    //initiate concurrent worklist
-//	    Concurrent_Worklist<vertexid_t>* worklist = new Concurrent_Workset<vertexid_t>();
-//	    NaiveGraphStore* another_graphstore = dynamic_cast<NaiveGraphStore*>(another);
-//	    for(auto& it: another_graphstore->cache_map){
-//	        worklist->push_atomic(it.first);
-//
-//			//initialize the graphstore
-//	        if(map.find(it.first) == map.end()){
-//	        	map[it.first] = new PEGraph();
-//	        }
-//	    }
-//
-//		std::vector<std::thread> comp_threads;
-//		for (unsigned int i = 0; i < NUM_THREADS; i++)
-//			comp_threads.push_back(std::thread([=] {update_parallel(this, another_graphstore, worklist);}));
-//
-//		for (auto &t : comp_threads)
-//			t.join();
-//
-//	    //clean
-//	    delete(worklist);
-//    }
-
-//    void update_graphs_sequential(GraphStore* another){
-//    	NaiveGraphStore* another_graphstore = dynamic_cast<NaiveGraphStore*>(another);
-//    	for(auto& it: another_graphstore->cache_map){
-//    		update(it.first, it.second);
-//    	}
-//    }
-
 
     void update_graphs_shallow(GraphStore* another, bool update_mode){
     	//for debugging
@@ -508,56 +304,12 @@ public:
     	}
     }
 
-
-
-
-
-//    void update_graphs(GraphStore* another){
-////    	update_graphs_sequential(another); // sequential
-//    	update_graphs_parallel(another); // in parallel
-//    }
-
-//    void clearEntryOnly(){
-//    	this->map.clear();
-//    }
-
-//    void clear(){
-//    	for(auto it = cache_map.begin(); it != cache_map.end(); ){
-//    		delete it->second;
-//    		it = cache_map.erase(it);
-//    	}
-//    }
-
     void clear_shallow(){
 //    	for(auto it = map.begin(); it != map.end(); ){
 //    		it = map.erase(it);
 //    	}
     	this->cache_map.clear();
     }
-
-
-//    void printOutInfo(){
-//    	int size_graphs = map.size();
-//    	long size_edges = 0;
-//
-//    	cout << "GraphStore Info >>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
-//
-//    	std::map<PEGraph_Pointer, int> sorted;
-//
-//    	for(auto it = map.begin(); it != map.end(); ++it){
-////    		cout << it->first << "\t" << it->second->getNumEdges() << endl;
-////    		sorted[it->first] = it->second->getNumEdges();
-//    		size_edges += it->second->getNumEdges();
-//    	}
-//
-////    	cout << "\n\n";
-////    	for(auto& it: sorted){
-////    		cout << it.first << "\t" << it.second << endl;
-////    	}
-//
-//    	cout << "Number of graphs: " << size_graphs << endl;
-//    	cout << "Number of edges: " << size_edges << endl;
-//    }
 
 
     std::unordered_map<PEGraph_Pointer, cachestate*>& getMap() {
@@ -569,40 +321,22 @@ public:
     	for(auto it = cache_map.begin(); it != cache_map.end(); ++it){
     	    //cout << "id: " << it->first << endl;
     		if(mirrors.find(it->first) == mirrors.end()){
-                for (int i = 0; i < CacheLinesPerSet; ++i) {
-                    size_graphitems += it->second->IRs_Icache[i].size();
-                    //if(it->second->IRs_Icache[i].size() != 0);
-                    //cout << it->second->IRs_Icache[i].getStatisticssize() << endl;
-                }
-				size_graphs++;
+          for (int i = 0; i < CacheLinesPerSet; ++i) {
+            size_graphitems += it->second->IRs_Icache[i].size();
+          }
+					size_graphs++;
     		}
     	}
     }
 
 
 protected:
-//    void print(std::ostream& str) {
-//    	std::lock_guard<std::mutex> lGuard (mtx);
-//    	str << "The number of graphs is: " << map.size() << "\n";
-//    	for(auto it = map.begin(); it != map.end(); ++it){
-//    		str << ">>>>" << it->first << " " << *(it->second) << endl;
-//    	}
-//    }
-//
-//    void toString_sub(std::ostringstream& str) {
-//    	std::lock_guard<std::mutex> lGuard (mtx);
-//    	str << "The number of graphs is: " << map.size() << "\n";
-//    	for(auto it = map.begin(); it != map.end(); ++it){
-//    		str << ">>>>" << it->first << " " << *(it->second) << endl;
-//    	}
-//    }
+
 
 
 private:
 	//std::unordered_map<PEGraph_Pointer, PEGraph*> map;
     std::unordered_map<PEGraph_Pointer, cachestate*> cache_map;
-
-
 
 };
 
